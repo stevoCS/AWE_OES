@@ -86,6 +86,20 @@ async def health_check():
         "version": "1.0.0"
     }
 
+@app.get("/healthz")
+async def health_check_z():
+    """Health check endpoint for Render.com (alternative path)"""
+    from database.connection import test_connection
+    
+    db_status = "connected" if await test_connection() else "disconnected"
+    
+    return {
+        "status": "healthy",
+        "message": "API service is running normally",
+        "database": db_status,
+        "version": "1.0.0"
+    }
+
 if __name__ == "__main__":
     import uvicorn
     
