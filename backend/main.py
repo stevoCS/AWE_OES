@@ -29,6 +29,8 @@ allowed_origins = [
     "http://localhost:5173",  # Vite development server
     "http://localhost:5174",  # Vite development server (current)
     "https://awe-oes.vercel.app",  # Vercel production
+    "https://awe-76f7p55bb-stevocs-projects.vercel.app",  # Current Vercel URL
+    "https://*.vercel.app",  # All Vercel subdomains
     frontend_url,
     "http://127.0.0.1:5173",
     "http://127.0.0.1:5174", 
@@ -39,8 +41,8 @@ allowed_origins = [
 # CORS middleware configuration
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=allowed_origins,
-    allow_credentials=True,
+    allow_origins=["*"],  # Temporarily allow all origins for immediate fix
+    allow_credentials=False,  # Must be False when using "*"
     allow_methods=["*"],  # Allow all HTTP methods
     allow_headers=["*"],  # Allow all request headers
     expose_headers=["*"]  # Expose all response headers
