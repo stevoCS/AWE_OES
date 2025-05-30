@@ -1,7 +1,22 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.base import BaseHTTPMiddleware
 from dotenv import load_dotenv
 import os
+
+# Custom CORS middleware to handle all CORS issues
+class CustomCORSMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request: Request, call_next):
+        if request.method == "OPTIONS":
+            response = Response(status_code=200)
+        else:
+            response = await call_next(request)
+        
+        response.headers["Access-Control-Allow-Origin"] = "*"
+        response.headers["Access-Control-Allow-Methods"] = "GET, POST, PUT, DELETE, OPTIONS"
+        response.headers["Access-Control-Allow-Headers"] = "*"
+        response.headers["Access-Control-Allow-Credentials"] = "false"
+        return response
 
 from database.connection import connect_to_mongo, close_mongo_connection
 from routes.auth import router as auth_router
@@ -17,30 +32,19 @@ load_dotenv("config.env")
 app = FastAPI(
     title="AWE Electronics Online Store API",
     description="AWE Electronics online store backend API",
-    version="1.0.0",
+    version="1.0.1",  # Updated version to verify deployment
     docs_url="/docs",
     redoc_url="/redoc"
 )
 
-# Get CORS origins from environment
-frontend_url = os.getenv("FRONTEND_URL", "http://localhost:5174")
-allowed_origins = [
-    "http://localhost:3000",  # React development server
-    "http://localhost:5173",  # Vite development server
-    "http://localhost:5174",  # Vite development server (current)
-    "https://awe-oes.vercel.app",  # Vercel production
-    frontend_url,
-    "http://127.0.0.1:5173",
-    "http://127.0.0.1:5174", 
-    "http://127.0.0.1:3000",
-    "https://awe-oes.onrender.com",
-]
+# Add custom CORS middleware
+app.add_middleware(CustomCORSMiddleware)
 
-# CORS middleware configuration
+# Also add standard CORS middleware as backup
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=allowed_origins,
-    allow_credentials=True,
+    allow_origins=["*"],  # Allow all origins
+    allow_credentials=False,  # Must be False when allow_origins is ["*"]
     allow_methods=["*"],  # Allow all HTTP methods
     allow_headers=["*"],  # Allow all request headers
     expose_headers=["*"]  # Expose all response headers
