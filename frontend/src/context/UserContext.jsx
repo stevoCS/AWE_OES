@@ -16,6 +16,8 @@ export const useUser = () => {
 export const UserProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [cartMergeCallback, setCartMergeCallback] = useState(null);
+  const [cartLogoutCallback, setCartLogoutCallback] = useState(null);
 
   // Restore user status from localStorage
   useEffect(() => {
@@ -40,7 +42,13 @@ export const UserProvider = ({ children }) => {
     }
   }, [user]);
 
-      // Login function
+  // Register cart callbacks
+  const registerCartCallbacks = (mergeCallback, logoutCallback) => {
+    setCartMergeCallback(() => mergeCallback);
+    setCartLogoutCallback(() => logoutCallback);
+  };
+
+  // Login function
   const login = async (email, password) => {
     try {
       setIsLoading(true);
@@ -57,6 +65,12 @@ export const UserProvider = ({ children }) => {
         };
         
         setUser(userData);
+        
+        // Merge guest cart with user cart after successful login
+        if (cartMergeCallback) {
+          cartMergeCallback();
+        }
+        
         return { success: true, user: userData };
       } else {
         return { success: false, error: 'Email and password cannot be empty' };
@@ -88,6 +102,12 @@ export const UserProvider = ({ children }) => {
       };
       
       setUser(newUser);
+      
+      // Merge guest cart with user cart after successful registration
+      if (cartMergeCallback) {
+        cartMergeCallback();
+      }
+      
       return { success: true, user: newUser };
     } catch (error) {
       console.error('Registration error:', error);
@@ -99,6 +119,11 @@ export const UserProvider = ({ children }) => {
 
   // Logout function
   const logout = () => {
+    // Clear user cart before logout
+    if (cartLogoutCallback) {
+      cartLogoutCallback();
+    }
+    
     setUser(null);
     localStorage.removeItem('user');
   };
@@ -121,7 +146,8 @@ export const UserProvider = ({ children }) => {
     login,
     register,
     logout,
-    updateUser
+    updateUser,
+    registerCartCallbacks
   };
 
   return (

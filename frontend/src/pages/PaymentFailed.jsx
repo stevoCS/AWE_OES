@@ -1,4 +1,3 @@
-// Product.jsx (或者 ProductPage.jsx)
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { SearchIcon, ShoppingCartIcon } from '../components/ui/icons';
@@ -6,29 +5,7 @@ import { useUser } from '../context/UserContext';
 import { useCart } from '../context/CartContext';
 import logoIcon from '../assets/Vector - 0.svg';
 
-// Import product images
-import laptopImg from '../assets/laptop.png';
-import phoneImg from '../assets/Phone.png';
-import speakerImg from '../assets/Speaker.png';
-import watchImg from '../assets/smartwatch.png';
-import mouseImg from '../assets/Wireless mouse.png';
-import chargerImg from '../assets/Well charger.png';
-import vrImg from '../assets/VR Headset.png';
-import keyboardImg from '../assets/Keyboard.png';
-
-// Product data
-const products = [
-  { id: 1, name: 'UltraBook Pro 15', image: laptopImg, price: 2999, desc: 'Powerful and portable laptop with latest Intel processor', category: 'Laptops' },
-  { id: 2, name: 'Galaxy X50', image: phoneImg, price: 899, desc: 'Next-gen mobile experience with 5G connectivity', category: 'Phones' },
-  { id: 3, name: 'SmartHome Speaker', image: speakerImg, price: 299, desc: 'Immersive home environment with voice control', category: 'Audio' },
-  { id: 4, name: 'FitTrack Smartwatch', image: watchImg, price: 399, desc: 'Track your fitness journey with advanced sensors', category: 'Wearables' },
-  { id: 5, name: 'Wireless Mouse', image: mouseImg, price: 79, desc: 'Smooth and precise wireless mouse', category: 'Accessories' },
-  { id: 6, name: 'Wall Charger', image: chargerImg, price: 49, desc: 'Fast charging wall adapter', category: 'Accessories' },
-  { id: 7, name: 'VR Headset', image: vrImg, price: 599, desc: 'Immersive VR experience with 4K display', category: 'Gaming' },
-  { id: 8, name: 'Apple Keyboard', image: keyboardImg, price: 179, desc: 'Sleek and responsive wireless keyboard', category: 'Accessories' },
-];
-
-const ProductPage = () => {
+const PaymentFailed = () => {
   const { user, isLoggedIn } = useUser();
   const { getCartItemsCount } = useCart();
 
@@ -136,7 +113,7 @@ const ProductPage = () => {
             />
           </div>
 
-          {/* User Login/Dashboard Link */}
+          {/* User Status Display */}
           {isLoggedIn ? (
             <Link to="/dashboard" style={{
               fontSize: '14px',
@@ -163,7 +140,7 @@ const ProductPage = () => {
             </Link>
           )}
 
-          {/* Cart Button with Counter */}
+          {/* Cart Icon */}
           <Link to="/cart" style={{
             position: 'relative',
             padding: '8px',
@@ -171,7 +148,7 @@ const ProductPage = () => {
             borderRadius: '8px',
             textDecoration: 'none'
           }}>
-            <ShoppingCartIcon style={{ width: '17px', height: '17px', color: '#111416' }} />
+            <ShoppingCartIcon style={{ width: '17px', height: '17px', color: '#121417' }} />
             {getCartItemsCount() > 0 && (
               <span style={{
                 position: 'absolute',
@@ -195,151 +172,184 @@ const ProductPage = () => {
         </div>
       </header>
 
-      {/* Breadcrumb */}
-      <div style={{
-        padding: '20px 40px',
-        backgroundColor: 'white',
-        borderBottom: '1px solid #e5e8eb'
-      }}>
-        <div style={{
-          fontSize: '14px',
-          color: '#61758A'
-        }}>
-          <Link to="/" style={{ color: '#61758A', textDecoration: 'none' }}>Home</Link>
-          <span style={{ margin: '0 8px' }}>&gt;</span>
-          <span style={{ color: '#121417' }}>All Products</span>
-        </div>
-      </div>
-
       {/* Main Content */}
       <main style={{
         display: 'flex',
         justifyContent: 'center',
-        padding: '40px 20px'
+        padding: '40px 20px',
+        minHeight: 'calc(100vh - 200px)'
       }}>
         <div style={{
           width: '100%',
-          maxWidth: '1200px'
+          maxWidth: '600px',
+          backgroundColor: 'white',
+          borderRadius: '8px',
+          padding: '48px',
+          textAlign: 'center',
+          boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
         }}>
+          {/* Error Icon */}
+          <div style={{
+            width: '80px',
+            height: '80px',
+            borderRadius: '50%',
+            backgroundColor: '#dc2626',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            margin: '0 auto 24px auto'
+          }}>
+            <span style={{
+              fontSize: '40px',
+              color: 'white'
+            }}>
+              ✕
+            </span>
+          </div>
+
+          {/* Error Message */}
           <h1 style={{
             fontSize: '32px',
             fontWeight: '700',
             color: '#121417',
-            margin: '0 0 40px 0'
+            margin: '0 0 16px 0'
           }}>
-            All Products
+            Payment Failed
           </h1>
 
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-            gap: '24px'
+          <p style={{
+            fontSize: '18px',
+            color: '#61758A',
+            margin: '0 0 32px 0',
+            lineHeight: 1.5
           }}>
-            {products.map((product) => (
-              <Link
-                key={product.id}
-                to={`/product/${product.id}`}
-                style={{
-                  textDecoration: 'none',
-                  color: 'inherit'
-                }}
-              >
-                <div style={{
-                  backgroundColor: 'white',
-                  borderRadius: '12px',
-                  padding: '20px',
-                  boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
-                  transition: 'transform 0.2s, box-shadow 0.2s',
-                  cursor: 'pointer'
-                }}
-                onMouseOver={(e) => {
-                  e.currentTarget.style.transform = 'translateY(-4px)';
-                  e.currentTarget.style.boxShadow = '0 4px 16px rgba(0, 0, 0, 0.15)';
-                }}
-                onMouseOut={(e) => {
-                  e.currentTarget.style.transform = 'translateY(0)';
-                  e.currentTarget.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.1)';
-                }}
-                >
-                  {/* Category Badge */}
-                  <div style={{ marginBottom: '12px' }}>
-                    <span style={{
-                      backgroundColor: '#e3f2fd',
-                      color: '#1976d2',
-                      padding: '4px 8px',
-                      borderRadius: '12px',
-                      fontSize: '11px',
-                      fontWeight: '500'
-                    }}>
-                      {product.category}
-                    </span>
-                  </div>
+            We were unable to process your payment. Please review the details below and try again.
+          </p>
 
-                  {/* Product Image */}
-                  <div style={{
-                    width: '100%',
-                    height: '200px',
-                    borderRadius: '8px',
-                    overflow: 'hidden',
-                    marginBottom: '16px'
-                  }}>
-                    <img
-                      src={product.image}
-                      alt={product.name}
-                      style={{
-                        width: '100%',
-                        height: '100%',
-                        objectFit: 'cover'
-                      }}
-                    />
-                  </div>
+          {/* Error Details */}
+          <div style={{
+            backgroundColor: '#fef2f2',
+            border: '1px solid #fecaca',
+            borderRadius: '8px',
+            padding: '24px',
+            marginBottom: '32px',
+            textAlign: 'left'
+          }}>
+            <h2 style={{
+              fontSize: '18px',
+              fontWeight: '600',
+              color: '#dc2626',
+              margin: '0 0 16px 0',
+              textAlign: 'center'
+            }}>
+              Common Issues
+            </h2>
 
-                  {/* Product Info */}
-                  <h3 style={{
-                    fontSize: '18px',
-                    fontWeight: '600',
-                    color: '#121417',
-                    margin: '0 0 8px 0'
-                  }}>
-                    {product.name}
-                  </h3>
+            <ul style={{
+              fontSize: '16px',
+              color: '#7f1d1d',
+              margin: 0,
+              paddingLeft: '20px',
+              lineHeight: 1.6
+            }}>
+              <li>Insufficient funds in your account</li>
+              <li>Incorrect card number or security code</li>
+              <li>Card has expired or been declined by your bank</li>
+              <li>Billing address doesn't match card details</li>
+              <li>Daily transaction limit exceeded</li>
+            </ul>
+          </div>
 
-                  <p style={{
-                    fontSize: '14px',
-                    color: '#61758A',
-                    margin: '0 0 16px 0',
-                    lineHeight: 1.4
-                  }}>
-                    {product.desc}
-                  </p>
+          {/* Suggestions */}
+          <div style={{
+            backgroundColor: '#f0f7ff',
+            border: '1px solid #bfdbfe',
+            borderRadius: '8px',
+            padding: '24px',
+            marginBottom: '32px',
+            textAlign: 'left'
+          }}>
+            <h2 style={{
+              fontSize: '18px',
+              fontWeight: '600',
+              color: '#1d4ed8',
+              margin: '0 0 16px 0',
+              textAlign: 'center'
+            }}>
+              What You Can Do
+            </h2>
 
-                  <div style={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center'
-                  }}>
-                    <span style={{
-                      fontSize: '20px',
-                      fontWeight: '700',
-                      color: '#121417'
-                    }}>
-                      ${product.price}
-                    </span>
-                    
-                    <div style={{
-                      backgroundColor: '#0D80F2',
-                      color: 'white',
-                      padding: '8px 16px',
-                      borderRadius: '6px',
-                      fontSize: '14px',
-                      fontWeight: '600'
-                    }}>
-                      View Details
-                    </div>
-                  </div>
-                </div>
-              </Link>
-            ))}
+            <ul style={{
+              fontSize: '16px',
+              color: '#1e3a8a',
+              margin: 0,
+              paddingLeft: '20px',
+              lineHeight: 1.6
+            }}>
+              <li>Double-check your card details and try again</li>
+              <li>Try a different payment method</li>
+              <li>Contact your bank to verify the transaction</li>
+              <li>Ensure your billing address is correct</li>
+            </ul>
+          </div>
+
+          {/* Action Buttons */}
+          <div style={{
+            display: 'flex',
+            gap: '16px',
+            justifyContent: 'center'
+          }}>
+            <Link
+              to="/payment"
+              style={{
+                backgroundColor: '#0D80F2',
+                color: 'white',
+                textDecoration: 'none',
+                padding: '12px 24px',
+                borderRadius: '8px',
+                fontSize: '16px',
+                fontWeight: '600'
+              }}
+            >
+              Retry Payment
+            </Link>
+
+            <Link
+              to="/order-confirmation"
+              style={{
+                backgroundColor: 'transparent',
+                color: '#0D80F2',
+                border: '1px solid #0D80F2',
+                textDecoration: 'none',
+                padding: '12px 24px',
+                borderRadius: '8px',
+                fontSize: '16px',
+                fontWeight: '600'
+              }}
+            >
+              Return to Order Confirmation
+            </Link>
+          </div>
+
+          <div style={{ marginTop: '24px' }}>
+            <p style={{
+              fontSize: '14px',
+              color: '#61758A',
+              margin: '0 0 8px 0'
+            }}>
+              Need help? Contact our support team
+            </p>
+            <Link
+              to="/customer-support"
+              style={{
+                color: '#0D80F2',
+                textDecoration: 'none',
+                fontSize: '16px',
+                fontWeight: '500'
+              }}
+            >
+              Customer Support
+            </Link>
           </div>
         </div>
       </main>
@@ -350,7 +360,7 @@ const ProductPage = () => {
         borderTop: '1px solid #e5e8eb',
         padding: '40px 20px',
         textAlign: 'center',
-        marginTop: '60px'
+        marginTop: '40px'
       }}>
         <div style={{
           maxWidth: '800px',
@@ -396,4 +406,4 @@ const ProductPage = () => {
   );
 };
 
-export default ProductPage;
+export default PaymentFailed; 

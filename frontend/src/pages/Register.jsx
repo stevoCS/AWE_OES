@@ -4,6 +4,7 @@ import { SearchIcon, ShoppingCartIcon } from '../components/ui/icons';
 import { Button } from '../components/ui/button';
 import { Card, CardContent } from '../components/ui/card';
 import { useUser } from '../context/UserContext';
+import { useCart } from '../context/CartContext';
 import './Login.css'; // Reuse the login page style
 import logoIcon from '../assets/Vector - 0.svg';
 
@@ -17,6 +18,7 @@ export const Register = () => {
   });
   const [error, setError] = useState('');
   const { register, isLoading } = useUser();
+  const { getCartItemsCount } = useCart();
   const navigate = useNavigate();
 
   // Footer links data
@@ -49,12 +51,20 @@ export const Register = () => {
       setError('Password must be at least 6 characters');
       return;
     }
+
+    // Check if user has items in cart before registration
+    const hasCartItems = getCartItemsCount() > 0;
     
     const result = await register(formData);
     
     if (result.success) {
-      // Registration successful, redirect to user dashboard
-      navigate('/dashboard');
+      // If user had items in cart, redirect to cart for checkout
+      // Otherwise redirect to dashboard
+      if (hasCartItems) {
+        navigate('/cart?from=auth');
+      } else {
+        navigate('/dashboard');
+      }
     } else {
       setError(result.error);
     }

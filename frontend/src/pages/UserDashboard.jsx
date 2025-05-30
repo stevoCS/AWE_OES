@@ -3,11 +3,22 @@ import { Link, useNavigate } from 'react-router-dom';
 import { SearchIcon, ShoppingCartIcon } from '../components/ui/icons';
 import { Button } from '../components/ui/button';
 import { useUser } from '../context/UserContext';
+import { useOrders } from '../context/OrderContext';
+import { useCart } from '../context/CartContext';
 import logoIcon from '../assets/Vector - 0.svg';
 
 export const UserDashboard = () => {
   const { user, logout, isLoggedIn } = useUser();
+  const { orders } = useOrders();
+  const { getCartItemsCount } = useCart();
   const navigate = useNavigate();
+
+  // Debug: Log orders data
+  React.useEffect(() => {
+    console.log('UserDashboard - Current orders:', orders);
+    console.log('UserDashboard - Orders length:', orders.length);
+    console.log('UserDashboard - User logged in:', isLoggedIn);
+  }, [orders, isLoggedIn]);
 
   // If the user is not logged in, redirect to the login page.
   React.useEffect(() => {
@@ -21,14 +32,27 @@ export const UserDashboard = () => {
     navigate('/');
   };
 
-  // Mock data for orders and invoices
-  const orderHistory = [
+  // Use real orders from context instead of mock data
+  const orderHistory = orders.length > 0 ? orders.map(order => ({
+    id: order.orderNumber,
+    date: order.date,
+    status: order.status,
+    total: `$${order.total.toFixed(2)}`,
+    tracking: 'View'
+  })) : [
+    // Fallback mock data if no orders exist
     { id: '#10545', date: '2023-06-15', status: 'Shipped', total: '$250.00', tracking: 'View' },
     { id: '#67800', date: '2023-07-20', status: 'Delivered', total: '$180.00', tracking: 'View' },
     { id: '#19525', date: '2023-06-05', status: 'Cancelled', total: '$320.00', tracking: 'View' }
   ];
 
-  const invoices = [
+  // Generate invoices based on real orders
+  const invoices = orders.length > 0 ? orders.map(order => ({
+    id: order.orderNumber,
+    date: order.date,
+    invoice: 'Download'
+  })) : [
+    // Fallback mock data
     { id: '#10545', date: '2023-06-15', invoice: 'Download' },
     { id: '#67800', date: '2023-07-20', invoice: 'Download' },
     { id: '#19525', date: '2023-06-05', invoice: 'Download' }
@@ -141,13 +165,34 @@ export const UserDashboard = () => {
           </div>
 
           {/* Cart Button */}
-          <Button variant="ghost" style={{
+          <Link to="/cart" style={{
+            position: 'relative',
             padding: '8px',
             backgroundColor: '#f0f2f5',
-            borderRadius: '8px'
+            borderRadius: '8px',
+            textDecoration: 'none'
           }}>
             <ShoppingCartIcon style={{ width: '17px', height: '17px', color: '#111416' }} />
-          </Button>
+            {getCartItemsCount() > 0 && (
+              <span style={{
+                position: 'absolute',
+                top: '-6px',
+                right: '-6px',
+                backgroundColor: '#dc2626',
+                color: 'white',
+                borderRadius: '50%',
+                width: '20px',
+                height: '20px',
+                fontSize: '12px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontWeight: '600'
+              }}>
+                {getCartItemsCount()}
+              </span>
+            )}
+          </Link>
 
           {/* User Avatar - clickable to go to Account Management */}
           <Link to="/account" style={{
@@ -298,9 +343,13 @@ export const UserDashboard = () => {
                           fontSize: '12px',
                           fontWeight: '500',
                           backgroundColor: order.status === 'Shipped' ? '#e3f2fd' : 
-                                          order.status === 'Delivered' ? '#e8f5e8' : '#ffebee',
+                                          order.status === 'Delivered' ? '#e8f5e8' : 
+                                          order.status === 'Processing' ? '#fff3cd' :
+                                          order.status === 'Cancelled' ? '#ffebee' : '#f8f9fa',
                           color: order.status === 'Shipped' ? '#1976d2' : 
-                                 order.status === 'Delivered' ? '#2e7d32' : '#d32f2f'
+                                 order.status === 'Delivered' ? '#2e7d32' : 
+                                 order.status === 'Processing' ? '#856404' :
+                                 order.status === 'Cancelled' ? '#d32f2f' : '#6c757d'
                         }}>
                           {order.status}
                         </span>
