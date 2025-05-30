@@ -1,36 +1,34 @@
-// Product.jsx (或者 ProductPage.jsx)
-import React from 'react';
-import { Link } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { Link, useSearchParams } from 'react-router-dom';
 import { SearchIcon, ShoppingCartIcon } from '../components/ui/icons';
 import { useUser } from '../context/UserContext';
 import { useCart } from '../context/CartContext';
+import { useOrders } from '../context/OrderContext';
 import logoIcon from '../assets/Vector - 0.svg';
 
-// Import product images
-import laptopImg from '../assets/laptop.png';
-import phoneImg from '../assets/Phone.png';
-import speakerImg from '../assets/Speaker.png';
-import watchImg from '../assets/smartwatch.png';
-import mouseImg from '../assets/Wireless mouse.png';
-import chargerImg from '../assets/Well charger.png';
-import vrImg from '../assets/VR Headset.png';
-import keyboardImg from '../assets/Keyboard.png';
-
-// Product data
-const products = [
-  { id: 1, name: 'UltraBook Pro 15', image: laptopImg, price: 2999, desc: 'Powerful and portable laptop with latest Intel processor', category: 'Laptops' },
-  { id: 2, name: 'Galaxy X50', image: phoneImg, price: 899, desc: 'Next-gen mobile experience with 5G connectivity', category: 'Phones' },
-  { id: 3, name: 'SmartHome Speaker', image: speakerImg, price: 299, desc: 'Immersive home environment with voice control', category: 'Audio' },
-  { id: 4, name: 'FitTrack Smartwatch', image: watchImg, price: 399, desc: 'Track your fitness journey with advanced sensors', category: 'Wearables' },
-  { id: 5, name: 'Wireless Mouse', image: mouseImg, price: 79, desc: 'Smooth and precise wireless mouse', category: 'Accessories' },
-  { id: 6, name: 'Wall Charger', image: chargerImg, price: 49, desc: 'Fast charging wall adapter', category: 'Accessories' },
-  { id: 7, name: 'VR Headset', image: vrImg, price: 599, desc: 'Immersive VR experience with 4K display', category: 'Gaming' },
-  { id: 8, name: 'Apple Keyboard', image: keyboardImg, price: 179, desc: 'Sleek and responsive wireless keyboard', category: 'Accessories' },
-];
-
-const ProductPage = () => {
+const PaymentSuccess = () => {
   const { user, isLoggedIn } = useUser();
   const { getCartItemsCount } = useCart();
+  const { getOrderById } = useOrders();
+  const [searchParams] = useSearchParams();
+  
+  // Get order number from URL parameters
+  const orderNumber = searchParams.get('orderNumber');
+  
+  // Get order data from context using order number
+  const orderData = orderNumber ? getOrderById(orderNumber) : null;
+  
+  // If no order found, create fallback data
+  const displayOrderData = orderData || {
+    orderNumber: 'AWE00000000',
+    orderDate: new Date().toLocaleDateString(),
+    estimatedDelivery: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toLocaleDateString(),
+    total: 0
+  };
+
+  console.log('PaymentSuccess - Order number from URL:', orderNumber);
+  console.log('PaymentSuccess - Order data from context:', orderData);
+  console.log('PaymentSuccess - Display order data:', displayOrderData);
 
   return (
     <div style={{
@@ -136,7 +134,7 @@ const ProductPage = () => {
             />
           </div>
 
-          {/* User Login/Dashboard Link */}
+          {/* User Status Display */}
           {isLoggedIn ? (
             <Link to="/dashboard" style={{
               fontSize: '14px',
@@ -163,7 +161,7 @@ const ProductPage = () => {
             </Link>
           )}
 
-          {/* Cart Button with Counter */}
+          {/* Cart Icon */}
           <Link to="/cart" style={{
             position: 'relative',
             padding: '8px',
@@ -171,7 +169,7 @@ const ProductPage = () => {
             borderRadius: '8px',
             textDecoration: 'none'
           }}>
-            <ShoppingCartIcon style={{ width: '17px', height: '17px', color: '#111416' }} />
+            <ShoppingCartIcon style={{ width: '17px', height: '17px', color: '#121417' }} />
             {getCartItemsCount() > 0 && (
               <span style={{
                 position: 'absolute',
@@ -195,151 +193,196 @@ const ProductPage = () => {
         </div>
       </header>
 
-      {/* Breadcrumb */}
-      <div style={{
-        padding: '20px 40px',
-        backgroundColor: 'white',
-        borderBottom: '1px solid #e5e8eb'
-      }}>
-        <div style={{
-          fontSize: '14px',
-          color: '#61758A'
-        }}>
-          <Link to="/" style={{ color: '#61758A', textDecoration: 'none' }}>Home</Link>
-          <span style={{ margin: '0 8px' }}>&gt;</span>
-          <span style={{ color: '#121417' }}>All Products</span>
-        </div>
-      </div>
-
       {/* Main Content */}
       <main style={{
         display: 'flex',
         justifyContent: 'center',
-        padding: '40px 20px'
+        padding: '40px 20px',
+        minHeight: 'calc(100vh - 200px)'
       }}>
         <div style={{
           width: '100%',
-          maxWidth: '1200px'
+          maxWidth: '600px',
+          backgroundColor: 'white',
+          borderRadius: '8px',
+          padding: '48px',
+          textAlign: 'center',
+          boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
         }}>
+          {/* Success Icon */}
+          <div style={{
+            width: '80px',
+            height: '80px',
+            borderRadius: '50%',
+            backgroundColor: '#16a34a',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            margin: '0 auto 24px auto'
+          }}>
+            <span style={{
+              fontSize: '40px',
+              color: 'white'
+            }}>
+              ✓
+            </span>
+          </div>
+
+          {/* Success Message */}
           <h1 style={{
             fontSize: '32px',
             fontWeight: '700',
             color: '#121417',
-            margin: '0 0 40px 0'
+            margin: '0 0 16px 0'
           }}>
-            All Products
+            Payment Successful!
           </h1>
 
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-            gap: '24px'
+          <p style={{
+            fontSize: '18px',
+            color: '#61758A',
+            margin: '0 0 32px 0',
+            lineHeight: 1.5
           }}>
-            {products.map((product) => (
-              <Link
-                key={product.id}
-                to={`/product/${product.id}`}
-                style={{
-                  textDecoration: 'none',
-                  color: 'inherit'
-                }}
-              >
+            Your order has been successfully processed. You will receive a confirmation email shortly.
+          </p>
+
+          {/* Order Summary */}
+          <div style={{
+            backgroundColor: '#f8f9fa',
+            borderRadius: '8px',
+            padding: '24px',
+            marginBottom: '32px',
+            textAlign: 'left'
+          }}>
+            <h2 style={{
+              fontSize: '20px',
+              fontWeight: '600',
+              color: '#121417',
+              margin: '0 0 16px 0',
+              textAlign: 'center'
+            }}>
+              Order Summary
+            </h2>
+
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: '1fr 1fr',
+              gap: '16px',
+              marginBottom: '16px'
+            }}>
+              <div>
                 <div style={{
-                  backgroundColor: 'white',
-                  borderRadius: '12px',
-                  padding: '20px',
-                  boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
-                  transition: 'transform 0.2s, box-shadow 0.2s',
-                  cursor: 'pointer'
-                }}
-                onMouseOver={(e) => {
-                  e.currentTarget.style.transform = 'translateY(-4px)';
-                  e.currentTarget.style.boxShadow = '0 4px 16px rgba(0, 0, 0, 0.15)';
-                }}
-                onMouseOut={(e) => {
-                  e.currentTarget.style.transform = 'translateY(0)';
-                  e.currentTarget.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.1)';
-                }}
-                >
-                  {/* Category Badge */}
-                  <div style={{ marginBottom: '12px' }}>
-                    <span style={{
-                      backgroundColor: '#e3f2fd',
-                      color: '#1976d2',
-                      padding: '4px 8px',
-                      borderRadius: '12px',
-                      fontSize: '11px',
-                      fontWeight: '500'
-                    }}>
-                      {product.category}
-                    </span>
-                  </div>
-
-                  {/* Product Image */}
-                  <div style={{
-                    width: '100%',
-                    height: '200px',
-                    borderRadius: '8px',
-                    overflow: 'hidden',
-                    marginBottom: '16px'
-                  }}>
-                    <img
-                      src={product.image}
-                      alt={product.name}
-                      style={{
-                        width: '100%',
-                        height: '100%',
-                        objectFit: 'cover'
-                      }}
-                    />
-                  </div>
-
-                  {/* Product Info */}
-                  <h3 style={{
-                    fontSize: '18px',
-                    fontWeight: '600',
-                    color: '#121417',
-                    margin: '0 0 8px 0'
-                  }}>
-                    {product.name}
-                  </h3>
-
-                  <p style={{
-                    fontSize: '14px',
-                    color: '#61758A',
-                    margin: '0 0 16px 0',
-                    lineHeight: 1.4
-                  }}>
-                    {product.desc}
-                  </p>
-
-                  <div style={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center'
-                  }}>
-                    <span style={{
-                      fontSize: '20px',
-                      fontWeight: '700',
-                      color: '#121417'
-                    }}>
-                      ${product.price}
-                    </span>
-                    
-                    <div style={{
-                      backgroundColor: '#0D80F2',
-                      color: 'white',
-                      padding: '8px 16px',
-                      borderRadius: '6px',
-                      fontSize: '14px',
-                      fontWeight: '600'
-                    }}>
-                      View Details
-                    </div>
-                  </div>
+                  fontSize: '14px',
+                  color: '#61758A',
+                  fontWeight: '500'
+                }}>
+                  Order Number
                 </div>
-              </Link>
-            ))}
+                <div style={{
+                  fontSize: '16px',
+                  color: '#121417',
+                  fontWeight: '600'
+                }}>
+                  {displayOrderData.orderNumber}
+                </div>
+              </div>
+
+              <div>
+                <div style={{
+                  fontSize: '14px',
+                  color: '#61758A',
+                  fontWeight: '500'
+                }}>
+                  Order Date
+                </div>
+                <div style={{
+                  fontSize: '16px',
+                  color: '#121417',
+                  fontWeight: '600'
+                }}>
+                  {displayOrderData.orderDate}
+                </div>
+              </div>
+            </div>
+
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: '1fr 1fr',
+              gap: '16px'
+            }}>
+              <div>
+                <div style={{
+                  fontSize: '14px',
+                  color: '#61758A',
+                  fontWeight: '500'
+                }}>
+                  Total Amount
+                </div>
+                <div style={{
+                  fontSize: '16px',
+                  color: '#121417',
+                  fontWeight: '600'
+                }}>
+                  ${displayOrderData.total.toFixed(2)}
+                </div>
+              </div>
+
+              <div>
+                <div style={{
+                  fontSize: '14px',
+                  color: '#61758A',
+                  fontWeight: '500'
+                }}>
+                  Estimated Delivery
+                </div>
+                <div style={{
+                  fontSize: '16px',
+                  color: '#121417',
+                  fontWeight: '600'
+                }}>
+                  {displayOrderData.estimatedDelivery}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Action Buttons */}
+          <div style={{
+            display: 'flex',
+            gap: '16px',
+            justifyContent: 'center'
+          }}>
+            <Link
+              to="/dashboard"
+              style={{
+                backgroundColor: '#0D80F2',
+                color: 'white',
+                textDecoration: 'none',
+                padding: '12px 24px',
+                borderRadius: '8px',
+                fontSize: '16px',
+                fontWeight: '600'
+              }}
+            >
+              View Order Status
+            </Link>
+
+            <Link
+              to="/"
+              style={{
+                backgroundColor: 'transparent',
+                color: '#0D80F2',
+                border: '1px solid #0D80F2',
+                textDecoration: 'none',
+                padding: '12px 24px',
+                borderRadius: '8px',
+                fontSize: '16px',
+                fontWeight: '600'
+              }}
+            >
+              Continue Shopping
+            </Link>
           </div>
         </div>
       </main>
@@ -350,7 +393,7 @@ const ProductPage = () => {
         borderTop: '1px solid #e5e8eb',
         padding: '40px 20px',
         textAlign: 'center',
-        marginTop: '60px'
+        marginTop: '40px'
       }}>
         <div style={{
           maxWidth: '800px',
@@ -396,4 +439,4 @@ const ProductPage = () => {
   );
 };
 
-export default ProductPage;
+export default PaymentSuccess; 

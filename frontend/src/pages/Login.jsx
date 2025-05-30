@@ -5,6 +5,7 @@ import { Button } from '../components/ui/button';
 import { Card, CardContent } from '../components/ui/card';
 import { Input } from '../components/ui/input';
 import { useUser } from '../context/UserContext';
+import { useCart } from '../context/CartContext';
 import './Login.css';
 import logoIcon from '../assets/Vector - 0.svg';
 
@@ -13,6 +14,7 @@ export const Login = () => {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const { login, isLoading } = useUser();
+  const { getCartItemsCount } = useCart();
   const navigate = useNavigate();
 
   // Footer links data
@@ -26,11 +28,19 @@ export const Login = () => {
     e.preventDefault();
     setError('');
 
+    // Check if user has items in cart before login
+    const hasCartItems = getCartItemsCount() > 0;
+
     const result = await login(email, password);
     
     if (result.success) {
-      // Login successful, redirecting to user dashboard.
-      navigate('/dashboard');
+      // If user had items in cart, redirect to cart for checkout
+      // Otherwise redirect to dashboard
+      if (hasCartItems) {
+        navigate('/cart?from=auth');
+      } else {
+        navigate('/dashboard');
+      }
     } else {
       setError(result.error);
     }

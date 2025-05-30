@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { useUser } from '../context/UserContext';
+import { useCart } from '../context/CartContext';
 import './Home.css';
 import bannerImg from '../assets/home page image.png'; 
 import laptopImg from '../assets/laptop.png';
@@ -30,6 +31,7 @@ const bestSellers = [
 
 const Home = () => {
   const { user, isLoggedIn } = useUser();
+  const { getCartItemsCount } = useCart();
 
   return (
     <div className="home-container">
@@ -62,8 +64,27 @@ const Home = () => {
           ) : (
             <Link to="/login" className="login-btn">Log in</Link>
           )}
-          <Link to="/cart" className="cart-btn">
+          <Link to="/cart" className="cart-btn" style={{ position: 'relative' }}>
             <img src={cartIcon} alt="cart" className="cart-icon" />
+            {getCartItemsCount() > 0 && (
+              <span style={{
+                position: 'absolute',
+                top: '-6px',
+                right: '-6px',
+                backgroundColor: '#dc2626',
+                color: 'white',
+                borderRadius: '50%',
+                width: '18px',
+                height: '18px',
+                fontSize: '11px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontWeight: '600'
+              }}>
+                {getCartItemsCount()}
+              </span>
+            )}
           </Link>
         </div>
       </header>
