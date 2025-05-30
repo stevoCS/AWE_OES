@@ -27,6 +27,7 @@ allowed_origins = [
     "http://localhost:3000",  # React development server
     "http://localhost:5173",  # Vite development server
     "http://localhost:5174",  # Vite development server (current)
+    "https://awe-oes.vercel.app",  # Vercel production
     frontend_url,
     "http://127.0.0.1:5173",
     "http://127.0.0.1:5174", 

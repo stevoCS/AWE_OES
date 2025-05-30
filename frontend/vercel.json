@@ -8,8 +8,10 @@
       }
     }
   ],
-  "env": {
-    "VITE_API_BASE_URL": "https://awe-oes.onrender.com"
+  "build": {
+    "env": {
+      "VITE_API_BASE_URL": "https://awe-oes.onrender.com"
+    }
   },
   "headers": [
     {
