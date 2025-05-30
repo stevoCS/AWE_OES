@@ -19,6 +19,18 @@ import chargerImg from '../assets/Well charger.png';
 import vrImg from '../assets/VR Headset.png';
 import keyboardImg from '../assets/Keyboard.png';
 
+// Create image mapping
+const imageMap = {
+  '/src/assets/laptop.png': laptopImg,
+  '/src/assets/Phone.png': phoneImg,
+  '/src/assets/Speaker.png': speakerImg,
+  '/src/assets/smartwatch.png': watchImg,
+  '/src/assets/Wireless mouse.png': mouseImg,
+  '/src/assets/Well charger.png': chargerImg,
+  '/src/assets/VR Headset.png': vrImg,
+  '/src/assets/Keyboard.png': keyboardImg,
+};
+
 // Enhanced product data with specifications and reviews
 const products = [
   { 
@@ -493,16 +505,35 @@ const ProductDetail = () => {
             justifyContent: 'center'
           }}>
             {product.images && product.images.length > 0 ? (
-              <img 
-                src={product.images[0]} 
-                alt={product.name}
-                style={{
-                  width: '100%',
-                  maxWidth: '350px',
-                  height: 'auto',
-                  objectFit: 'contain'
-                }}
-              />
+              (() => {
+                const imagePath = product.images[0];
+                const imageUrl = imageMap[imagePath];
+                return imageUrl ? (
+                  <img 
+                    src={imageUrl} 
+                    alt={product.name}
+                    style={{
+                      width: '100%',
+                      maxWidth: '350px',
+                      height: 'auto',
+                      objectFit: 'contain'
+                    }}
+                  />
+                ) : (
+                  <div style={{
+                    width: '100%',
+                    maxWidth: '350px',
+                    height: '200px',
+                    backgroundColor: '#f0f2f5',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: '#607589'
+                  }}>
+                    Image not found ({imagePath})
+                  </div>
+                );
+              })()
             ) : (
               <div style={{
                 width: '100%',
@@ -739,15 +770,25 @@ const ProductDetail = () => {
                     borderRadius: '8px'
                   }}>
                     {relatedProduct.images && relatedProduct.images.length > 0 ? (
-                      <img
-                        src={relatedProduct.images[0]}
-                        alt={relatedProduct.name}
-                        style={{
-                          width: '100%',
-                          height: '100%',
-                          objectFit: 'contain'
-                        }}
-                      />
+                      (() => {
+                        const imagePath = relatedProduct.images[0];
+                        const imageUrl = imageMap[imagePath];
+                        return imageUrl ? (
+                          <img
+                            src={imageUrl}
+                            alt={relatedProduct.name}
+                            style={{
+                              width: '100%',
+                              height: '100%',
+                              objectFit: 'contain'
+                            }}
+                          />
+                        ) : (
+                          <span style={{ color: '#607589', fontSize: '14px' }}>
+                            Image not found
+                          </span>
+                        );
+                      })()
                     ) : (
                       <span style={{ color: '#607589', fontSize: '14px' }}>
                         No Image
