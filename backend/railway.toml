@@ -1,0 +1,13 @@
+[build]
+buildCommand = "pip install -r requirements.txt"
+
+[deploy]
+startCommand = "uvicorn main:app --host 0.0.0.0 --port $PORT"
+healthcheckPath = "/health"
+healthcheckTimeout = 300
+
+[env]
+# Environment variables will be set in Railway dashboard
+# MONGODB_URL
+# SECRET_KEY  
+# FRONTEND_URL 

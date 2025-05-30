@@ -1,4 +1,7 @@
-const API_BASE_URL = 'http://localhost:8000';
+// Get API base URL from environment variables or default to localhost
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
+
+console.log('API Base URL:', API_BASE_URL);
 
 // API request function
 export const apiRequest = async (endpoint, options = {}) => {

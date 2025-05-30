@@ -1,13 +1,14 @@
 {
-  "name": "frontend",
+  "name": "awe-electronics-frontend",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "start": "vite preview --port 4173"
   },
   "dependencies": {
     "class-variance-authority": "^0.7.1",
@@ -15,6 +16,7 @@
     "lucide-react": "^0.511.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
+    "react-router-dom": "^6.28.0",
     "tailwind-merge": "^3.3.0"
   },
   "devDependencies": {
