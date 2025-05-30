@@ -1,0 +1,287 @@
+/* ProductDetail.css */
+
+.product-detail-page {
+    background-color: #F8F9FC; /* Page background */
+    padding: 24px 0 64px 0; /* Vertical padding, Figma seems to have around 24px from header and more to footer */
+    font-family: 'Space Grotesk', Arial, sans-serif;
+    color: #121417;
+  }
+  
+  .breadcrumbs-container {
+    max-width: 1080px;
+    margin: 0 auto 24px auto; /* Centered, margin bottom */
+    padding: 0 20px; /* Consistent with potential page padding */
+    font-size: 14px;
+    color: #61758A;
+  }
+  
+  .breadcrumbs-container a {
+    color: #344054;
+    text-decoration: none;
+    margin-right: 8px;
+  }
+  
+  .breadcrumbs-container a:hover {
+    text-decoration: underline;
+  }
+  
+  .breadcrumbs-container span {
+    color: #121417; /* Current page name */
+    margin-left: 8px;
+  }
+  
+  .product-detail-card {
+    max-width: 1080px; /* Figma width of the white card */
+    margin: 0 auto;
+    background: #fff;
+    border-radius: 16px; /* Figma border radius */
+    box-shadow: 0 4px 12px rgba(0,0,0,0.06); /* Softer shadow */
+    padding: 40px; /* Figma padding inside card */
+    display: flex;
+    gap: 40px; /* Figma gap between image and info */
+    box-sizing: border-box;
+  }
+  
+  .product-image-section {
+    flex-basis: 500px; /* Figma image width */
+    flex-shrink: 0;
+  }
+  
+  .product-main-image {
+    width: 100%; /* Fills the 500px basis */
+    height: 500px; /* Figma image height */
+    object-fit: cover;
+    border-radius: 12px; /* Figma image border radius */
+    background-color: #F0F2F5; /* Placeholder bg for image */
+  }
+  
+  .product-info-section {
+    flex: 1; /* Takes remaining space */
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .product-name-detail {
+    font-size: 36px; /* Figma */
+    font-weight: 700; /* Bold */
+    color: #121417;
+    margin-bottom: 16px; /* Figma */
+    line-height: 1.3;
+  }
+  
+  .product-reviews-snippet {
+    font-size: 14px; /* Figma */
+    color: #61758A;
+    margin-bottom: 16px; /* Figma */
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  
+  .product-reviews-snippet .review-count {
+    color: #61758A;
+  }
+  
+  .product-price-detail {
+    font-size: 28px; /* Figma */
+    font-weight: 700; /* Bold */
+    color: #0D80F2; /* Figma accent color */
+    margin-bottom: 24px; /* Figma */
+  }
+  
+  .product-description-detail {
+    font-size: 16px; /* Figma */
+    color: #344054; /* Figma text color */
+    line-height: 24px; /* Figma line height */
+    margin-bottom: 24px; /* Figma */
+  }
+  
+  .product-option-selector {
+    margin-bottom: 24px; /* Spacing between options */
+  }
+  
+  .option-label {
+    display: block;
+    font-size: 14px;
+    font-weight: 500; /* Medium */
+    color: #344054;
+    margin-bottom: 8px;
+  }
+  
+  .color-swatches {
+    display: flex;
+    gap: 8px;
+  }
+  
+  .color-swatch {
+    width: 28px; /* Figma swatch size */
+    height: 28px;
+    border-radius: 50%;
+    border: 2px solid transparent;
+    cursor: pointer;
+    padding: 0;
+    transition: border-color 0.2s ease;
+  }
+  
+  .color-swatch.selected {
+    border-color: #0D80F2; /* Highlight selected swatch */
+    box-shadow: 0 0 0 1px #0D80F2; /* Extra emphasis */
+  }
+  .color-swatch:focus {
+    outline: 2px solid #0D80F2;
+    outline-offset: 2px;
+  }
+  
+  .quantity-controls {
+    display: flex;
+    align-items: center;
+    border: 1px solid #D0D5DD; /* Figma input border */
+    border-radius: 8px;
+    width: fit-content; /* Adjust as needed */
+  }
+  
+  .quantity-btn {
+    background-color: #fff;
+    border: none;
+    color: #344054;
+    font-size: 18px;
+    font-weight: 500;
+    cursor: pointer;
+    padding: 8px 12px;
+    height: 40px; /* Match input height */
+  }
+  .quantity-btn:first-child {
+    border-right: 1px solid #D0D5DD;
+    border-radius: 7px 0 0 7px;
+  }
+  .quantity-btn:last-child {
+    border-left: 1px solid #D0D5DD;
+    border-radius: 0 7px 7px 0;
+  }
+  .quantity-btn:hover {
+    background-color: #F0F2F5;
+  }
+  
+  
+  .quantity-input {
+    width: 40px; /* Figma */
+    height: 40px; /* Figma */
+    text-align: center;
+    font-size: 16px;
+    font-weight: 500;
+    color: #121417;
+    border: none;
+    padding: 0 4px;
+    box-sizing: border-box;
+    -moz-appearance: textfield; /* Hide arrows for number input in Firefox */
+  }
+  .quantity-input::-webkit-outer-spin-button,
+  .quantity-input::-webkit-inner-spin-button {
+    -webkit-appearance: none; /* Hide arrows for number input in Chrome/Safari */
+    margin: 0;
+  }
+  
+  
+  .product-info-section .btn {
+    width: 100%;
+    height: 48px; /* Figma button height */
+    border-radius: 8px; /* Figma button radius */
+    font-size: 16px;
+    font-weight: 700; /* Bold */
+    cursor: pointer;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px; /* For icon and text */
+    transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+  }
+  
+  .btn-primary.btn-add-to-cart {
+    background-color: #0D80F2;
+    color: #fff;
+    margin-bottom: 16px;
+    border: none;
+  }
+  .btn-primary.btn-add-to-cart:hover {
+    background-color: #0a68c4;
+  }
+  
+  .btn-secondary.btn-buy-now {
+    background-color: #fff;
+    color: #0D80F2;
+    border: 1px solid #0D80F2;
+  }
+  .btn-secondary.btn-buy-now:hover {
+    background-color: #e6f2fe;
+    border-color: #0a68c4;
+    color: #0a68c4;
+  }
+  
+  /* Related Products Section */
+  .related-products-section {
+    max-width: 1080px;
+    margin: 64px auto 0 auto; /* Figma margin from card */
+    padding: 0 20px; /* Consistent with potential page padding */
+  }
+  
+  .related-products-title {
+    font-size: 22px; /* Consistent with homepage section titles */
+    font-weight: 700;
+    color: #121417;
+    margin-bottom: 24px;
+  }
+  
+  .related-product-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); /* Responsive grid */
+    gap: 16px; /* Figma gap */
+  }
+  
+  .related-product-card {
+    background: #fff;
+    border-radius: 8px;
+    border: 1px solid #E5E8EB;
+    padding-bottom: 16px;
+    text-decoration: none;
+    color: inherit;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    transition: box-shadow 0.2s ease;
+  }
+  .related-product-card:hover {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  }
+  
+  .related-product-img {
+    width: 100%;
+    height: 200px; /* Adjust as needed */
+    object-fit: cover;
+    background-color: #F0F2F5;
+    margin-bottom: 16px;
+  }
+  
+  .related-product-info {
+    padding: 0 16px;
+  }
+  
+  .related-product-name {
+    font-size: 16px;
+    font-weight: 500;
+    margin-bottom: 4px;
+    line-height: 1.4;
+  }
+  
+  .related-product-price {
+    font-size: 14px;
+    font-weight: 500;
+    color: #0D80F2;
+  }
+  
+  .product-not-found {
+    padding: 40px;
+    text-align: center;
+    font-size: 18px;
+    color: #61758A;
+  }
