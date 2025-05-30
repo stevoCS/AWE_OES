@@ -14,27 +14,27 @@ async def create_order(
     order_data: OrderCreate,
     current_user_id: str = Depends(get_current_user_id)
 ):
-    """从购物车创建订单"""
+    """Create order from shopping cart"""
     order = await OrderController.create_order(current_user_id, order_data)
-    return success_response(data=order.dict(), message="订单创建成功")
+    return success_response(data=order.dict(), message="Order created successfully")
 
 @router.get("/{order_id}", response_model=APIResponse)
 async def get_order(
     order_id: str,
     current_user_id: str = Depends(get_current_user_id)
 ):
-    """获取订单详情"""
+    """Get order details"""
     order = await OrderController.get_order(order_id, current_user_id)
-    return success_response(data=order.dict(), message="获取订单详情成功")
+    return success_response(data=order.dict(), message="Order details retrieved successfully")
 
 @router.get("/number/{order_number}", response_model=APIResponse)
 async def get_order_by_number(
     order_number: str,
     current_user_id: str = Depends(get_current_user_id)
 ):
-    """根据订单号获取订单"""
+    """Get order by order number"""
     order = await OrderController.get_order_by_number(order_number, current_user_id)
-    return success_response(data=order.dict(), message="获取订单详情成功")
+    return success_response(data=order.dict(), message="Order details retrieved successfully")
 
 @router.put("/{order_id}/status", response_model=APIResponse)
 async def update_order_status(
@@ -42,32 +42,32 @@ async def update_order_status(
     update_data: OrderUpdate,
     current_user_id: str = Depends(get_current_user_id)
 ):
-    """更新订单状态（管理员功能）"""
+    """Update order status (admin function)"""
     order = await OrderController.update_order_status(order_id, update_data)
-    return success_response(data=order.dict(), message="订单状态更新成功")
+    return success_response(data=order.dict(), message="Order status updated successfully")
 
 @router.post("/{order_id}/cancel", response_model=APIResponse)
 async def cancel_order(
     order_id: str,
     current_user_id: str = Depends(get_current_user_id)
 ):
-    """取消订单"""
+    """Cancel order"""
     order = await OrderController.cancel_order(order_id, current_user_id)
-    return success_response(data=order.dict(), message="订单已取消")
+    return success_response(data=order.dict(), message="Order has been cancelled")
 
 @router.get("/", response_model=APIResponse)
 async def search_orders(
-    status_filter: Optional[OrderStatus] = Query(None, alias="status", description="订单状态"),
-    order_number: Optional[str] = Query(None, description="订单号"),
-    start_date: Optional[datetime] = Query(None, description="开始日期"),
-    end_date: Optional[datetime] = Query(None, description="结束日期"),
-    sort_by: Optional[str] = Query("created_at", description="排序字段"),
-    sort_order: Optional[str] = Query("desc", description="排序方向"),
-    page: int = Query(1, ge=1, description="页码"),
-    size: int = Query(20, ge=1, le=100, description="每页数量"),
+    status_filter: Optional[OrderStatus] = Query(None, alias="status", description="Order status"),
+    order_number: Optional[str] = Query(None, description="Order number"),
+    start_date: Optional[datetime] = Query(None, description="Start date"),
+    end_date: Optional[datetime] = Query(None, description="End date"),
+    sort_by: Optional[str] = Query("created_at", description="Sort field"),
+    sort_order: Optional[str] = Query("desc", description="Sort direction"),
+    page: int = Query(1, ge=1, description="Page number"),
+    size: int = Query(20, ge=1, le=100, description="Items per page"),
     current_user_id: str = Depends(get_current_user_id)
 ):
-    """搜索订单"""
+    """Search orders"""
     search_params = OrderSearch(
         customer_id=current_user_id,
         status=status_filter,
@@ -81,23 +81,23 @@ async def search_orders(
     orders, total = await OrderController.search_orders(search_params, page, size)
     order_list = [order.dict() for order in orders]
     
-    return paginate_response(order_list, total, page, size, "订单搜索成功")
+    return paginate_response(order_list, total, page, size, "Order search completed successfully")
 
-# 管理员专用接口
+# Admin-only interfaces
 @router.get("/admin/all", response_model=APIResponse)
 async def admin_search_orders(
-    customer_id: Optional[str] = Query(None, description="客户ID"),
-    status_filter: Optional[OrderStatus] = Query(None, alias="status", description="订单状态"),
-    order_number: Optional[str] = Query(None, description="订单号"),
-    start_date: Optional[datetime] = Query(None, description="开始日期"),
-    end_date: Optional[datetime] = Query(None, description="结束日期"),
-    sort_by: Optional[str] = Query("created_at", description="排序字段"),
-    sort_order: Optional[str] = Query("desc", description="排序方向"),
-    page: int = Query(1, ge=1, description="页码"),
-    size: int = Query(20, ge=1, le=100, description="每页数量"),
+    customer_id: Optional[str] = Query(None, description="Customer ID"),
+    status_filter: Optional[OrderStatus] = Query(None, alias="status", description="Order status"),
+    order_number: Optional[str] = Query(None, description="Order number"),
+    start_date: Optional[datetime] = Query(None, description="Start date"),
+    end_date: Optional[datetime] = Query(None, description="End date"),
+    sort_by: Optional[str] = Query("created_at", description="Sort field"),
+    sort_order: Optional[str] = Query("desc", description="Sort direction"),
+    page: int = Query(1, ge=1, description="Page number"),
+    size: int = Query(20, ge=1, le=100, description="Items per page"),
     current_user_id: str = Depends(get_current_user_id)
 ):
-    """管理员搜索所有订单"""
+    """Admin search all orders"""
     search_params = OrderSearch(
         customer_id=customer_id,
         status=status_filter,
@@ -111,4 +111,4 @@ async def admin_search_orders(
     orders, total = await OrderController.search_orders(search_params, page, size)
     order_list = [order.dict() for order in orders]
     
-    return paginate_response(order_list, total, page, size, "订单搜索成功") 
+    return paginate_response(order_list, total, page, size, "Order search completed successfully") 

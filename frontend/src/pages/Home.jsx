@@ -1,37 +1,179 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useUser } from '../context/UserContext';
 import { useCart } from '../context/CartContext';
+import { productsAPI } from '../api/config';
 import './Home.css';
 import bannerImg from '../assets/home page image.png'; 
-import laptopImg from '../assets/laptop.png';
-import phoneImg from '../assets/Phone.png';
-import speakerImg from '../assets/Speaker.png';
-import watchImg from '../assets/smartwatch.png';
-import mouseImg from '../assets/Wireless mouse.png';
-import chargerImg from '../assets/Well charger.png';
-import vrImg from '../assets/VR Headset.png';
-import keyboardImg from '../assets/Keyboard.png';
 import logoIcon from '../assets/Vector - 0.svg';
 import searchIcon from '../assets/Vector - search.svg';
 import cartIcon from '../assets/Vector - cart.svg';
 
-const newArrivals = [
-  { id: 1, name: 'UltraBook Pro 15', image: laptopImg, desc: 'Powerful and portable' },
-  { id: 2, name: 'Galaxy X50', image: phoneImg, desc: 'Next-gen mobile experience' },
-  { id: 3, name: 'SmartHome Speaker', image: speakerImg, desc: 'Immersive home environment' },
-  { id: 4, name: 'FitTrack Smartwatch', image: watchImg, desc: 'Track your fitness journey' },
-];
-const bestSellers = [
-  { id: 5, name: 'Wireless Mouse', image: mouseImg },
-  { id: 6, name: 'Wall Charger', image: chargerImg },
-  { id: 7, name: 'VR Headset', image: vrImg },
-  { id: 8, name: 'Apple Keyboard', image: keyboardImg },
-];
+// Import all product images
+import laptopImg from '../assets/laptop.png';
+import phoneImg from '../assets/Phone.png';
+import speakerImg from '../assets/Speaker.png';
+import smartwatchImg from '../assets/smartwatch.png';
+import mouseImg from '../assets/Wireless mouse.png';
+import chargerImg from '../assets/Well charger.png';
+import vrImg from '../assets/VR Headset.png';
+import keyboardImg from '../assets/Keyboard.png';
+
+// Create image mapping
+const imageMap = {
+  '/src/assets/laptop.png': laptopImg,
+  '/src/assets/Phone.png': phoneImg,
+  '/src/assets/Speaker.png': speakerImg,
+  '/src/assets/smartwatch.png': smartwatchImg,
+  '/src/assets/Wireless mouse.png': mouseImg,
+  '/src/assets/Well charger.png': chargerImg,
+  '/src/assets/VR Headset.png': vrImg,
+  '/src/assets/Keyboard.png': keyboardImg,
+};
 
 const Home = () => {
   const { user, isLoggedIn } = useUser();
   const { getCartItemsCount } = useCart();
+  const [newArrivals, setNewArrivals] = useState([]);
+  const [bestSellers, setBestSellers] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    loadProducts();
+  }, []);
+
+  const loadProducts = async () => {
+    try {
+      setIsLoading(true);
+      console.log('Starting to load product data...');
+      
+      const response = await productsAPI.getProducts();
+      console.log('Product API response:', response);
+      
+      if (response.success && response.data.items) {
+        const products = response.data.items;
+        console.log('Successfully loaded products:', products.length, 'items');
+        
+        // Simulate new arrivals (take first 4 products)
+        setNewArrivals(products.slice(0, 4));
+        
+        // Simulate best sellers (take next 4 products)
+        setBestSellers(products.slice(4, 8));
+      } else {
+        console.warn('Product API response format incorrect:', response);
+        setNewArrivals([]);
+        setBestSellers([]);
+      }
+    } catch (error) {
+      console.error('Error occurred while loading products:', error);
+      // If API fails, use empty arrays, don't affect page rendering
+      setNewArrivals([]);
+      setBestSellers([]);
+    } finally {
+      setIsLoading(false);
+      console.log('Product loading completed');
+    }
+  };
+
+  const renderProductSection = (products, title) => (
+    <section className="home-section">
+      <div className="section-content">
+        <h2 className="section-title">{title}</h2>
+        <div className="product-list">
+          {isLoading ? (
+            // Loading state
+            Array.from({ length: 4 }).map((_, index) => (
+              <div key={index} className="product-card" style={{
+                background: '#f0f2f5',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                minHeight: '300px'
+              }}>
+                <span style={{ color: '#607589' }}>Loading...</span>
+              </div>
+            ))
+          ) : products.length > 0 ? (
+            products.map(product => {
+              // Handle image URL - use image mapping
+              let imageUrl = '';
+              if (product.images && product.images.length > 0) {
+                const imagePath = product.images[0];
+                // Get correct image URL from image mapping
+                imageUrl = imageMap[imagePath];
+                if (!imageUrl) {
+                  console.log('Image mapping not found:', imagePath, 'Available mappings:', Object.keys(imageMap));
+                }
+              }
+              
+              return (
+                <Link
+                  key={product.id}
+                  to={`/product/${product.id}`}
+                  style={{ textDecoration: 'none', color: 'inherit' }}
+                >
+                  <div className="product-card">
+                    <div 
+                      className="product-img" 
+                      style={{
+                        backgroundColor: '#f0f2f5',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        color: '#607589',
+                        fontSize: '14px'
+                      }}
+                    >
+                      {imageUrl ? (
+                        <img 
+                          src={imageUrl} 
+                          alt={product.name}
+                          style={{
+                            width: '100%',
+                            height: '100%',
+                            objectFit: 'cover'
+                          }}
+                          onError={(e) => {
+                            console.log('Image loading failed:', imageUrl);
+                            e.target.style.display = 'none';
+                            e.target.parentNode.innerHTML = 'No Image';
+                          }}
+                        />
+                      ) : (
+                        'No Image'
+                      )}
+                    </div>
+                    <div className="product-info">
+                      <div className="product-name">{product.name}</div>
+                      <div className="product-desc">{product.description}</div>
+                      <div style={{
+                        marginTop: '8px',
+                        fontSize: '16px',
+                        fontWeight: '600',
+                        color: '#121417'
+                      }}>
+                        ${product.price.toFixed(2)}
+                      </div>
+                    </div>
+                  </div>
+                </Link>
+              );
+            })
+          ) : (
+            // No products state
+            <div style={{
+              gridColumn: '1 / -1',
+              textAlign: 'center',
+              padding: '40px',
+              color: '#607589'
+            }}>
+              No products available
+            </div>
+          )}
+        </div>
+      </div>
+    </section>
+  );
 
   return (
     <div className="home-container">
@@ -96,56 +238,17 @@ const Home = () => {
         <div className="banner-content">
           <h1 className="banner-title">Tech That Moves You</h1>
           <p className="banner-desc">Explore the latest in electronics, from cutting-edge laptops to immersive audio experiences. Find your perfect tech companion today.</p>
-          <button className="shop-now-btn">Shop Now</button>
+          <Link to="/product">
+            <button className="shop-now-btn">Shop Now</button>
+          </Link>
         </div>
       </section>
 
       {/* New Arrivals */}
-      <section className="home-section">
-        <div className="section-content"> {/* Added wrapper for max-width and centering */}
-          <h2 className="section-title">New Arrivals</h2>
-          <div className="product-list">
-            {newArrivals.map(product => (
-              <Link
-                key={product.id}
-                to={`/product/${product.id}`}
-                style={{ textDecoration: 'none', color: 'inherit' }}
-              >
-                <div className="product-card">
-                  <img src={product.image} alt={product.name} className="product-img" />
-                  <div className="product-info">
-                    <div className="product-name">{product.name}</div>
-                    <div className="product-desc">{product.desc}</div>
-                  </div>
-                </div>
-              </Link>
-            ))}
-          </div>
-        </div>
-      </section>
+      {renderProductSection(newArrivals, "New Arrivals")}
 
       {/* Best Sellers */}
-      <section className="home-section">
-        <div className="section-content"> {/* Added wrapper for max-width and centering */}
-          <h2 className="section-title">Best Sellers</h2>
-          <div className="product-list">
-            {bestSellers.map(product => (
-              <Link
-                key={product.id}
-                to={`/product/${product.id}`}
-                style={{ textDecoration: 'none', color: 'inherit' }}
-              >
-                <div className="product-card">
-                  <img src={product.image} alt={product.name} className="product-img" />
-                  <div className="product-info">
-                    <div className="product-name">{product.name}</div>
-                  </div>
-                </div>
-              </Link>
-            ))}
-          </div>
-        </div>
-      </section>
+      {renderProductSection(bestSellers, "Best Sellers")}
 
       {/* Subscribe */}
       <section className="subscribe-section">

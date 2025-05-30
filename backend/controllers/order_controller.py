@@ -11,31 +11,31 @@ from controllers.product_controller import ProductController
 from utils.response import APIException
 
 class OrderController:
-    """订单管理控制器"""
+    """Order management controller"""
     
     @staticmethod
     async def create_order(customer_id: str, order_data: OrderCreate) -> OrderResponse:
-        """从购物车创建订单"""
-        # 获取购物车
+        """Create order from shopping cart"""
+        # Get shopping cart
         cart = await CartController.get_cart(customer_id)
         
         if not cart.items or cart.total_items == 0:
-            raise APIException("购物车为空，无法创建订单", status.HTTP_400_BAD_REQUEST)
+            raise APIException("Shopping cart is empty, cannot create order", status.HTTP_400_BAD_REQUEST)
         
-        # 检查选中的商品库存
+        # Check selected items' stock
         selected_items = [item for item in cart.items if item.selected]
         if not selected_items:
-            raise APIException("请选择要购买的商品", status.HTTP_400_BAD_REQUEST)
+            raise APIException("Please select items to purchase", status.HTTP_400_BAD_REQUEST)
         
         order_items = []
         for cart_item in selected_items:
-            # 验证商品和库存
+            # Validate product and stock
             product = await ProductController.get_product(cart_item.product_id)
             if not product.is_available:
-                raise APIException(f"商品 {product.name} 已下架", status.HTTP_400_BAD_REQUEST)
+                raise APIException(f"Product {product.name} is unavailable", status.HTTP_400_BAD_REQUEST)
             
             if product.stock_quantity < cart_item.quantity:
-                raise APIException(f"商品 {product.name} 库存不足", status.HTTP_400_BAD_REQUEST)
+                raise APIException(f"Product {product.name} has insufficient stock", status.HTTP_400_BAD_REQUEST)
             
             order_item = OrderItem(
                 product_id=cart_item.product_id,
@@ -46,16 +46,16 @@ class OrderController:
             )
             order_items.append(order_item)
         
-        # 计算订单金额
+        # Calculate order amounts
         subtotal = sum(item.subtotal for item in order_items)
-        tax_amount = subtotal * 0.08  # 8%税费
-        shipping_fee = 0.0 if subtotal >= 100 else 10.0  # 满100免运费
+        tax_amount = subtotal * 0.08  # 8% tax
+        shipping_fee = 0.0 if subtotal >= 100 else 10.0  # Free shipping over $100
         total_amount = subtotal + tax_amount + shipping_fee
         
-        # 生成订单号
+        # Generate order number
         order_number = Order.generate_order_number()
         
-        # 创建订单
+        # Create order
         order = Order(
             customer_id=customer_id,
             order_number=order_number,
@@ -72,18 +72,18 @@ class OrderController:
             updated_at=datetime.now()
         )
         
-        # 保存订单到数据库
+        # Save order to database
         collection = await get_collection("orders")
         result = await collection.insert_one(order.dict(by_alias=True, exclude={"id"}))
         
-        # 更新商品库存
+        # Update product stock
         for item in order_items:
             await ProductController.update_stock(item.product_id, -item.quantity)
         
-        # 创建订单跟踪
+        # Create order tracking
         await OrderController._create_order_tracking(str(result.inserted_id), order_number, customer_id)
         
-        # 清空购物车中已选中的商品
+        # Empty shopping cart of selected items
         cart_collection = await get_collection("carts")
         remaining_items = [item for item in cart.items if not item.selected]
         await cart_collection.update_one(
@@ -91,7 +91,7 @@ class OrderController:
             {"$set": {"items": [item.dict() for item in remaining_items], "updated_at": datetime.now()}}
         )
         
-        # 返回订单信息
+        # Return order information
         order_doc = await collection.find_one({"_id": result.inserted_id})
         order_doc["id"] = str(order_doc["_id"])
         del order_doc["_id"]
@@ -100,7 +100,7 @@ class OrderController:
     
     @staticmethod
     async def get_order(order_id: str, customer_id: Optional[str] = None) -> OrderResponse:
-        """获取订单详情"""
+        """Get order details"""
         collection = await get_collection("orders")
         
         query = {"_id": ObjectId(order_id)}
@@ -109,7 +109,7 @@ class OrderController:
         
         order_doc = await collection.find_one(query)
         if not order_doc:
-            raise APIException("订单不存在", status.HTTP_404_NOT_FOUND)
+            raise APIException("Order not found", status.HTTP_404_NOT_FOUND)
         
         order_doc["id"] = str(order_doc["_id"])
         del order_doc["_id"]
@@ -118,7 +118,7 @@ class OrderController:
     
     @staticmethod
     async def get_order_by_number(order_number: str, customer_id: Optional[str] = None) -> OrderResponse:
-        """根据订单号获取订单"""
+        """Get order by order number"""
         collection = await get_collection("orders")
         
         query = {"order_number": order_number}
@@ -127,7 +127,7 @@ class OrderController:
         
         order_doc = await collection.find_one(query)
         if not order_doc:
-            raise APIException("订单不存在", status.HTTP_404_NOT_FOUND)
+            raise APIException("Order not found", status.HTTP_404_NOT_FOUND)
         
         order_doc["id"] = str(order_doc["_id"])
         del order_doc["_id"]
@@ -136,14 +136,14 @@ class OrderController:
     
     @staticmethod
     async def update_order_status(order_id: str, update_data: OrderUpdate) -> OrderResponse:
-        """更新订单状态"""
+        """Update order status"""
         collection = await get_collection("orders")
         
-        # 准备更新数据
+        # Prepare update data
         update_dict = update_data.dict(exclude_unset=True)
         update_dict["updated_at"] = datetime.now()
         
-        # 根据状态更新时间戳
+        # Update timestamps based on status
         if update_data.status:
             if update_data.status == OrderStatus.PAID:
                 update_dict["paid_at"] = datetime.now()
@@ -152,16 +152,16 @@ class OrderController:
             elif update_data.status == OrderStatus.DELIVERED:
                 update_dict["delivered_at"] = datetime.now()
         
-        # 更新订单
+        # Update order
         result = await collection.update_one(
             {"_id": ObjectId(order_id)},
             {"$set": update_dict}
         )
         
         if result.matched_count == 0:
-            raise APIException("订单不存在", status.HTTP_404_NOT_FOUND)
+            raise APIException("Order not found", status.HTTP_404_NOT_FOUND)
         
-        # 更新订单跟踪
+        # Update order tracking
         if update_data.status:
             await OrderController._update_order_tracking(order_id, update_data.status)
         
@@ -173,10 +173,10 @@ class OrderController:
         page: int = 1,
         size: int = 20
     ) -> tuple[List[OrderResponse], int]:
-        """搜索订单"""
+        """Search orders"""
         collection = await get_collection("orders")
         
-        # 构建查询条件
+        # Build query conditions
         query = {}
         
         if search_params.customer_id:
@@ -196,21 +196,21 @@ class OrderController:
                 date_query["$lte"] = search_params.end_date
             query["created_at"] = date_query
         
-        # 构建排序条件
+        # Build sorting conditions
         sort_direction = 1 if search_params.sort_order == "asc" else -1
         sort_field = search_params.sort_by or "created_at"
         
-        # 计算分页参数
+        # Calculate pagination parameters
         skip = (page - 1) * size
         
-        # 执行查询
+        # Execute query
         cursor = collection.find(query).sort(sort_field, sort_direction).skip(skip).limit(size)
         orders = await cursor.to_list(length=size)
         
-        # 计算总数
+        # Calculate total count
         total = await collection.count_documents(query)
         
-        # 转换为响应格式
+        # Convert to response format
         order_responses = []
         for order_doc in orders:
             order_doc["id"] = str(order_doc["_id"])
@@ -221,19 +221,19 @@ class OrderController:
     
     @staticmethod
     async def cancel_order(order_id: str, customer_id: str) -> OrderResponse:
-        """取消订单"""
-        # 获取订单
+        """Cancel order"""
+        # Get order
         order = await OrderController.get_order(order_id, customer_id)
         
-        # 检查订单状态
+        # Check order status
         if order.status not in [OrderStatus.PENDING, OrderStatus.PAID]:
-            raise APIException("订单状态不允许取消", status.HTTP_400_BAD_REQUEST)
+            raise APIException("Order status does not allow cancellation", status.HTTP_400_BAD_REQUEST)
         
-        # 更新订单状态
+        # Update order status
         update_data = OrderUpdate(status=OrderStatus.CANCELLED)
         updated_order = await OrderController.update_order_status(order_id, update_data)
         
-        # 恢复库存
+        # Restore stock
         for item in order.items:
             await ProductController.update_stock(item.product_id, item.quantity)
         
@@ -241,7 +241,7 @@ class OrderController:
     
     @staticmethod
     async def _create_order_tracking(order_id: str, order_number: str, customer_id: str):
-        """创建订单跟踪记录"""
+        """Create order tracking record"""
         from controllers.tracking_controller import TrackingController
         
         tracking_data = {
@@ -255,10 +255,10 @@ class OrderController:
     
     @staticmethod
     async def _update_order_tracking(order_id: str, status: OrderStatus):
-        """更新订单跟踪状态"""
+        """Update order tracking status"""
         from controllers.tracking_controller import TrackingController
         
-        # 状态映射
+        # Status mapping
         status_mapping = {
             OrderStatus.PAID: TrackingEventType.PAYMENT_RECEIVED,
             OrderStatus.PROCESSING: TrackingEventType.PROCESSING,
@@ -272,5 +272,5 @@ class OrderController:
             await TrackingController.update_tracking_by_order_id(
                 order_id, 
                 status_mapping[status],
-                f"订单状态更新为: {status.value}"
+                f"Order status updated to: {status.value}"
             ) 

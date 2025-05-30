@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { SearchIcon, ShoppingCartIcon } from '../components/ui/icons';
 import { Button } from '../components/ui/button';
@@ -12,16 +12,10 @@ export const UserDashboard = () => {
   const { orders } = useOrders();
   const { getCartItemsCount } = useCart();
   const navigate = useNavigate();
+  const [activeTab, setActiveTab] = useState('overview');
 
-  // Debug: Log orders data
-  React.useEffect(() => {
-    console.log('UserDashboard - Current orders:', orders);
-    console.log('UserDashboard - Orders length:', orders.length);
-    console.log('UserDashboard - User logged in:', isLoggedIn);
-  }, [orders, isLoggedIn]);
-
-  // If the user is not logged in, redirect to the login page.
-  React.useEffect(() => {
+  // If user is not logged in, redirect to login page
+  useEffect(() => {
     if (!isLoggedIn) {
       navigate('/login');
     }
@@ -32,31 +26,48 @@ export const UserDashboard = () => {
     navigate('/');
   };
 
-  // Use real orders from context instead of mock data
-  const orderHistory = orders.length > 0 ? orders.map(order => ({
-    id: order.orderNumber,
-    date: order.date,
-    status: order.status,
-    total: `$${order.total.toFixed(2)}`,
-    tracking: 'View'
-  })) : [
-    // Fallback mock data if no orders exist
-    { id: '#10545', date: '2023-06-15', status: 'Shipped', total: '$250.00', tracking: 'View' },
-    { id: '#67800', date: '2023-07-20', status: 'Delivered', total: '$180.00', tracking: 'View' },
-    { id: '#19525', date: '2023-06-05', status: 'Cancelled', total: '$320.00', tracking: 'View' }
-  ];
+  // Calculate user statistics
+  const getUserStats = () => {
+    const totalOrders = orders.length;
+    const totalSpent = orders.reduce((sum, order) => sum + (order.total || 0), 0);
+    const recentOrders = orders.slice(0, 3);
+    const pendingOrders = orders.filter(order => order.status === 'confirmed' || order.status === 'processing').length;
+    
+    return {
+      totalOrders,
+      totalSpent,
+      recentOrders,
+      pendingOrders
+    };
+  };
 
-  // Generate invoices based on real orders
-  const invoices = orders.length > 0 ? orders.map(order => ({
-    id: order.orderNumber,
-    date: order.date,
-    invoice: 'Download'
-  })) : [
-    // Fallback mock data
-    { id: '#10545', date: '2023-06-15', invoice: 'Download' },
-    { id: '#67800', date: '2023-07-20', invoice: 'Download' },
-    { id: '#19525', date: '2023-06-05', invoice: 'Download' }
-  ];
+  const stats = getUserStats();
+
+  // Render order status badge
+  const renderStatusBadge = (status) => {
+    const statusConfig = {
+      'confirmed': { bg: '#dcfce7', color: '#16a34a', text: 'Confirmed' },
+      'processing': { bg: '#fef3c7', color: '#d97706', text: 'Processing' },
+      'shipped': { bg: '#dbeafe', color: '#2563eb', text: 'Shipped' },
+      'delivered': { bg: '#dcfce7', color: '#16a34a', text: 'Delivered' },
+      'cancelled': { bg: '#fef2f2', color: '#dc2626', text: 'Cancelled' }
+    };
+
+    const config = statusConfig[status] || statusConfig['confirmed'];
+    
+    return (
+      <span style={{
+        backgroundColor: config.bg,
+        color: config.color,
+        padding: '4px 8px',
+        borderRadius: '12px',
+        fontSize: '12px',
+        fontWeight: '500'
+      }}>
+        {config.text}
+      </span>
+    );
+  };
 
   if (!user) return null;
 
@@ -105,6 +116,14 @@ export const UserDashboard = () => {
             alignItems: 'center',
             gap: '36px'
           }}>
+            <Link to="/product" style={{
+              fontWeight: '500',
+              fontSize: '14px',
+              color: '#121417',
+              textDecoration: 'none'
+            }}>
+              All Products
+            </Link>
             <Link to="/new-arrivals" style={{
               fontWeight: '500',
               fontSize: '14px',
@@ -127,9 +146,7 @@ export const UserDashboard = () => {
         <div style={{
           display: 'flex',
           alignItems: 'center',
-          gap: '32px',
-          flex: 1,
-          justifyContent: 'flex-end'
+          gap: '24px'
         }}>
           {/* Search Bar */}
           <div style={{
@@ -137,8 +154,7 @@ export const UserDashboard = () => {
             alignItems: 'center',
             backgroundColor: '#f0f2f5',
             borderRadius: '8px',
-            minWidth: '160px',
-            maxWidth: '256px'
+            minWidth: '200px'
           }}>
             <div style={{
               padding: '0 16px',
@@ -150,7 +166,7 @@ export const UserDashboard = () => {
             </div>
             <input
               type="text"
-              placeholder="Search"
+              placeholder="Search products..."
               style={{
                 border: 'none',
                 backgroundColor: 'transparent',
@@ -194,361 +210,651 @@ export const UserDashboard = () => {
             )}
           </Link>
 
-          {/* User Avatar - clickable to go to Account Management */}
-          <Link to="/account" style={{
-            width: '40px',
-            height: '40px',
-            borderRadius: '50%',
-            background: 'linear-gradient(135deg, #0D80F2, #0a68c4)',
+          {/* User Menu */}
+          <div style={{
             display: 'flex',
             alignItems: 'center',
-            justifyContent: 'center',
-            color: 'white',
-            fontWeight: '600',
-            fontSize: '16px',
-            textDecoration: 'none'
+            gap: '12px'
           }}>
-            {user.firstName?.charAt(0)?.toUpperCase() || 'U'}
-          </Link>
+            <div style={{
+              width: '40px',
+              height: '40px',
+              borderRadius: '50%',
+              backgroundColor: '#0D80F2',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: 'white',
+              fontSize: '16px',
+              fontWeight: '600'
+            }}>
+              {user.firstName ? user.firstName.charAt(0).toUpperCase() : 'U'}
+            </div>
+            <span style={{
+              fontSize: '14px',
+              fontWeight: '500',
+              color: '#121417'
+            }}>
+              {user.firstName} {user.lastName}
+            </span>
+          </div>
         </div>
       </header>
 
-      {/* Main Content */}
-      <main style={{
-        display: 'flex',
-        justifyContent: 'center',
-        padding: '40px 20px',
-        minHeight: 'calc(100vh - 200px)'
+      {/* Breadcrumb */}
+      <div style={{
+        padding: '20px 40px',
+        fontSize: '14px',
+        color: '#607589',
+        backgroundColor: 'white',
+        borderBottom: '1px solid #e5e8eb'
       }}>
+        <Link to="/" style={{ color: '#607589', textDecoration: 'none' }}>Home</Link>
+        <span style={{ margin: '0 8px' }}>/</span>
+        <span style={{ color: '#121417' }}>Dashboard</span>
+      </div>
+
+      {/* Main Content */}
+      <div style={{
+        display: 'flex',
+        gap: '32px',
+        padding: '40px',
+        maxWidth: '1200px',
+        margin: '0 auto'
+      }}>
+        {/* Sidebar */}
         <div style={{
-          width: '100%',
-          maxWidth: '800px',
+          width: '240px',
           backgroundColor: 'white',
-          borderRadius: '12px',
-          padding: '40px',
-          boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)'
+          borderRadius: '8px',
+          padding: '24px',
+          border: '1px solid #e5e8eb',
+          height: 'fit-content'
         }}>
-          {/* Dashboard Header */}
           <div style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            marginBottom: '40px'
+            marginBottom: '24px',
+            textAlign: 'center'
           }}>
-            <h1 style={{
+            <div style={{
+              width: '80px',
+              height: '80px',
+              borderRadius: '50%',
+              backgroundColor: '#0D80F2',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: 'white',
               fontSize: '32px',
-              fontWeight: '700',
-              color: '#121417',
-              margin: '0'
+              fontWeight: '600',
+              margin: '0 auto 16px auto'
             }}>
-              User Dashboard
-            </h1>
-            <div style={{
+              {user.firstName ? user.firstName.charAt(0).toUpperCase() : 'U'}
+            </div>
+            <h3 style={{
               fontSize: '18px',
+              fontWeight: '600',
               color: '#121417',
-              fontWeight: '500'
+              margin: '0 0 4px 0'
             }}>
-              Hi, {user.firstName || 'user name'}
-            </div>
+              {user.firstName} {user.lastName}
+            </h3>
+            <p style={{
+              fontSize: '14px',
+              color: '#607589',
+              margin: 0
+            }}>
+              {user.email}
+            </p>
           </div>
 
-          {/* Order History Section */}
-          <div style={{ marginBottom: '50px' }}>
-            <h2 style={{
-              fontSize: '22px',
-              fontWeight: '700',
-              color: '#121417',
-              margin: '0 0 24px 0'
-            }}>
-              Order History
-            </h2>
+          <nav>
+            {[
+              { id: 'overview', label: 'Overview', icon: '📊' },
+              { id: 'orders', label: 'Order History', icon: '📦' },
+              { id: 'profile', label: 'Profile Settings', icon: '👤' },
+              { id: 'addresses', label: 'Addresses', icon: '📍' }
+            ].map(tab => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                style={{
+                  width: '100%',
+                  padding: '12px 16px',
+                  marginBottom: '8px',
+                  backgroundColor: activeTab === tab.id ? '#f0f8ff' : 'transparent',
+                  border: activeTab === tab.id ? '1px solid #0D80F2' : '1px solid transparent',
+                  borderRadius: '8px',
+                  textAlign: 'left',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '12px',
+                  fontSize: '14px',
+                  fontWeight: '500',
+                  color: activeTab === tab.id ? '#0D80F2' : '#121417',
+                  transition: 'all 0.2s'
+                }}
+              >
+                <span>{tab.icon}</span>
+                {tab.label}
+              </button>
+            ))}
+          </nav>
 
-            <div style={{
-              border: '1px solid #e5e8eb',
-              borderRadius: '8px',
-              overflow: 'hidden'
-            }}>
-              <table style={{
-                width: '100%',
-                borderCollapse: 'collapse'
-              }}>
-                <thead style={{
-                  backgroundColor: '#f8f9fa'
-                }}>
-                  <tr>
-                    <th style={{
-                      padding: '16px',
-                      textAlign: 'left',
-                      fontSize: '14px',
-                      fontWeight: '600',
-                      color: '#121417',
-                      borderBottom: '1px solid #e5e8eb'
-                    }}>Order ID</th>
-                    <th style={{
-                      padding: '16px',
-                      textAlign: 'left',
-                      fontSize: '14px',
-                      fontWeight: '600',
-                      color: '#121417',
-                      borderBottom: '1px solid #e5e8eb'
-                    }}>Date</th>
-                    <th style={{
-                      padding: '16px',
-                      textAlign: 'left',
-                      fontSize: '14px',
-                      fontWeight: '600',
-                      color: '#121417',
-                      borderBottom: '1px solid #e5e8eb'
-                    }}>Status</th>
-                    <th style={{
-                      padding: '16px',
-                      textAlign: 'left',
-                      fontSize: '14px',
-                      fontWeight: '600',
-                      color: '#121417',
-                      borderBottom: '1px solid #e5e8eb'
-                    }}>Total</th>
-                    <th style={{
-                      padding: '16px',
-                      textAlign: 'left',
-                      fontSize: '14px',
-                      fontWeight: '600',
-                      color: '#121417',
-                      borderBottom: '1px solid #e5e8eb'
-                    }}>Tracking</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {orderHistory.map((order, index) => (
-                    <tr key={order.id} style={{
-                      borderBottom: index < orderHistory.length - 1 ? '1px solid #e5e8eb' : 'none'
-                    }}>
-                      <td style={{
-                        padding: '16px',
-                        fontSize: '14px',
-                        color: '#121417'
-                      }}>{order.id}</td>
-                      <td style={{
-                        padding: '16px',
-                        fontSize: '14px',
-                        color: '#121417'
-                      }}>{order.date}</td>
-                      <td style={{
-                        padding: '16px',
-                        fontSize: '14px'
-                      }}>
-                        <span style={{
-                          padding: '4px 12px',
-                          borderRadius: '16px',
-                          fontSize: '12px',
-                          fontWeight: '500',
-                          backgroundColor: order.status === 'Shipped' ? '#e3f2fd' : 
-                                          order.status === 'Delivered' ? '#e8f5e8' : 
-                                          order.status === 'Processing' ? '#fff3cd' :
-                                          order.status === 'Cancelled' ? '#ffebee' : '#f8f9fa',
-                          color: order.status === 'Shipped' ? '#1976d2' : 
-                                 order.status === 'Delivered' ? '#2e7d32' : 
-                                 order.status === 'Processing' ? '#856404' :
-                                 order.status === 'Cancelled' ? '#d32f2f' : '#6c757d'
-                        }}>
-                          {order.status}
-                        </span>
-                      </td>
-                      <td style={{
-                        padding: '16px',
-                        fontSize: '14px',
-                        color: '#121417',
-                        fontWeight: '600'
-                      }}>{order.total}</td>
-                      <td style={{
-                        padding: '16px'
-                      }}>
-                        <Link
-                          to={`/order-tracking?orderId=${order.id}`}
-                          style={{
-                            backgroundColor: '#0D80F2',
-                            color: 'white',
-                            border: 'none',
-                            borderRadius: '16px',
-                            padding: '6px 16px',
-                            fontSize: '12px',
-                            fontWeight: '500',
-                            cursor: 'pointer',
-                            textDecoration: 'none',
-                            display: 'inline-block'
-                          }}
-                        >
-                          View
-                        </Link>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-
-          {/* Invoices Section */}
-          <div style={{ marginBottom: '40px' }}>
-            <h2 style={{
-              fontSize: '22px',
-              fontWeight: '700',
-              color: '#121417',
-              margin: '0 0 24px 0'
-            }}>
-              Invoices
-            </h2>
-
-            <div style={{
-              border: '1px solid #e5e8eb',
-              borderRadius: '8px',
-              overflow: 'hidden'
-            }}>
-              <table style={{
-                width: '100%',
-                borderCollapse: 'collapse'
-              }}>
-                <thead style={{
-                  backgroundColor: '#f8f9fa'
-                }}>
-                  <tr>
-                    <th style={{
-                      padding: '16px',
-                      textAlign: 'left',
-                      fontSize: '14px',
-                      fontWeight: '600',
-                      color: '#121417',
-                      borderBottom: '1px solid #e5e8eb'
-                    }}>Order ID</th>
-                    <th style={{
-                      padding: '16px',
-                      textAlign: 'left',
-                      fontSize: '14px',
-                      fontWeight: '600',
-                      color: '#121417',
-                      borderBottom: '1px solid #e5e8eb'
-                    }}>Date</th>
-                    <th style={{
-                      padding: '16px',
-                      textAlign: 'left',
-                      fontSize: '14px',
-                      fontWeight: '600',
-                      color: '#121417',
-                      borderBottom: '1px solid #e5e8eb'
-                    }}>Invoice</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {invoices.map((invoice, index) => (
-                    <tr key={invoice.id} style={{
-                      borderBottom: index < invoices.length - 1 ? '1px solid #e5e8eb' : 'none'
-                    }}>
-                      <td style={{
-                        padding: '16px',
-                        fontSize: '14px',
-                        color: '#121417'
-                      }}>{invoice.id}</td>
-                      <td style={{
-                        padding: '16px',
-                        fontSize: '14px',
-                        color: '#121417'
-                      }}>{invoice.date}</td>
-                      <td style={{
-                        padding: '16px'
-                      }}>
-                        <button style={{
-                          backgroundColor: 'transparent',
-                          color: '#0D80F2',
-                          border: 'none',
-                          fontSize: '14px',
-                          fontWeight: '500',
-                          cursor: 'pointer',
-                          textDecoration: 'underline'
-                        }}>
-                          {invoice.invoice}
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-
-          {/* Sign Out Button */}
           <div style={{
-            display: 'flex',
-            justifyContent: 'center'
+            marginTop: '24px',
+            paddingTop: '24px',
+            borderTop: '1px solid #e5e8eb'
           }}>
             <button
               onClick={handleSignOut}
               style={{
-                backgroundColor: '#0D80F2',
-                color: 'white',
-                border: 'none',
+                width: '100%',
+                padding: '12px 16px',
+                backgroundColor: '#fee',
+                border: '1px solid #fecaca',
                 borderRadius: '8px',
-                padding: '12px 24px',
-                fontSize: '16px',
-                fontWeight: '700',
+                color: '#dc2626',
+                fontSize: '14px',
+                fontWeight: '500',
                 cursor: 'pointer',
-                transition: 'background-color 0.2s'
+                display: 'flex',
+                alignItems: 'center',
+                gap: '12px',
+                justifyContent: 'center'
               }}
-              onMouseOver={(e) => e.target.style.backgroundColor = '#0a68c4'}
-              onMouseOut={(e) => e.target.style.backgroundColor = '#0D80F2'}
             >
-              Sign out
+              <span>🚪</span>
+              Sign Out
             </button>
           </div>
         </div>
-      </main>
 
-      {/* Footer */}
-      <footer style={{
-        backgroundColor: 'white',
-        borderTop: '1px solid #e5e8eb',
-        padding: '40px 20px',
-        textAlign: 'center'
-      }}>
-        <div style={{
-          maxWidth: '800px',
-          margin: '0 auto'
-        }}>
-          <div style={{
-            display: 'flex',
-            justifyContent: 'center',
-            gap: '60px',
-            marginBottom: '20px'
-          }}>
-            <Link to="/about-us" style={{
-              color: '#61758A',
-              textDecoration: 'none',
-              fontSize: '16px'
-            }}>
-              About Us
-            </Link>
-            <Link to="/customer-support" style={{
-              color: '#61758A',
-              textDecoration: 'none',
-              fontSize: '16px'
-            }}>
-              Customer Support
-            </Link>
-            <Link to="/terms-of-service" style={{
-              color: '#61758A',
-              textDecoration: 'none',
-              fontSize: '16px'
-            }}>
-              Terms of Service
-            </Link>
-          </div>
-          <div style={{
-            color: '#61758A',
-            fontSize: '16px'
-          }}>
-            © 2025 AWE Electronics. All rights reserved.
-          </div>
+        {/* Main Content Area */}
+        <div style={{ flex: 1 }}>
+          {/* Overview Tab */}
+          {activeTab === 'overview' && (
+            <div>
+              <h1 style={{
+                fontSize: '28px',
+                fontWeight: '700',
+                color: '#121417',
+                marginBottom: '24px'
+              }}>
+                Welcome back, {user.firstName}!
+              </h1>
+
+              {/* Stats Cards */}
+              <div style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+                gap: '24px',
+                marginBottom: '32px'
+              }}>
+                <div style={{
+                  backgroundColor: 'white',
+                  padding: '24px',
+                  borderRadius: '8px',
+                  border: '1px solid #e5e8eb'
+                }}>
+                  <div style={{ fontSize: '32px', marginBottom: '8px' }}>📦</div>
+                  <div style={{
+                    fontSize: '24px',
+                    fontWeight: '700',
+                    color: '#121417',
+                    marginBottom: '4px'
+                  }}>
+                    {stats.totalOrders}
+                  </div>
+                  <div style={{ fontSize: '14px', color: '#607589' }}>
+                    Total Orders
+                  </div>
+                </div>
+
+                <div style={{
+                  backgroundColor: 'white',
+                  padding: '24px',
+                  borderRadius: '8px',
+                  border: '1px solid #e5e8eb'
+                }}>
+                  <div style={{ fontSize: '32px', marginBottom: '8px' }}>💰</div>
+                  <div style={{
+                    fontSize: '24px',
+                    fontWeight: '700',
+                    color: '#121417',
+                    marginBottom: '4px'
+                  }}>
+                    ${stats.totalSpent.toFixed(2)}
+                  </div>
+                  <div style={{ fontSize: '14px', color: '#607589' }}>
+                    Total Spent
+                  </div>
+                </div>
+
+                <div style={{
+                  backgroundColor: 'white',
+                  padding: '24px',
+                  borderRadius: '8px',
+                  border: '1px solid #e5e8eb'
+                }}>
+                  <div style={{ fontSize: '32px', marginBottom: '8px' }}>🔄</div>
+                  <div style={{
+                    fontSize: '24px',
+                    fontWeight: '700',
+                    color: '#121417',
+                    marginBottom: '4px'
+                  }}>
+                    {stats.pendingOrders}
+                  </div>
+                  <div style={{ fontSize: '14px', color: '#607589' }}>
+                    Active Orders
+                  </div>
+                </div>
+              </div>
+
+              {/* Recent Orders */}
+              <div style={{
+                backgroundColor: 'white',
+                borderRadius: '8px',
+                border: '1px solid #e5e8eb',
+                overflow: 'hidden'
+              }}>
+                <div style={{
+                  padding: '24px',
+                  borderBottom: '1px solid #e5e8eb'
+                }}>
+                  <div style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center'
+                  }}>
+                    <h2 style={{
+                      fontSize: '20px',
+                      fontWeight: '600',
+                      color: '#121417',
+                      margin: 0
+                    }}>
+                      Recent Orders
+                    </h2>
+                    <button
+                      onClick={() => setActiveTab('orders')}
+                      style={{
+                        backgroundColor: 'transparent',
+                        border: 'none',
+                        color: '#0D80F2',
+                        fontSize: '14px',
+                        fontWeight: '500',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      View All
+                    </button>
+                  </div>
+                </div>
+
+                <div style={{ padding: '24px' }}>
+                  {stats.recentOrders.length > 0 ? (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                      {stats.recentOrders.map(order => (
+                        <div key={order.orderNumber} style={{
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          alignItems: 'center',
+                          padding: '16px',
+                          backgroundColor: '#f8f9fa',
+                          borderRadius: '8px'
+                        }}>
+                          <div>
+                            <div style={{
+                              fontSize: '16px',
+                              fontWeight: '500',
+                              color: '#121417',
+                              marginBottom: '4px'
+                            }}>
+                              Order {order.orderNumber}
+                            </div>
+                            <div style={{
+                              fontSize: '14px',
+                              color: '#607589'
+                            }}>
+                              {order.orderDate} • ${order.total.toFixed(2)}
+                            </div>
+                          </div>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                            {renderStatusBadge(order.status)}
+                            <Link
+                              to={`/order/${order.orderNumber}`}
+                              style={{
+                                color: '#0D80F2',
+                                textDecoration: 'none',
+                                fontSize: '14px',
+                                fontWeight: '500'
+                              }}
+                            >
+                              View Details
+                            </Link>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div style={{
+                      textAlign: 'center',
+                      padding: '40px',
+                      color: '#607589'
+                    }}>
+                      <div style={{ fontSize: '48px', marginBottom: '16px' }}>📦</div>
+                      <h3 style={{ fontSize: '18px', marginBottom: '8px' }}>No orders yet</h3>
+                      <p style={{ marginBottom: '24px' }}>Start shopping to see your orders here!</p>
+                      <Link
+                        to="/product"
+                        style={{
+                          backgroundColor: '#0D80F2',
+                          color: 'white',
+                          textDecoration: 'none',
+                          padding: '12px 24px',
+                          borderRadius: '8px',
+                          fontSize: '14px',
+                          fontWeight: '500',
+                          display: 'inline-block'
+                        }}
+                      >
+                        Browse Products
+                      </Link>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Orders Tab */}
+          {activeTab === 'orders' && (
+            <div>
+              <h1 style={{
+                fontSize: '28px',
+                fontWeight: '700',
+                color: '#121417',
+                marginBottom: '24px'
+              }}>
+                Order History
+              </h1>
+
+              <div style={{
+                backgroundColor: 'white',
+                borderRadius: '8px',
+                border: '1px solid #e5e8eb',
+                overflow: 'hidden'
+              }}>
+                {orders.length > 0 ? (
+                  <div>
+                    {/* Table Header */}
+                    <div style={{
+                      display: 'grid',
+                      gridTemplateColumns: '1fr 120px 120px 120px 100px',
+                      gap: '16px',
+                      padding: '16px 24px',
+                      backgroundColor: '#f8f9fa',
+                      borderBottom: '1px solid #e5e8eb',
+                      fontSize: '14px',
+                      fontWeight: '600',
+                      color: '#121417'
+                    }}>
+                      <div>Order Details</div>
+                      <div>Date</div>
+                      <div>Status</div>
+                      <div>Total</div>
+                      <div>Actions</div>
+                    </div>
+
+                    {/* Table Body */}
+                    {orders.map(order => (
+                      <div key={order.orderNumber} style={{
+                        display: 'grid',
+                        gridTemplateColumns: '1fr 120px 120px 120px 100px',
+                        gap: '16px',
+                        padding: '16px 24px',
+                        borderBottom: '1px solid #e5e8eb',
+                        alignItems: 'center'
+                      }}>
+                        <div>
+                          <div style={{
+                            fontSize: '16px',
+                            fontWeight: '500',
+                            color: '#121417',
+                            marginBottom: '4px'
+                          }}>
+                            {order.orderNumber}
+                          </div>
+                          <div style={{
+                            fontSize: '14px',
+                            color: '#607589'
+                          }}>
+                            {order.items.length} item{order.items.length > 1 ? 's' : ''}
+                          </div>
+                        </div>
+                        <div style={{
+                          fontSize: '14px',
+                          color: '#607589'
+                        }}>
+                          {order.orderDate}
+                        </div>
+                        <div>
+                          {renderStatusBadge(order.status)}
+                        </div>
+                        <div style={{
+                          fontSize: '16px',
+                          fontWeight: '600',
+                          color: '#121417'
+                        }}>
+                          ${order.total.toFixed(2)}
+                        </div>
+                        <Link
+                          to={`/order/${order.orderNumber}`}
+                          style={{
+                            color: '#0D80F2',
+                            textDecoration: 'none',
+                            fontSize: '14px',
+                            fontWeight: '500'
+                          }}
+                        >
+                          View
+                        </Link>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div style={{
+                    textAlign: 'center',
+                    padding: '60px',
+                    color: '#607589'
+                  }}>
+                    <div style={{ fontSize: '64px', marginBottom: '24px' }}>📦</div>
+                    <h3 style={{ fontSize: '24px', marginBottom: '12px' }}>No orders yet</h3>
+                    <p style={{ marginBottom: '32px', fontSize: '16px' }}>
+                      When you place your first order, it will appear here.
+                    </p>
+                    <Link
+                      to="/product"
+                      style={{
+                        backgroundColor: '#0D80F2',
+                        color: 'white',
+                        textDecoration: 'none',
+                        padding: '16px 32px',
+                        borderRadius: '8px',
+                        fontSize: '16px',
+                        fontWeight: '600',
+                        display: 'inline-block'
+                      }}
+                    >
+                      Start Shopping
+                    </Link>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Profile Tab */}
+          {activeTab === 'profile' && (
+            <div>
+              <h1 style={{
+                fontSize: '28px',
+                fontWeight: '700',
+                color: '#121417',
+                marginBottom: '24px'
+              }}>
+                Profile Settings
+              </h1>
+
+              <div style={{
+                backgroundColor: 'white',
+                borderRadius: '8px',
+                border: '1px solid #e5e8eb',
+                padding: '32px'
+              }}>
+                <div style={{
+                  display: 'grid',
+                  gridTemplateColumns: '1fr 1fr',
+                  gap: '24px'
+                }}>
+                  <div>
+                    <label style={{
+                      display: 'block',
+                      fontSize: '14px',
+                      fontWeight: '500',
+                      color: '#121417',
+                      marginBottom: '8px'
+                    }}>
+                      First Name
+                    </label>
+                    <input
+                      type="text"
+                      value={user.firstName}
+                      readOnly
+                      style={{
+                        width: '100%',
+                        padding: '12px',
+                        border: '1px solid #e5e8eb',
+                        borderRadius: '8px',
+                        fontSize: '16px',
+                        backgroundColor: '#f8f9fa',
+                        color: '#607589'
+                      }}
+                    />
+                  </div>
+
+                  <div>
+                    <label style={{
+                      display: 'block',
+                      fontSize: '14px',
+                      fontWeight: '500',
+                      color: '#121417',
+                      marginBottom: '8px'
+                    }}>
+                      Last Name
+                    </label>
+                    <input
+                      type="text"
+                      value={user.lastName}
+                      readOnly
+                      style={{
+                        width: '100%',
+                        padding: '12px',
+                        border: '1px solid #e5e8eb',
+                        borderRadius: '8px',
+                        fontSize: '16px',
+                        backgroundColor: '#f8f9fa',
+                        color: '#607589'
+                      }}
+                    />
+                  </div>
+
+                  <div style={{ gridColumn: '1 / -1' }}>
+                    <label style={{
+                      display: 'block',
+                      fontSize: '14px',
+                      fontWeight: '500',
+                      color: '#121417',
+                      marginBottom: '8px'
+                    }}>
+                      Email Address
+                    </label>
+                    <input
+                      type="email"
+                      value={user.email}
+                      readOnly
+                      style={{
+                        width: '100%',
+                        padding: '12px',
+                        border: '1px solid #e5e8eb',
+                        borderRadius: '8px',
+                        fontSize: '16px',
+                        backgroundColor: '#f8f9fa',
+                        color: '#607589'
+                      }}
+                    />
+                  </div>
+                </div>
+
+                <div style={{
+                  marginTop: '32px',
+                  padding: '24px',
+                  backgroundColor: '#f8f9fa',
+                  borderRadius: '8px',
+                  textAlign: 'center'
+                }}>
+                  <div style={{ fontSize: '24px', marginBottom: '16px' }}>🔧</div>
+                  <h3 style={{ fontSize: '18px', marginBottom: '8px' }}>Profile editing coming soon</h3>
+                  <p style={{ color: '#607589', margin: 0 }}>
+                    We're working on allowing you to update your profile information.
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Addresses Tab */}
+          {activeTab === 'addresses' && (
+            <div>
+              <h1 style={{
+                fontSize: '28px',
+                fontWeight: '700',
+                color: '#121417',
+                marginBottom: '24px'
+              }}>
+                Saved Addresses
+              </h1>
+
+              <div style={{
+                backgroundColor: 'white',
+                borderRadius: '8px',
+                border: '1px solid #e5e8eb',
+                padding: '32px',
+                textAlign: 'center'
+              }}>
+                <div style={{ fontSize: '48px', marginBottom: '24px' }}>📍</div>
+                <h3 style={{ fontSize: '20px', marginBottom: '12px' }}>No saved addresses</h3>
+                <p style={{ color: '#607589', marginBottom: '24px' }}>
+                  Add addresses for faster checkout in future orders.
+                </p>
+                <button style={{
+                  backgroundColor: '#0D80F2',
+                  color: 'white',
+                  border: 'none',
+                  padding: '12px 24px',
+                  borderRadius: '8px',
+                  fontSize: '14px',
+                  fontWeight: '500',
+                  cursor: 'pointer'
+                }}>
+                  Add New Address
+                </button>
+              </div>
+            </div>
+          )}
         </div>
-      </footer>
+      </div>
     </div>
   );
 };

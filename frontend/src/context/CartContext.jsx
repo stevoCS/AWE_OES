@@ -1,5 +1,6 @@
 import React, { createContext, useState, useContext, useEffect, useCallback } from 'react';
 import { useUser } from './UserContext';
+import { cartAPI } from '../api/config';
 
 export const CartContext = createContext();
 
@@ -7,6 +8,71 @@ export const CartProvider = ({ children }) => {
   const { user, isLoggedIn, registerCartCallbacks } = useUser();
   const [guestCart, setGuestCart] = useState([]);
   const [userCart, setUserCart] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+
+  // Load user cart from server
+  const loadUserCartFromServer = useCallback(async () => {
+    try {
+      setIsLoading(true);
+      console.log('Loading cart from server...');
+      
+      const response = await cartAPI.getCartSummary();
+      console.log('Cart API response:', response);
+      
+      if (response.success) {
+        const serverCartItems = response.data.items.map(item => ({
+          id: item.product_id,
+          name: item.product_name,
+          price: item.product_price,
+          quantity: item.quantity,
+          image: '/api/placeholder/150/150', // Default placeholder
+          // Add other fields as needed
+        }));
+        setUserCart(serverCartItems);
+        console.log('Successfully loaded cart:', serverCartItems.length, 'items');
+      } else {
+        console.warn('Cart API response format is incorrect:', response);
+      }
+    } catch (error) {
+      console.error('Failed to load cart from server:', error);
+      // Silent failure, does not affect app functionality
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  // When user logs in, merge guest cart with user cart
+  const mergeGuestCartWithUserCart = useCallback(async () => {
+    if (guestCart.length > 0) {
+      try {
+        setIsLoading(true);
+        
+        // Add all guest cart items to server
+        for (const item of guestCart) {
+          await cartAPI.addToCart(item.id, item.quantity);
+        }
+        
+        // Clear guest cart and reload server cart
+        setGuestCart([]);
+        localStorage.removeItem('guestCart');
+        await loadUserCartFromServer();
+        
+        console.log('Guest cart merged with user cart');
+      } catch (error) {
+        console.error('Failed to merge guest cart:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    } else {
+      // Just load user cart if no guest items
+      await loadUserCartFromServer();
+    }
+  }, [guestCart, loadUserCartFromServer]);
+
+  // When user logs out, clear user cart
+  const handleLogout = useCallback(() => {
+    setUserCart([]);
+  }, []);
 
   // Initialize cart from localStorage on mount
   useEffect(() => {
@@ -21,42 +87,28 @@ export const CartProvider = ({ children }) => {
         setGuestCart([]);
       }
     }
+  }, []);
 
-    // Load user cart from localStorage if logged in
-    if (isLoggedIn && user?.email) {
-      const userCartKey = `userCart_${user.email}`;
-      const savedUserCart = localStorage.getItem(userCartKey);
-      if (savedUserCart) {
-        try {
-          const parsedCart = JSON.parse(savedUserCart);
-          setUserCart(parsedCart);
-        } catch (error) {
-          console.error('Error parsing user cart from localStorage:', error);
-          setUserCart([]);
-        }
-      }
-    }
-  }, [isLoggedIn, user?.email]);
-
-  // Register cart callbacks with UserContext on mount
+  // Load user cart from server when user logs in
   useEffect(() => {
-    if (registerCartCallbacks) {
+    if (isLoggedIn && user?.id) {
+      loadUserCartFromServer();
+    } else {
+      setUserCart([]);
+    }
+  }, [isLoggedIn, user?.id, loadUserCartFromServer]);
+
+  // Simplified version: register callbacks directly, without useEffect
+  React.useLayoutEffect(() => {
+    if (registerCartCallbacks && typeof registerCartCallbacks === 'function') {
       registerCartCallbacks(mergeGuestCartWithUserCart, handleLogout);
     }
-  }, [registerCartCallbacks]);
+  }, []);
 
   // Save guest cart to localStorage whenever it changes
   useEffect(() => {
     localStorage.setItem('guestCart', JSON.stringify(guestCart));
   }, [guestCart]);
-
-  // Save user cart to localStorage whenever it changes
-  useEffect(() => {
-    if (isLoggedIn && user?.email) {
-      const userCartKey = `userCart_${user.email}`;
-      localStorage.setItem(userCartKey, JSON.stringify(userCart));
-    }
-  }, [userCart, isLoggedIn, user?.email]);
 
   // Get current cart based on login status
   const getCurrentCart = useCallback(() => {
@@ -72,54 +124,150 @@ export const CartProvider = ({ children }) => {
   }, [isLoggedIn]);
 
   // Add item to cart
-  const addToCart = useCallback((product, quantity = 1) => {
-    const currentCart = getCurrentCart();
-    const existingItemIndex = currentCart.findIndex(item => item.id === product.id);
-    
-    let newCart;
-    if (existingItemIndex >= 0) {
-      // Item already exists, update quantity
-      newCart = currentCart.map((item, index) => 
-        index === existingItemIndex 
-          ? { ...item, quantity: item.quantity + quantity }
-          : item
-      );
-    } else {
-      // New item, add to cart
-      newCart = [...currentCart, { ...product, quantity }];
+  const addToCart = useCallback(async (product, quantity = 1) => {
+    try {
+      setIsLoading(true);
+      
+      if (isLoggedIn) {
+        // Add to server cart
+        const response = await cartAPI.addToCart(product.id, quantity);
+        if (response.success) {
+          // Reload cart from server to get updated data
+          await loadUserCartFromServer();
+          console.log('Added to server cart:', product.name, 'x', quantity);
+        }
+      } else {
+        // Add to guest cart (localStorage)
+        const currentCart = guestCart;
+        const existingItemIndex = currentCart.findIndex(item => item.id === product.id);
+        
+        let newCart;
+        if (existingItemIndex >= 0) {
+          // Item already exists, update quantity
+          newCart = currentCart.map((item, index) => 
+            index === existingItemIndex 
+              ? { ...item, quantity: item.quantity + quantity }
+              : item
+          );
+        } else {
+          // New item, add to cart
+          newCart = [...currentCart, { ...product, quantity }];
+        }
+        
+        setGuestCart(newCart);
+        console.log('Added to guest cart:', product.name, 'x', quantity);
+      }
+    } catch (error) {
+      console.error('Failed to add item to cart:', error);
+      // Fallback to local cart for guest users
+      if (!isLoggedIn) {
+        const currentCart = guestCart;
+        const existingItemIndex = currentCart.findIndex(item => item.id === product.id);
+        
+        let newCart;
+        if (existingItemIndex >= 0) {
+          newCart = currentCart.map((item, index) => 
+            index === existingItemIndex 
+              ? { ...item, quantity: item.quantity + quantity }
+              : item
+          );
+        } else {
+          newCart = [...currentCart, { ...product, quantity }];
+        }
+        
+        setGuestCart(newCart);
+      }
+    } finally {
+      setIsLoading(false);
     }
-    
-    setCurrentCart(newCart);
-    console.log('Added to cart:', product.name, 'x', quantity);
-  }, [getCurrentCart, setCurrentCart]);
+  }, [isLoggedIn, guestCart, loadUserCartFromServer]);
 
   // Remove item from cart
-  const removeFromCart = useCallback((productId) => {
-    const currentCart = getCurrentCart();
-    const newCart = currentCart.filter(item => item.id !== productId);
-    setCurrentCart(newCart);
-  }, [getCurrentCart, setCurrentCart]);
+  const removeFromCart = useCallback(async (productId) => {
+    try {
+      setIsLoading(true);
+      
+      if (isLoggedIn) {
+        // Remove from server cart
+        await cartAPI.removeFromCart(productId);
+        await loadUserCartFromServer();
+      } else {
+        // Remove from guest cart
+        const newCart = guestCart.filter(item => item.id !== productId);
+        setGuestCart(newCart);
+      }
+    } catch (error) {
+      console.error('Failed to remove item from cart:', error);
+      // Fallback to local removal
+      if (!isLoggedIn) {
+        const newCart = guestCart.filter(item => item.id !== productId);
+        setGuestCart(newCart);
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  }, [isLoggedIn, guestCart, loadUserCartFromServer]);
 
   // Update item quantity
-  const updateQuantity = useCallback((productId, newQuantity) => {
+  const updateQuantity = useCallback(async (productId, newQuantity) => {
     if (newQuantity <= 0) {
-      removeFromCart(productId);
+      await removeFromCart(productId);
       return;
     }
     
-    const currentCart = getCurrentCart();
-    const newCart = currentCart.map(item => 
-      item.id === productId 
-        ? { ...item, quantity: newQuantity }
-        : item
-    );
-    setCurrentCart(newCart);
-  }, [getCurrentCart, setCurrentCart, removeFromCart]);
+    try {
+      setIsLoading(true);
+      
+      if (isLoggedIn) {
+        // Update on server
+        await cartAPI.updateCartItem(productId, newQuantity);
+        await loadUserCartFromServer();
+      } else {
+        // Update guest cart
+        const newCart = guestCart.map(item => 
+          item.id === productId 
+            ? { ...item, quantity: newQuantity }
+            : item
+        );
+        setGuestCart(newCart);
+      }
+    } catch (error) {
+      console.error('Failed to update cart item:', error);
+      // Fallback to local update
+      if (!isLoggedIn) {
+        const newCart = guestCart.map(item => 
+          item.id === productId 
+            ? { ...item, quantity: newQuantity }
+            : item
+        );
+        setGuestCart(newCart);
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  }, [isLoggedIn, guestCart, removeFromCart, loadUserCartFromServer]);
 
   // Clear cart
-  const clearCart = useCallback(() => {
-    setCurrentCart([]);
-  }, [setCurrentCart]);
+  const clearCart = useCallback(async () => {
+    try {
+      setIsLoading(true);
+      
+      if (isLoggedIn) {
+        // Clear server cart
+        await cartAPI.clearCart();
+        setUserCart([]);
+      } else {
+        // Clear guest cart
+        setGuestCart([]);
+      }
+    } catch (error) {
+      console.error('Failed to clear cart:', error);
+      // Fallback to local clear
+      setCurrentCart([]);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [isLoggedIn, setCurrentCart]);
 
   // Get cart total
   const getCartTotal = useCallback(() => {
@@ -133,34 +281,6 @@ export const CartProvider = ({ children }) => {
     return currentCart.reduce((count, item) => count + item.quantity, 0);
   }, [getCurrentCart]);
 
-  // When user logs in, merge guest cart with user cart
-  const mergeGuestCartWithUserCart = useCallback(() => {
-    if (guestCart.length > 0) {
-      const mergedCart = [...userCart];
-      
-      guestCart.forEach(guestItem => {
-        const existingItemIndex = mergedCart.findIndex(item => item.id === guestItem.id);
-        if (existingItemIndex >= 0) {
-          mergedCart[existingItemIndex].quantity += guestItem.quantity;
-        } else {
-          mergedCart.push(guestItem);
-        }
-      });
-      
-      setUserCart(mergedCart);
-      setGuestCart([]); // Clear guest cart after merge
-      localStorage.removeItem('guestCart');
-    }
-  }, [guestCart, userCart]);
-
-  // When user logs out, clear user cart
-  const handleLogout = useCallback(() => {
-    setUserCart([]);
-    if (user?.email) {
-      localStorage.removeItem(`userCart_${user.email}`);
-    }
-  }, [user?.email]);
-
   const value = {
     cartItems: getCurrentCart(),
     addToCart,
@@ -171,7 +291,9 @@ export const CartProvider = ({ children }) => {
     getCartItemsCount,
     mergeGuestCartWithUserCart,
     handleLogout,
-    isLoggedIn
+    isLoggedIn,
+    isLoading,
+    loadUserCartFromServer
   };
 
   return (

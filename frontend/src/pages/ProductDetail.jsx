@@ -1,10 +1,13 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import { SearchIcon, ShoppingCartIcon } from '../components/ui/icons';
 import { Button } from '../components/ui/button';
 import { useUser } from '../context/UserContext';
 import { useCart } from '../context/CartContext';
+import { productsAPI } from '../api/config';
 import logoIcon from '../assets/Vector - 0.svg';
+import searchIcon from '../assets/Vector - search.svg';
+import cartIcon from '../assets/Vector - cart.svg';
 
 // Import product images
 import laptopImg from '../assets/laptop.png';
@@ -156,26 +159,55 @@ const ProductDetail = () => {
   const [quantity, setQuantity] = useState(1);
   const [addedToCart, setAddedToCart] = useState(false);
   const [selectedImage, setSelectedImage] = useState(0);
+  const [product, setProduct] = useState(null);
+  const [relatedProducts, setRelatedProducts] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  // Find product by ID
-  const product = products.find(p => p.id === parseInt(id));
-  
-  // Get related products (excluding current product)
-  const relatedProducts = products.filter(p => p.id !== parseInt(id)).slice(0, 3);
+  // Load product data from API
+  useEffect(() => {
+    loadProductData();
+  }, [id]);
 
-  if (!product) {
-    return (
-      <div style={{ padding: '40px', textAlign: 'center' }}>
-        <h2>Product not found</h2>
-        <Link to="/">Return to Home</Link>
-      </div>
-    );
-  }
+  const loadProductData = async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      console.log('Loading product details, ID:', id);
+
+      // Load specific product
+      const productResponse = await productsAPI.getProduct(id);
+      console.log('Product details API response:', productResponse);
+
+      if (productResponse.success && productResponse.data) {
+        setProduct(productResponse.data);
+        
+        // Load related products (all products for now)
+        const allProductsResponse = await productsAPI.getProducts();
+        if (allProductsResponse.success && allProductsResponse.data.items) {
+          // Get other products excluding current one
+          const otherProducts = allProductsResponse.data.items
+            .filter(p => p.id !== id)
+            .slice(0, 3);
+          setRelatedProducts(otherProducts);
+        }
+      } else {
+        setError('Product not found');
+      }
+    } catch (error) {
+      console.error('Error loading product details:', error);
+      setError('Failed to load product information');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleAddToCart = () => {
-    addToCart(product, quantity);
-    setAddedToCart(true);
-    setTimeout(() => setAddedToCart(false), 2000);
+    if (product) {
+      addToCart(product, quantity);
+      setAddedToCart(true);
+      setTimeout(() => setAddedToCart(false), 2000);
+    }
   };
 
   const handleQuantityChange = (change) => {
@@ -201,6 +233,41 @@ const ProductDetail = () => {
     }
     return stars;
   };
+
+  // Loading state
+  if (isLoading) {
+    return (
+      <div style={{ 
+        display: 'flex', 
+        justifyContent: 'center', 
+        alignItems: 'center', 
+        height: '100vh',
+        fontFamily: "'Space Grotesk', Arial, sans-serif"
+      }}>
+        <div style={{ textAlign: 'center' }}>
+          <div style={{ fontSize: '18px', marginBottom: '10px' }}>Loading...</div>
+          <div style={{ fontSize: '14px', color: '#666' }}>Fetching product information</div>
+        </div>
+      </div>
+    );
+  }
+
+  // Error state
+  if (error || !product) {
+    return (
+      <div style={{ 
+        padding: '40px', 
+        textAlign: 'center',
+        fontFamily: "'Space Grotesk', Arial, sans-serif"
+      }}>
+        <h2>Product Not Found</h2>
+        <p>{error || 'Please check if the product ID is correct'}</p>
+        <Link to="/" style={{ color: '#0D80F2', textDecoration: 'none' }}>
+          Return to Home
+        </Link>
+      </div>
+    );
+  }
 
   return (
     <div style={{
@@ -405,7 +472,7 @@ const ProductDetail = () => {
           margin: '0 0 40px 0',
           lineHeight: 1.6
         }}>
-          {product.desc}. Featuring advanced noise-canceling technology, crystal-clear audio, and a comfortable, ergonomic design, these headphones are perfect for music lovers and professionals alike. Enjoy up to 30 hours of battery life and seamless Bluetooth connectivity.
+          {product.description}
         </p>
 
         {/* Product Images */}
@@ -425,16 +492,31 @@ const ProductDetail = () => {
             alignItems: 'center',
             justifyContent: 'center'
           }}>
-            <img 
-              src={product.image} 
-              alt={product.name}
-              style={{
+            {product.images && product.images.length > 0 ? (
+              <img 
+                src={product.images[0]} 
+                alt={product.name}
+                style={{
+                  width: '100%',
+                  maxWidth: '350px',
+                  height: 'auto',
+                  objectFit: 'contain'
+                }}
+              />
+            ) : (
+              <div style={{
                 width: '100%',
                 maxWidth: '350px',
-                height: 'auto',
-                objectFit: 'contain'
-              }}
-            />
+                height: '200px',
+                backgroundColor: '#f0f2f5',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: '#607589'
+              }}>
+                No Image Available
+              </div>
+            )}
           </div>
           
           {/* Secondary Images */}
@@ -446,16 +528,17 @@ const ProductDetail = () => {
             alignItems: 'center',
             justifyContent: 'center'
           }}>
-            <img 
-              src={product.image} 
-              alt={`${product.name} view 2`}
-              style={{
-                width: '100%',
-                height: 'auto',
-                objectFit: 'contain',
-                filter: 'hue-rotate(30deg)'
-              }}
-            />
+            <div style={{
+              width: '100%',
+              height: '150px',
+              backgroundColor: '#f0f2f5',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: '#607589'
+            }}>
+              More Images
+            </div>
           </div>
           
           <div style={{
@@ -466,16 +549,17 @@ const ProductDetail = () => {
             alignItems: 'center',
             justifyContent: 'center'
           }}>
-            <img 
-              src={product.image} 
-              alt={`${product.name} view 3`}
-              style={{
-                width: '100%',
-                height: 'auto',
-                objectFit: 'contain',
-                filter: 'hue-rotate(60deg)'
-              }}
-            />
+            <div style={{
+              width: '100%',
+              height: '150px',
+              backgroundColor: '#f0f2f5',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: '#607589'
+            }}>
+              Gallery
+            </div>
           </div>
         </div>
 
@@ -500,21 +584,35 @@ const ProductDetail = () => {
             gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
             gap: '32px'
           }}>
+            {product.specifications && Object.entries(product.specifications).map(([key, value]) => (
+              <div key={key}>
+                <h3 style={{ fontSize: '14px', fontWeight: '600', color: '#61758A', margin: '0 0 8px 0' }}>
+                  {key.charAt(0).toUpperCase() + key.slice(1)}
+                </h3>
+                <p style={{ fontSize: '16px', color: '#121417', margin: 0 }}>
+                  {value}
+                </p>
+              </div>
+            ))}
+            {product.brand && (
+              <div>
+                <h3 style={{ fontSize: '14px', fontWeight: '600', color: '#61758A', margin: '0 0 8px 0' }}>Brand</h3>
+                <p style={{ fontSize: '16px', color: '#121417', margin: 0 }}>{product.brand}</p>
+              </div>
+            )}
+            {product.model && (
+              <div>
+                <h3 style={{ fontSize: '14px', fontWeight: '600', color: '#61758A', margin: '0 0 8px 0' }}>Model</h3>
+                <p style={{ fontSize: '16px', color: '#121417', margin: 0 }}>{product.model}</p>
+              </div>
+            )}
             <div>
-              <h3 style={{ fontSize: '14px', fontWeight: '600', color: '#61758A', margin: '0 0 8px 0' }}>Model</h3>
-              <p style={{ fontSize: '16px', color: '#121417', margin: 0 }}>{product.specs.model}</p>
+              <h3 style={{ fontSize: '14px', fontWeight: '600', color: '#61758A', margin: '0 0 8px 0' }}>Price</h3>
+              <p style={{ fontSize: '16px', color: '#121417', margin: 0 }}>${product.price.toFixed(2)}</p>
             </div>
             <div>
-              <h3 style={{ fontSize: '14px', fontWeight: '600', color: '#61758A', margin: '0 0 8px 0' }}>Connectivity</h3>
-              <p style={{ fontSize: '16px', color: '#121417', margin: 0 }}>{product.specs.connectivity}</p>
-            </div>
-            <div>
-              <h3 style={{ fontSize: '14px', fontWeight: '600', color: '#61758A', margin: '0 0 8px 0' }}>Battery Life</h3>
-              <p style={{ fontSize: '16px', color: '#121417', margin: 0 }}>{product.specs.batteryLife}</p>
-            </div>
-            <div>
-              <h3 style={{ fontSize: '14px', fontWeight: '600', color: '#61758A', margin: '0 0 8px 0' }}>Weight</h3>
-              <p style={{ fontSize: '16px', color: '#121417', margin: 0 }}>{product.specs.weight}</p>
+              <h3 style={{ fontSize: '14px', fontWeight: '600', color: '#61758A', margin: '0 0 8px 0' }}>Category</h3>
+              <p style={{ fontSize: '16px', color: '#121417', margin: 0 }}>{product.category}</p>
             </div>
           </div>
         </div>
@@ -636,17 +734,25 @@ const ProductDetail = () => {
                     marginBottom: '16px',
                     display: 'flex',
                     alignItems: 'center',
-                    justifyContent: 'center'
+                    justifyContent: 'center',
+                    backgroundColor: '#f0f2f5',
+                    borderRadius: '8px'
                   }}>
-                    <img
-                      src={relatedProduct.image}
-                      alt={relatedProduct.name}
-                      style={{
-                        width: '100%',
-                        height: '100%',
-                        objectFit: 'contain'
-                      }}
-                    />
+                    {relatedProduct.images && relatedProduct.images.length > 0 ? (
+                      <img
+                        src={relatedProduct.images[0]}
+                        alt={relatedProduct.name}
+                        style={{
+                          width: '100%',
+                          height: '100%',
+                          objectFit: 'contain'
+                        }}
+                      />
+                    ) : (
+                      <span style={{ color: '#607589', fontSize: '14px' }}>
+                        No Image
+                      </span>
+                    )}
                   </div>
                   <h3 style={{
                     fontSize: '16px',
@@ -661,8 +767,15 @@ const ProductDetail = () => {
                     color: '#61758A',
                     margin: '0 0 12px 0'
                   }}>
-                    {relatedProduct.desc}
+                    {relatedProduct.description}
                   </p>
+                  <div style={{
+                    fontSize: '16px',
+                    fontWeight: '600',
+                    color: '#121417'
+                  }}>
+                    ${relatedProduct.price.toFixed(2)}
+                  </div>
                 </div>
               </Link>
             ))}
@@ -703,7 +816,7 @@ const ProductDetail = () => {
                 fontWeight: '700',
                 color: '#121417'
               }}>
-                ${product.price}.00
+                ${product.price.toFixed(2)}
               </div>
             </div>
             

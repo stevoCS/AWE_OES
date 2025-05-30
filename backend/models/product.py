@@ -1,4 +1,4 @@
-from pydantic import BaseModel, validator
+from pydantic import BaseModel, validator, ConfigDict, Field
 from typing import Optional, List
 from datetime import datetime
 from decimal import Decimal
@@ -10,14 +10,15 @@ class PyObjectId(ObjectId):
         yield cls.validate
 
     @classmethod
-    def validate(cls, v):
+    def validate(cls, v, _info=None):
         if not ObjectId.is_valid(v):
             raise ValueError("Invalid objectid")
         return ObjectId(v)
 
     @classmethod
-    def __modify_schema__(cls, field_schema):
+    def __get_pydantic_json_schema__(cls, field_schema):
         field_schema.update(type="string")
+        return field_schema
 
 class ProductCategory(BaseModel):
     """Product category model"""
@@ -74,16 +75,17 @@ class ProductUpdate(BaseModel):
 
 class Product(ProductBase):
     """Product complete model"""
-    id: Optional[PyObjectId] = None
-    created_at: datetime = datetime.now()
-    updated_at: datetime = datetime.now()
+    id: Optional[PyObjectId] = Field(alias="_id", default=None)
+    created_at: datetime = Field(default_factory=datetime.now)
+    updated_at: datetime = Field(default_factory=datetime.now)
     views_count: int = 0
     sales_count: int = 0
 
-    class Config:
-        allow_population_by_field_name = True
-        arbitrary_types_allowed = True
-        json_encoders = {ObjectId: str}
+    model_config = ConfigDict(
+        populate_by_name=True,
+        arbitrary_types_allowed=True,
+        json_encoders={ObjectId: str}
+    )
 
 class ProductResponse(ProductBase):
     """Product response model"""
@@ -93,10 +95,11 @@ class ProductResponse(ProductBase):
     views_count: int
     sales_count: int
 
-    class Config:
-        allow_population_by_field_name = True
-        arbitrary_types_allowed = True
-        json_encoders = {ObjectId: str}
+    model_config = ConfigDict(
+        populate_by_name=True,
+        arbitrary_types_allowed=True,
+        json_encoders={ObjectId: str}
+    )
 
 class ProductSearch(BaseModel):
     """Product search model"""

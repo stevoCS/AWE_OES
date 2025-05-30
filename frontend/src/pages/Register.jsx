@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { SearchIcon, ShoppingCartIcon } from '../components/ui/icons';
 import { Button } from '../components/ui/button';
 import { Card, CardContent } from '../components/ui/card';
 import { useUser } from '../context/UserContext';
 import { useCart } from '../context/CartContext';
+import { DebugLogger } from '../utils/debug';
 import './Login.css'; // Reuse the login page style
 import logoIcon from '../assets/Vector - 0.svg';
 
@@ -20,6 +21,15 @@ export const Register = () => {
   const { register, isLoading } = useUser();
   const { getCartItemsCount } = useCart();
   const navigate = useNavigate();
+  const location = useLocation();
+
+  // Add debug logging
+  React.useEffect(() => {
+    DebugLogger.log('Register component mounted', { 
+      pathname: location.pathname,
+      cartItems: getCartItemsCount()
+    });
+  }, [location.pathname, getCartItemsCount]);
 
   // Footer links data
   const footerLinks = [
@@ -40,38 +50,74 @@ export const Register = () => {
     e.preventDefault();
     setError('');
     
+    DebugLogger.userAction('Register form submitted', {
+      email: formData.email,
+      firstName: formData.firstName,
+      lastName: formData.lastName
+    });
+    
     // Check if the password matches
     if (formData.password !== formData.confirmPassword) {
       setError('Password confirmation does not match');
+      DebugLogger.error('Password mismatch');
       return;
     }
 
     // Check if the password length is at least 6 characters
     if (formData.password.length < 6) {
       setError('Password must be at least 6 characters');
+      DebugLogger.error('Password too short');
       return;
     }
 
     // Check if user has items in cart before registration
     const hasCartItems = getCartItemsCount() > 0;
+    DebugLogger.log('Pre-registration check', { hasCartItems, cartCount: getCartItemsCount() });
     
-    const result = await register(formData);
-    
-    if (result.success) {
-      // If user had items in cart, redirect to cart for checkout
-      // Otherwise redirect to dashboard
-      if (hasCartItems) {
-        navigate('/cart?from=auth');
+    try {
+      DebugLogger.log('Calling register API...');
+      const result = await register(formData);
+      
+      DebugLogger.log('Register API result', { 
+        success: result.success, 
+        error: result.error,
+        user: result.user?.email 
+      });
+      
+      if (result.success) {
+        DebugLogger.success('Registration successful', { 
+          userId: result.user?.id,
+          email: result.user?.email 
+        });
+        
+        // Determine navigation target
+        const targetPath = hasCartItems ? '/cart?from=auth' : '/dashboard';
+        DebugLogger.navigation(location.pathname, targetPath, 'post-registration');
+        
+        // Navigate
+        DebugLogger.log('Calling navigate function', { targetPath });
+        navigate(targetPath);
+        
+        // Additional debug - check if navigation actually happened
+        setTimeout(() => {
+          DebugLogger.log('Post-navigation check', { 
+            currentPath: window.location.pathname,
+            expectedPath: targetPath.split('?')[0]
+          });
+        }, 100);
+        
       } else {
-        navigate('/dashboard');
+        DebugLogger.error('Registration failed', result.error);
+        setError(result.error);
       }
-    } else {
-      setError(result.error);
+    } catch (error) {
+      DebugLogger.error('Registration exception', error);
+      setError(error.message || 'Registration failed');
     }
   };
 
   const handleLoginRedirect = () => {
-    // Redirect to login page
+    DebugLogger.navigation(location.pathname, '/login', 'login-redirect');
     navigate('/login');
   };
 

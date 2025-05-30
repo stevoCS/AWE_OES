@@ -11,19 +11,19 @@ from models.tracking import (
 from utils.response import APIException
 
 class TrackingController:
-    """订单跟踪控制器"""
+    """Order tracking controller"""
     
     @staticmethod
     async def create_tracking(tracking_data: dict) -> OrderTrackingResponse:
-        """创建订单跟踪记录"""
+        """Create order tracking record"""
         collection = await get_collection("tracking")
         
-        # 创建初始跟踪事件
+        # Create initial tracking event
         initial_event = TrackingEvent(
             event_type=TrackingEventType.ORDER_CREATED,
             timestamp=datetime.now(),
-            description="订单已创建",
-            location="在线商城"
+            description="Order has been created",
+            location="Online Store"
         )
         
         tracking = OrderTracking(
@@ -36,10 +36,10 @@ class TrackingController:
             updated_at=datetime.now()
         )
         
-        # 插入数据库
+        # Insert into database
         result = await collection.insert_one(tracking.dict(by_alias=True, exclude={"id"}))
         
-        # 返回创建的跟踪记录
+        # Return created tracking record
         tracking_doc = await collection.find_one({"_id": result.inserted_id})
         tracking_doc["id"] = str(tracking_doc["_id"])
         del tracking_doc["_id"]
@@ -48,17 +48,17 @@ class TrackingController:
     
     @staticmethod
     async def get_tracking_by_order_id(order_id: str) -> OrderTrackingResponse:
-        """根据订单ID获取跟踪信息"""
+        """Get tracking information by order ID"""
         collection = await get_collection("tracking")
         
         tracking_doc = await collection.find_one({"order_id": order_id})
         if not tracking_doc:
-            raise APIException("跟踪信息不存在", status.HTTP_404_NOT_FOUND)
+            raise APIException("Tracking information not found", status.HTTP_404_NOT_FOUND)
         
         tracking_doc["id"] = str(tracking_doc["_id"])
         del tracking_doc["_id"]
         
-        # 添加预计送达时间
+        # Add estimated delivery time
         estimated_delivery = TrackingController._calculate_delivery_estimate(
             tracking_doc["current_status"], 
             tracking_doc["created_at"]
@@ -69,17 +69,17 @@ class TrackingController:
     
     @staticmethod
     async def get_tracking_by_number(order_number: str) -> OrderTrackingResponse:
-        """根据订单号获取跟踪信息"""
+        """Get tracking information by order number"""
         collection = await get_collection("tracking")
         
         tracking_doc = await collection.find_one({"order_number": order_number})
         if not tracking_doc:
-            raise APIException("跟踪信息不存在", status.HTTP_404_NOT_FOUND)
+            raise APIException("Tracking information not found", status.HTTP_404_NOT_FOUND)
         
         tracking_doc["id"] = str(tracking_doc["_id"])
         del tracking_doc["_id"]
         
-        # 添加预计送达时间
+        # Add estimated delivery time
         estimated_delivery = TrackingController._calculate_delivery_estimate(
             tracking_doc["current_status"], 
             tracking_doc["created_at"]
@@ -90,12 +90,12 @@ class TrackingController:
     
     @staticmethod
     async def get_tracking_by_tracking_number(tracking_number: str) -> OrderTrackingResponse:
-        """根据物流单号获取跟踪信息"""
+        """Get tracking information by tracking number"""
         collection = await get_collection("tracking")
         
         tracking_doc = await collection.find_one({"tracking_number": tracking_number})
         if not tracking_doc:
-            raise APIException("跟踪信息不存在", status.HTTP_404_NOT_FOUND)
+            raise APIException("Tracking information not found", status.HTTP_404_NOT_FOUND)
         
         tracking_doc["id"] = str(tracking_doc["_id"])
         del tracking_doc["_id"]
@@ -111,10 +111,10 @@ class TrackingController:
         operator: Optional[str] = None,
         tracking_number: Optional[str] = None
     ) -> OrderTrackingResponse:
-        """更新订单跟踪状态"""
+        """Update order tracking status"""
         collection = await get_collection("tracking")
         
-        # 创建新的跟踪事件
+        # Create new tracking event
         new_event = TrackingEvent(
             event_type=event_type,
             timestamp=datetime.now(),
@@ -123,7 +123,7 @@ class TrackingController:
             operator=operator
         )
         
-        # 更新字段
+        # Update fields
         update_data = {
             "$push": {"events": new_event.dict()},
             "$set": {
@@ -132,18 +132,18 @@ class TrackingController:
             }
         }
         
-        # 如果提供了物流单号，也更新它
+        # If tracking number is provided, also update it
         if tracking_number:
             update_data["$set"]["tracking_number"] = tracking_number
         
-        # 更新跟踪记录
+        # Update tracking record
         result = await collection.update_one(
             {"order_id": order_id},
             update_data
         )
         
         if result.matched_count == 0:
-            raise APIException("跟踪记录不存在", status.HTTP_404_NOT_FOUND)
+            raise APIException("Tracking record not found", status.HTTP_404_NOT_FOUND)
         
         return await TrackingController.get_tracking_by_order_id(order_id)
     
@@ -153,10 +153,10 @@ class TrackingController:
         page: int = 1,
         size: int = 20
     ) -> tuple[List[OrderTrackingResponse], int]:
-        """搜索跟踪记录"""
+        """Search tracking records"""
         collection = await get_collection("tracking")
         
-        # 构建查询条件
+        # Build query conditions
         query = {}
         
         if search_params.order_number:
@@ -171,23 +171,23 @@ class TrackingController:
         if search_params.status:
             query["current_status"] = search_params.status
         
-        # 计算分页参数
+        # Calculate pagination parameters
         skip = (page - 1) * size
         
-        # 执行查询
+        # Execute query
         cursor = collection.find(query).sort("updated_at", -1).skip(skip).limit(size)
         tracking_records = await cursor.to_list(length=size)
         
-        # 计算总数
+        # Calculate total
         total = await collection.count_documents(query)
         
-        # 转换为响应格式
+        # Convert to response format
         tracking_responses = []
         for tracking_doc in tracking_records:
             tracking_doc["id"] = str(tracking_doc["_id"])
             del tracking_doc["_id"]
             
-            # 添加预计送达时间
+            # Add estimated delivery time
             estimated_delivery = TrackingController._calculate_delivery_estimate(
                 tracking_doc["current_status"], 
                 tracking_doc["created_at"]
@@ -200,19 +200,19 @@ class TrackingController:
     
     @staticmethod
     async def get_tracking_summary(customer_id: str) -> List[TrackingSummary]:
-        """获取用户的订单跟踪摘要"""
+        """Get user's order tracking summary"""
         collection = await get_collection("tracking")
         
-        # 查询用户的所有跟踪记录
+        # Query user's all tracking records
         cursor = collection.find({"customer_id": customer_id}).sort("updated_at", -1)
         tracking_records = await cursor.to_list(length=None)
         
         summaries = []
         for tracking_doc in tracking_records:
-            # 计算进度百分比
+            # Calculate progress percentage
             progress = TrackingController._calculate_progress_percentage(tracking_doc["current_status"])
             
-            # 计算预计送达时间
+            # Calculate estimated delivery time
             estimated_delivery = TrackingController._calculate_delivery_estimate(
                 tracking_doc["current_status"], 
                 tracking_doc["created_at"]
@@ -231,8 +231,8 @@ class TrackingController:
     
     @staticmethod
     def _calculate_delivery_estimate(status: TrackingEventType, created_at: datetime) -> Optional[datetime]:
-        """计算预计送达时间"""
-        # 根据订单状态计算预计送达时间
+        """Calculate estimated delivery time"""
+        # Calculate estimated delivery time based on order status
         status_days = {
             TrackingEventType.ORDER_CREATED: 7,
             TrackingEventType.PAYMENT_RECEIVED: 6,
@@ -249,11 +249,11 @@ class TrackingController:
         elif status in [TrackingEventType.DELIVERED, TrackingEventType.CANCELLED, TrackingEventType.REFUNDED]:
             return None
         else:
-            return created_at + timedelta(days=7)  # 默认7天
+            return created_at + timedelta(days=7)  # Default 7 days
     
     @staticmethod
     def _calculate_progress_percentage(status: TrackingEventType) -> int:
-        """计算配送进度百分比"""
+        """Calculate delivery progress percentage"""
         progress_map = {
             TrackingEventType.ORDER_CREATED: 10,
             TrackingEventType.PAYMENT_RECEIVED: 20,
@@ -272,10 +272,10 @@ class TrackingController:
     
     @staticmethod
     async def get_delivery_estimate(order_number: str) -> DeliveryEstimate:
-        """获取配送预估信息"""
+        """Get delivery estimate information"""
         tracking = await TrackingController.get_tracking_by_number(order_number)
         
-        # 根据当前状态计算预计送达
+        # Calculate estimated delivery based on current status
         status_days = {
             TrackingEventType.ORDER_CREATED: 7,
             TrackingEventType.PAYMENT_RECEIVED: 6,
@@ -290,12 +290,12 @@ class TrackingController:
         estimated_days = status_days.get(tracking.current_status, 7)
         estimated_date = datetime.now() + timedelta(days=estimated_days)
         
-        # 确定配送方式
-        shipping_method = "标准配送"
+        # Determine shipping method
+        shipping_method = "Standard Shipping"
         if estimated_days <= 1:
-            shipping_method = "加急配送"
+            shipping_method = "Express Shipping"
         elif estimated_days <= 3:
-            shipping_method = "快速配送"
+            shipping_method = "Fast Shipping"
         
         return DeliveryEstimate(
             estimated_days=int(estimated_days),

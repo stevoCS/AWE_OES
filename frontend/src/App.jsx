@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Link, useLocation } from 'react-router-dom';
 import Home from './pages/Home';
 import Product from './pages/Product';
@@ -12,23 +12,11 @@ import OrderConfirmation from './pages/OrderConfirmation';
 import Payment from './pages/Payment';
 import PaymentSuccess from './pages/PaymentSuccess';
 import PaymentFailed from './pages/PaymentFailed';
-import OrderTracking from './pages/OrderTracking';
 import TestNavigation from './pages/TestNavigation';
 import { CartProvider } from './context/CartContext';
 import { UserProvider } from './context/UserContext';
 import { OrderProvider } from './context/OrderContext';
 import './App.css';
-
-// Simple route wrapper for unique keys
-const RouteWrapper = ({ Component, routeName }) => {
-  const location = useLocation();
-  
-  useEffect(() => {
-    window.scrollTo(0, 0);
-  }, [location.pathname]);
-
-  return <Component key={`${routeName}-${location.pathname}`} />;
-};
 
 // Simple placeholder components for missing pages
 const NewArrivals = () => (
@@ -79,42 +67,62 @@ const Warranty = () => (
   </div>
 );
 
+// Component to track location changes and force re-renders
+const AppRoutes = () => {
+  const location = useLocation();
+  
+  // Force re-render: use location.pathname + timestamp as key
+  const routeKey = `${location.pathname}-${location.search}-${Date.now()}`;
+  
+  console.log('Route change:', location.pathname, '- Key:', routeKey);
+  
+  return (
+    <Routes key={routeKey}>
+      <Route path="/" element={<Home key={`home-${location.pathname}`} />} />
+      <Route path="/product" element={<Product key={`product-${location.pathname}`} />} />
+      <Route path="/product/:id" element={<ProductDetail key={`product-detail-${location.pathname}`} />} />
+      <Route path="/new-arrivals" element={<NewArrivals key={`new-arrivals-${location.pathname}`} />} />
+      <Route path="/best-sellers" element={<BestSellers key={`best-sellers-${location.pathname}`} />} />
+      <Route path="/login" element={<Login key={`login-${location.pathname}`} />} />
+      <Route path="/register" element={<Register key={`register-${location.pathname}`} />} />
+      <Route path="/dashboard" element={<UserDashboard key={`dashboard-${location.pathname}`} />} />
+      <Route path="/account" element={<Account key={`account-${location.pathname}`} />} />
+      <Route path="/cart" element={<Cart key={`cart-${location.pathname}`} />} />
+      <Route path="/about-us" element={<AboutUs key={`about-us-${location.pathname}`} />} />
+      <Route path="/customer-support" element={<CustomerSupport key={`customer-support-${location.pathname}`} />} />
+      <Route path="/terms-of-service" element={<TermsOfService key={`terms-of-service-${location.pathname}`} />} />
+      <Route path="/warranty" element={<Warranty key={`warranty-${location.pathname}`} />} />
+      <Route path="/order-confirmation" element={<OrderConfirmation key={`order-confirmation-${location.pathname}`} />} />
+      <Route path="/payment" element={<Payment key={`payment-${location.pathname}`} />} />
+      <Route path="/payment-success" element={<PaymentSuccess key={`payment-success-${location.pathname}`} />} />
+      <Route path="/payment-failed" element={<PaymentFailed key={`payment-failed-${location.pathname}`} />} />
+      <Route path="/test-navigation" element={<TestNavigation key={`test-navigation-${location.pathname}`} />} />
+      {/* Catch-all route for undefined paths */}
+      <Route path="*" element={
+        <div style={{ padding: '40px', textAlign: 'center', fontFamily: "'Space Grotesk', Arial, sans-serif" }}>
+          <h1>Page Not Found</h1>
+          <p>The page you're looking for doesn't exist.</p>
+          <Link to="/" style={{ color: '#0D80F2', textDecoration: 'none' }}>Return to Home</Link>
+        </div>
+      } />
+    </Routes>
+  );
+};
+
 function App() {
   return (
     <UserProvider>
       <CartProvider>
         <OrderProvider>
-          <Router>
-            <Routes>
-              <Route path="/" element={<RouteWrapper Component={Home} routeName="Home" />} />
-              <Route path="/product" element={<RouteWrapper Component={Product} routeName="Product" />} />
-              <Route path="/product/:id" element={<RouteWrapper Component={ProductDetail} routeName="ProductDetail" />} />
-              <Route path="/new-arrivals" element={<RouteWrapper Component={NewArrivals} routeName="NewArrivals" />} />
-              <Route path="/best-sellers" element={<RouteWrapper Component={BestSellers} routeName="BestSellers" />} />
-              <Route path="/login" element={<RouteWrapper Component={Login} routeName="Login" />} />
-              <Route path="/register" element={<RouteWrapper Component={Register} routeName="Register" />} />
-              <Route path="/dashboard" element={<RouteWrapper Component={UserDashboard} routeName="Dashboard" />} />
-              <Route path="/account" element={<RouteWrapper Component={Account} routeName="Account" />} />
-              <Route path="/cart" element={<RouteWrapper Component={Cart} routeName="Cart" />} />
-              <Route path="/about-us" element={<RouteWrapper Component={AboutUs} routeName="AboutUs" />} />
-              <Route path="/customer-support" element={<RouteWrapper Component={CustomerSupport} routeName="CustomerSupport" />} />
-              <Route path="/terms-of-service" element={<RouteWrapper Component={TermsOfService} routeName="TermsOfService" />} />
-              <Route path="/warranty" element={<RouteWrapper Component={Warranty} routeName="Warranty" />} />
-              <Route path="/order-confirmation" element={<RouteWrapper Component={OrderConfirmation} routeName="OrderConfirmation" />} />
-              <Route path="/payment" element={<RouteWrapper Component={Payment} routeName="Payment" />} />
-              <Route path="/payment-success" element={<RouteWrapper Component={PaymentSuccess} routeName="PaymentSuccess" />} />
-              <Route path="/payment-failed" element={<RouteWrapper Component={PaymentFailed} routeName="PaymentFailed" />} />
-              <Route path="/order-tracking" element={<RouteWrapper Component={OrderTracking} routeName="OrderTracking" />} />
-              <Route path="/test-navigation" element={<RouteWrapper Component={TestNavigation} routeName="TestNavigation" />} />
-              {/* Catch-all route for undefined paths */}
-              <Route path="*" element={
-                <div style={{ padding: '40px', textAlign: 'center', fontFamily: "'Space Grotesk', Arial, sans-serif" }}>
-                  <h1>Page Not Found</h1>
-                  <p>The page you're looking for doesn't exist.</p>
-                  <Link to="/" style={{ color: '#0D80F2', textDecoration: 'none' }}>Return to Home</Link>
-                </div>
-              } />
-            </Routes>
+          <Router
+            future={{
+              v7_startTransition: true,
+              v7_relativeSplatPath: true
+            }}
+          >
+            <div id="app-container">
+              <AppRoutes />
+            </div>
           </Router>
         </OrderProvider>
       </CartProvider>

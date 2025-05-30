@@ -1,7 +1,7 @@
-/* 导入 Space Grotesk 字体 */
+/* Import Space Grotesk font */
 @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300..700&display=swap');
 
-/* 登录页面容器 */
+/* Login page container */
 .login-container {
   background-color: white;
   display: flex;
@@ -21,7 +21,7 @@
   flex-direction: column;
 }
 
-/* Header 样式 */
+/* Header style */
 .login-header {
   display: flex;
   width: 100%;
@@ -93,7 +93,7 @@
   flex: 1;
 }
 
-/* 主要内容区域 */
+/* Main content area */
 .login-main {
   display: flex;
   flex: 1;
@@ -188,7 +188,7 @@
   font-size: 14px;
 }
 
-/* Footer 样式 */
+/* Footer style */
 .login-footer {
   width: 100%;
   margin-top: auto;
