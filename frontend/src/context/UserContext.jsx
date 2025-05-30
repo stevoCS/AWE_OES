@@ -1,4 +1,5 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import { authAPI } from '../api/config';
 
 // Create user context
 const UserContext = createContext();
@@ -22,12 +23,16 @@ export const UserProvider = ({ children }) => {
   // Restore user status from localStorage
   useEffect(() => {
     const savedUser = localStorage.getItem('user');
-    if (savedUser) {
+    const accessToken = localStorage.getItem('access_token');
+    
+    if (savedUser && accessToken) {
       try {
         setUser(JSON.parse(savedUser));
       } catch (error) {
         console.error('Error parsing user data:', error);
         localStorage.removeItem('user');
+        localStorage.removeItem('access_token');
+        localStorage.removeItem('refresh_token');
       }
     }
     setIsLoading(false);
@@ -39,45 +44,58 @@ export const UserProvider = ({ children }) => {
       localStorage.setItem('user', JSON.stringify(user));
     } else {
       localStorage.removeItem('user');
+      localStorage.removeItem('access_token');
+      localStorage.removeItem('refresh_token');
     }
   }, [user]);
 
-  // Register cart callbacks
-  const registerCartCallbacks = (mergeCallback, logoutCallback) => {
-    setCartMergeCallback(() => mergeCallback);
-    setCartLogoutCallback(() => logoutCallback);
-  };
+  // Register cart callbacks - fix infinite loop issue
+  const registerCartCallbacks = useCallback((mergeCallback, logoutCallback) => {
+    setCartMergeCallback(mergeCallback);
+    setCartLogoutCallback(logoutCallback);
+  }, []);
 
   // Login function
   const login = async (email, password) => {
     try {
       setIsLoading(true);
       
-      // TODO: This should call the actual API
-      // It's just simulating login now.
-      if (email && password) {
-        const userData = {
-          id: Date.now(), // Temporary ID
-          email: email,
-          firstName: email.split('@')[0], // Extract name from email
-          lastName: 'User',
+      const response = await authAPI.login(email, password);
+      
+      if (response.success) {
+        const userData = response.data.user;
+        const accessToken = response.data.access_token;
+        const refreshToken = response.data.refresh_token;
+        
+        // Store tokens
+        localStorage.setItem('access_token', accessToken);
+        localStorage.setItem('refresh_token', refreshToken);
+        
+        // Format user data to match frontend expectations
+        const formattedUser = {
+          id: userData.id,
+          email: userData.email,
+          firstName: userData.full_name.split(' ')[0] || '',
+          lastName: userData.full_name.split(' ').slice(1).join(' ') || '',
+          fullName: userData.full_name,
+          username: userData.username,
           loginTime: new Date().toISOString()
         };
         
-        setUser(userData);
+        setUser(formattedUser);
         
         // Merge guest cart with user cart after successful login
         if (cartMergeCallback) {
           cartMergeCallback();
         }
         
-        return { success: true, user: userData };
+        return { success: true, user: formattedUser };
       } else {
-        return { success: false, error: 'Email and password cannot be empty' };
+        return { success: false, error: response.message || 'Login failed' };
       }
     } catch (error) {
       console.error('Login error:', error);
-      return { success: false, error: 'Login failed, please try again' };
+      return { success: false, error: error.message || 'Login failed, please try again' };
     } finally {
       setIsLoading(false);
     }
@@ -88,30 +106,42 @@ export const UserProvider = ({ children }) => {
     try {
       setIsLoading(true);
       
-      // TODO: This should call the actual API     
-      // It's just simulating registration now.
-      const newUser = {
-        id: Date.now(), // Temporary ID
-        email: userData.email,
-        firstName: userData.firstName,
-        lastName: userData.lastName,
-        contactNumber: userData.contactNumber || '',
-        shippingAddress: userData.shippingAddress || '',
-        personalPreference: userData.personalPreference || '',
-        registerTime: new Date().toISOString()
-      };
+      const response = await authAPI.register(userData);
       
-      setUser(newUser);
-      
-      // Merge guest cart with user cart after successful registration
-      if (cartMergeCallback) {
-        cartMergeCallback();
+      if (response.success) {
+        const newUserData = response.data.user;
+        const accessToken = response.data.access_token;
+        const refreshToken = response.data.refresh_token;
+        
+        // Store tokens
+        localStorage.setItem('access_token', accessToken);
+        localStorage.setItem('refresh_token', refreshToken);
+        
+        // Format user data to match frontend expectations
+        const formattedUser = {
+          id: newUserData.id,
+          email: newUserData.email,
+          firstName: userData.firstName,
+          lastName: userData.lastName,
+          fullName: newUserData.full_name,
+          username: newUserData.username,
+          registerTime: new Date().toISOString()
+        };
+        
+        setUser(formattedUser);
+        
+        // Merge guest cart with user cart after successful registration
+        if (cartMergeCallback) {
+          cartMergeCallback();
+        }
+        
+        return { success: true, user: formattedUser };
+      } else {
+        return { success: false, error: response.message || 'Registration failed' };
       }
-      
-      return { success: true, user: newUser };
     } catch (error) {
       console.error('Registration error:', error);
-      return { success: false, error: 'Registration failed, please try again' };
+      return { success: false, error: error.message || 'Registration failed, please try again' };
     } finally {
       setIsLoading(false);
     }
@@ -126,6 +156,8 @@ export const UserProvider = ({ children }) => {
     
     setUser(null);
     localStorage.removeItem('user');
+    localStorage.removeItem('access_token');
+    localStorage.removeItem('refresh_token');
   };
 
   // Update user information

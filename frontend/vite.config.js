@@ -20,5 +20,17 @@ export default defineConfig({
   // Ensure proper handling of dependencies
   optimizeDeps: {
     include: ['react', 'react-dom', 'react-router-dom']
+  },
+  // Static asset handling
+  assetsInclude: ['**/*.png', '**/*.jpg', '**/*.jpeg', '**/*.gif', '**/*.svg'],
+  // Build configuration
+  build: {
+    assetsDir: 'assets',
+    // Ensure assets folder is properly copied
+    rollupOptions: {
+      output: {
+        assetFileNames: 'assets/[name].[ext]'
+      }
+    }
   }
 })

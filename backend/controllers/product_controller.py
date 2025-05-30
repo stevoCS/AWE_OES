@@ -56,10 +56,26 @@ class ProductController:
             {"$inc": {"views_count": 1}}
         )
         
-        product_doc["id"] = str(product_doc["_id"])
-        del product_doc["_id"]
+        # Convert data structure to match ProductResponse
+        converted_doc = {
+            "id": str(product_doc["_id"]),
+            "name": product_doc["name"],
+            "description": product_doc["description"],
+            "price": product_doc["price"],
+            "category": product_doc["category"],
+            "brand": product_doc.get("brand", ""),
+            "model": product_doc.get("model", ""),
+            "specifications": product_doc.get("specifications", {}),
+            "images": product_doc.get("images", []),
+            "stock_quantity": product_doc.get("stock_quantity", 0),
+            "is_available": product_doc.get("is_available", True),
+            "created_at": product_doc.get("created_at", datetime.now()),
+            "updated_at": product_doc.get("updated_at", datetime.now()),
+            "views_count": product_doc.get("views_count", 0),
+            "sales_count": product_doc.get("sales_count", 0)
+        }
         
-        return ProductResponse(**product_doc)
+        return ProductResponse(**converted_doc)
     
     @staticmethod
     async def update_product(product_id: str, update_data: ProductUpdate) -> ProductResponse:
@@ -110,7 +126,7 @@ class ProductController:
             query["$or"] = [
                 {"name": {"$regex": search_params.keyword, "$options": "i"}},
                 {"description": {"$regex": search_params.keyword, "$options": "i"}},
-                {"brand": {"$regex": search_params.keyword, "$options": "i"}}
+                {"brand": {"$regex": search_params.brand, "$options": "i"}} if search_params.brand else {}
             ]
         
         if search_params.category:
@@ -128,12 +144,12 @@ class ProductController:
             query["price"] = price_query
         
         if search_params.in_stock_only:
-            query["stock_quantity"] = {"$gt": 0}
-            query["is_available"] = True
+            query["stock"] = {"$gt": 0}
+            query["active"] = True
         
         # Build sorting conditions
         sort_direction = 1 if search_params.sort_order == "asc" else -1
-        sort_field = search_params.sort_by or "created_at"
+        sort_field = search_params.sort_by or "name"
         
         # Calculate pagination parameters
         skip = (page - 1) * size
@@ -148,9 +164,25 @@ class ProductController:
         # Convert to response format
         product_responses = []
         for product_doc in products:
-            product_doc["id"] = str(product_doc["_id"])
-            del product_doc["_id"]
-            product_responses.append(ProductResponse(**product_doc))
+            # Convert data structure to match ProductResponse
+            converted_doc = {
+                "id": str(product_doc["_id"]),
+                "name": product_doc["name"],
+                "description": product_doc["description"],
+                "price": product_doc["price"],
+                "category": product_doc["category"],
+                "brand": product_doc.get("brand", ""),
+                "model": product_doc.get("model", ""),
+                "specifications": product_doc.get("specifications", {}),
+                "images": product_doc.get("images", []),
+                "stock_quantity": product_doc.get("stock_quantity", 0),
+                "is_available": product_doc.get("is_available", True),
+                "created_at": product_doc.get("created_at", datetime.now()),
+                "updated_at": product_doc.get("updated_at", datetime.now()),
+                "views_count": product_doc.get("views_count", 0),
+                "sales_count": product_doc.get("sales_count", 0)
+            }
+            product_responses.append(ProductResponse(**converted_doc))
         
         return product_responses, total
     
@@ -165,7 +197,7 @@ class ProductController:
         # Count products in each category
         category_list = []
         for category in categories:
-            count = await collection.count_documents({"category": category, "is_available": True})
+            count = await collection.count_documents({"category": category, "active": True})
             category_list.append({
                 "name": category,
                 "count": count
@@ -185,7 +217,7 @@ class ProductController:
         brand_list = []
         for brand in brands:
             if brand:  # Exclude null values
-                count = await collection.count_documents({"brand": brand, "is_available": True})
+                count = await collection.count_documents({"brand": brand, "active": True})
                 brand_list.append({
                     "name": brand,
                     "count": count

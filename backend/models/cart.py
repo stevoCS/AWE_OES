@@ -1,4 +1,4 @@
-from pydantic import BaseModel, validator
+from pydantic import BaseModel, validator, ConfigDict, Field
 from typing import List, Optional
 from datetime import datetime
 from bson import ObjectId
@@ -9,22 +9,23 @@ class PyObjectId(ObjectId):
         yield cls.validate
 
     @classmethod
-    def validate(cls, v):
+    def validate(cls, v, _info=None):
         if not ObjectId.is_valid(v):
             raise ValueError("Invalid objectid")
         return ObjectId(v)
 
     @classmethod
-    def __modify_schema__(cls, field_schema):
+    def __get_pydantic_json_schema__(cls, field_schema):
         field_schema.update(type="string")
+        return field_schema
 
-class CartItem(BaseModel):
-    """Shopping cart item model"""
+class CartItemBase(BaseModel):
+    """Cart item base model"""
+    customer_id: str
     product_id: str
     product_name: str
     product_price: float
     quantity: int
-    selected: bool = True
 
     @validator('quantity')
     def validate_quantity(cls, v):
@@ -38,26 +39,10 @@ class CartItem(BaseModel):
             raise ValueError('Product price must be greater than 0')
         return v
 
-    @property
-    def subtotal(self) -> float:
-        """Calculate item subtotal"""
-        return self.product_price * self.quantity
-
-class CartItemUpdate(BaseModel):
-    """Shopping cart item update model"""
-    quantity: Optional[int] = None
-    selected: Optional[bool] = None
-
-    @validator('quantity')
-    def validate_quantity(cls, v):
-        if v is not None and v <= 0:
-            raise ValueError('Product quantity must be greater than 0')
-        return v
-
-class CartAddItem(BaseModel):
-    """Add item to cart model"""
+class CartItemCreate(BaseModel):
+    """Cart item creation model"""
     product_id: str
-    quantity: int = 1
+    quantity: int
 
     @validator('quantity')
     def validate_quantity(cls, v):
@@ -65,67 +50,85 @@ class CartAddItem(BaseModel):
             raise ValueError('Product quantity must be greater than 0')
         return v
 
-class ShoppingCartBase(BaseModel):
-    """Shopping cart base model"""
-    customer_id: str
-    items: List[CartItem] = []
+class CartItemUpdate(BaseModel):
+    """Cart item update model"""
+    quantity: int
 
-class ShoppingCart(ShoppingCartBase):
-    """Shopping cart complete model"""
-    id: Optional[PyObjectId] = None
-    created_at: datetime = datetime.now()
-    updated_at: datetime = datetime.now()
+    @validator('quantity')
+    def validate_quantity(cls, v):
+        if v <= 0:
+            raise ValueError('Product quantity must be greater than 0')
+        return v
 
-    class Config:
-        allow_population_by_field_name = True
-        arbitrary_types_allowed = True
-        json_encoders = {ObjectId: str}
-
-    @property
-    def total_items(self) -> int:
-        """Calculate total number of items in cart"""
-        return sum(item.quantity for item in self.items if item.selected)
+class CartItem(CartItemBase):
+    """Cart item complete model"""
+    id: Optional[PyObjectId] = Field(alias="_id", default=None)
+    created_at: datetime = Field(default_factory=datetime.now)
+    updated_at: datetime = Field(default_factory=datetime.now)
 
     @property
-    def total_price(self) -> float:
-        """Calculate cart total price (excluding tax and shipping)"""
-        return sum(item.subtotal for item in self.items if item.selected)
+    def subtotal(self) -> float:
+        """Calculate item subtotal"""
+        return self.product_price * self.quantity
 
-    @property
-    def tax_amount(self) -> float:
-        """Calculate tax (assuming 8% tax rate)"""
-        return self.total_price * 0.08
+    model_config = ConfigDict(
+        populate_by_name=True,
+        arbitrary_types_allowed=True,
+        json_encoders={ObjectId: str}
+    )
 
-    @property
-    def shipping_fee(self) -> float:
-        """Calculate shipping fee (free shipping over $100, otherwise $10)"""
-        return 0.0 if self.total_price >= 100 else 10.0
-
-    @property
-    def final_total(self) -> float:
-        """Calculate final total (including tax and shipping)"""
-        return self.total_price + self.tax_amount + self.shipping_fee
-
-class ShoppingCartResponse(ShoppingCartBase):
-    """Shopping cart response model"""
+class CartItemResponse(CartItemBase):
+    """Cart item response model"""
     id: str
     created_at: datetime
     updated_at: datetime
-    total_items: int
-    total_price: float
-    tax_amount: float
-    shipping_fee: float
-    final_total: float
-
-    class Config:
-        allow_population_by_field_name = True
-        arbitrary_types_allowed = True
-        json_encoders = {ObjectId: str}
+    subtotal: float
 
 class CartSummary(BaseModel):
-    """Cart summary model"""
+    """Shopping cart summary model"""
+    items: List[CartItemResponse]
     total_items: int
-    total_price: float
-    tax_amount: float
-    shipping_fee: float
-    final_total: float 
+    subtotal: float
+    estimated_tax: float
+    estimated_shipping: float
+    estimated_total: float
+
+class Cart(BaseModel):
+    """Shopping cart model"""
+    customer_id: str
+    items: List[CartItem] = []
+    created_at: datetime = Field(default_factory=datetime.now)
+    updated_at: datetime = Field(default_factory=datetime.now)
+
+    @property
+    def total_items(self) -> int:
+        """Total number of items in cart"""
+        return sum(item.quantity for item in self.items)
+
+    @property
+    def subtotal(self) -> float:
+        """Calculate cart subtotal"""
+        return sum(item.subtotal for item in self.items)
+
+    @property
+    def estimated_tax(self) -> float:
+        """Calculate estimated tax (8.5%)"""
+        return round(self.subtotal * 0.085, 2)
+
+    @property
+    def estimated_shipping(self) -> float:
+        """Calculate estimated shipping fee"""
+        if self.subtotal >= 50:
+            return 0.0  # Free shipping for orders over $50
+        return 9.99
+
+    @property
+    def estimated_total(self) -> float:
+        """Calculate estimated total"""
+        return self.subtotal + self.estimated_tax + self.estimated_shipping
+
+    model_config = ConfigDict(
+        populate_by_name=True,
+        arbitrary_types_allowed=True,
+        json_encoders={ObjectId: str}
+    ) 

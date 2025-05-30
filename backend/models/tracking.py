@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, validator, ConfigDict, Field
 from typing import List, Optional
 from datetime import datetime
 from enum import Enum
@@ -10,102 +10,107 @@ class PyObjectId(ObjectId):
         yield cls.validate
 
     @classmethod
-    def validate(cls, v):
+    def validate(cls, v, _info=None):
         if not ObjectId.is_valid(v):
             raise ValueError("Invalid objectid")
         return ObjectId(v)
 
     @classmethod
-    def __modify_schema__(cls, field_schema):
+    def __get_pydantic_json_schema__(cls, field_schema):
         field_schema.update(type="string")
+        return field_schema
 
-class TrackingEventType(str, Enum):
-    """Tracking event type enumeration"""
-    ORDER_CREATED = "order_created"         # Order created
-    PAYMENT_RECEIVED = "payment_received"   # Payment received
-    ORDER_CONFIRMED = "order_confirmed"     # Order confirmed
-    PROCESSING = "processing"               # Processing
-    PACKED = "packed"                       # Packed
+class TrackingStatus(str, Enum):
+    """Tracking status enumeration"""
+    ORDER_RECEIVED = "order_received"       # Order received
+    PREPARING = "preparing"                 # Preparing
     SHIPPED = "shipped"                     # Shipped
-    IN_TRANSIT = "in_transit"               # In transit
-    OUT_FOR_DELIVERY = "out_for_delivery"   # Out for delivery
+    IN_TRANSIT = "in_transit"              # In transit
+    OUT_FOR_DELIVERY = "out_for_delivery"  # Out for delivery
     DELIVERED = "delivered"                 # Delivered
-    CANCELLED = "cancelled"                 # Cancelled
-    REFUNDED = "refunded"                   # Refunded
+    DELIVERY_FAILED = "delivery_failed"     # Delivery failed
+    RETURNED = "returned"                   # Returned
 
-class TrackingEvent(BaseModel):
-    """Tracking event model"""
-    event_type: TrackingEventType
-    timestamp: datetime
-    location: Optional[str] = None
+class TrackingEventBase(BaseModel):
+    """Tracking event base model"""
+    status: TrackingStatus
+    location: str
     description: str
-    operator: Optional[str] = None  # Operator
-    
-    class Config:
-        use_enum_values = True
+    timestamp: datetime
+
+class TrackingEvent(TrackingEventBase):
+    """Tracking event complete model"""
+    id: Optional[PyObjectId] = Field(alias="_id", default=None)
+    created_at: datetime = Field(default_factory=datetime.now)
+
+    model_config = ConfigDict(
+        populate_by_name=True,
+        arbitrary_types_allowed=True,
+        json_encoders={ObjectId: str}
+    )
+
+class TrackingEventResponse(TrackingEventBase):
+    """Tracking event response model"""
+    id: str
+    created_at: datetime
+
+    model_config = ConfigDict(
+        populate_by_name=True,
+        arbitrary_types_allowed=True,
+        json_encoders={ObjectId: str}
+    )
 
 class OrderTrackingBase(BaseModel):
     """Order tracking base model"""
     order_id: str
     order_number: str
-    customer_id: str
-    tracking_number: Optional[str] = None
-    current_status: TrackingEventType
+    tracking_number: str
+    carrier: str
+    current_status: TrackingStatus
+    estimated_delivery: Optional[datetime] = None
     events: List[TrackingEvent] = []
 
 class OrderTracking(OrderTrackingBase):
     """Order tracking complete model"""
-    id: Optional[PyObjectId] = None
-    created_at: datetime = datetime.now()
-    updated_at: datetime = datetime.now()
+    id: Optional[PyObjectId] = Field(alias="_id", default=None)
+    created_at: datetime = Field(default_factory=datetime.now)
+    updated_at: datetime = Field(default_factory=datetime.now)
 
-    class Config:
-        allow_population_by_field_name = True
-        arbitrary_types_allowed = True
-        json_encoders = {ObjectId: str}
-        use_enum_values = True
-
-    def add_event(self, event_type: TrackingEventType, description: str, 
-                  location: Optional[str] = None, operator: Optional[str] = None):
-        """Add tracking event"""
-        event = TrackingEvent(
-            event_type=event_type,
-            timestamp=datetime.now(),
-            location=location,
-            description=description,
-            operator=operator
-        )
-        self.events.append(event)
-        self.current_status = event_type
-        self.updated_at = datetime.now()
+    model_config = ConfigDict(
+        populate_by_name=True,
+        arbitrary_types_allowed=True,
+        json_encoders={ObjectId: str}
+    )
 
 class OrderTrackingResponse(OrderTrackingBase):
     """Order tracking response model"""
     id: str
     created_at: datetime
     updated_at: datetime
+    events: List[TrackingEventResponse]
+
+    model_config = ConfigDict(
+        populate_by_name=True,
+        arbitrary_types_allowed=True,
+        json_encoders={ObjectId: str}
+    )
+
+class TrackingCreate(BaseModel):
+    """Create tracking model"""
+    order_id: str
+    carrier: str = "AWE Express"
     estimated_delivery: Optional[datetime] = None
 
-    class Config:
-        allow_population_by_field_name = True
-        arbitrary_types_allowed = True
-        json_encoders = {ObjectId: str}
-        use_enum_values = True
-
 class TrackingUpdate(BaseModel):
-    """Tracking update model"""
-    event_type: TrackingEventType
-    description: str
-    location: Optional[str] = None
-    operator: Optional[str] = None
-    tracking_number: Optional[str] = None
+    """Update tracking model"""
+    current_status: Optional[TrackingStatus] = None
+    estimated_delivery: Optional[datetime] = None
+    add_event: Optional[TrackingEventBase] = None
 
 class TrackingSearch(BaseModel):
     """Tracking search model"""
-    order_number: Optional[str] = None
     tracking_number: Optional[str] = None
-    customer_id: Optional[str] = None
-    status: Optional[TrackingEventType] = None
+    order_number: Optional[str] = None
 
 class DeliveryEstimate(BaseModel):
     """Delivery estimate model"""
@@ -116,7 +121,7 @@ class DeliveryEstimate(BaseModel):
 class TrackingSummary(BaseModel):
     """Tracking summary model"""
     order_number: str
-    current_status: TrackingEventType
+    current_status: TrackingStatus
     last_update: datetime
     estimated_delivery: Optional[datetime] = None
     progress_percentage: int  # Delivery progress percentage 

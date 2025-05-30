@@ -1,6 +1,6 @@
-/* UI组件样式 */
+/* UI component styles */
 
-/* Button 组件样式 */
+/* Button component styles */
 .ui-button {
   display: inline-flex;
   align-items: center;
@@ -43,7 +43,7 @@
   background-color: #eff2f4;
 }
 
-/* Card 组件样式 */
+/* Card component styles */
 .ui-card {
   border-radius: 8px;
   border: 1px solid #e5e8eb;
@@ -55,7 +55,7 @@
   padding: 24px;
 }
 
-/* Input 组件样式 */
+/* Input component styles */
 .ui-input {
   width: 100%;
   padding: 16px;
@@ -78,14 +78,14 @@
   color: #607589;
 }
 
-/* 图标样式 */
+/* Icon styles */
 .ui-icon {
   display: block;
   stroke: currentColor;
   fill: none;
 }
 
-/* 搜索栏样式 */
+/* Search bar styles */
 .search-container {
   display: flex;
   min-width: 160px;

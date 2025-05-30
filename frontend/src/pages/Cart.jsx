@@ -332,7 +332,7 @@ const Cart = () => {
             </div>
 
             {/* Cart Items or Empty State */}
-            {cartItems.length === 0 ? (
+        {cartItems.length === 0 ? (
               <div style={{
                 display: 'flex',
                 flexDirection: 'column',
@@ -733,4 +733,4 @@ const Cart = () => {
   );
 };
 
-export default Cart; 
+export default Cart;

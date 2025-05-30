@@ -143,11 +143,11 @@ const TestNavigation = () => {
         
         <h3>Troubleshooting:</h3>
         <ol style={{ textAlign: 'left', maxWidth: '600px', margin: '0 auto' }}>
-          <li>如果URL变化但页面不更新，点击"Force Page Refresh"</li>
-          <li>如果问题持续，点击"Clear Cache & Refresh"</li>
-          <li>检查浏览器控制台是否有错误信息</li>
-          <li>确保JavaScript已启用</li>
-          <li>尝试硬刷新（Ctrl+Shift+R 或 Cmd+Shift+R）</li>
+          <li>If URL changes but page doesn't update, click "Force Page Refresh"</li>
+          <li>If problem persists, click "Clear Cache & Refresh"</li>
+          <li>Check browser console for error messages</li>
+          <li>Make sure JavaScript is enabled</li>
+          <li>Try hard refresh (Ctrl+Shift+R or Cmd+Shift+R)</li>
         </ol>
       </div>
     </div>

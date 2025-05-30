@@ -1,9 +1,10 @@
-// Product.jsx (或者 ProductPage.jsx)
-import React from 'react';
+// Product.jsx (Product page component)
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { SearchIcon, ShoppingCartIcon } from '../components/ui/icons';
 import { useUser } from '../context/UserContext';
 import { useCart } from '../context/CartContext';
+import { productsAPI } from '../api/config';
 import logoIcon from '../assets/Vector - 0.svg';
 
 // Import product images
@@ -16,21 +17,105 @@ import chargerImg from '../assets/Well charger.png';
 import vrImg from '../assets/VR Headset.png';
 import keyboardImg from '../assets/Keyboard.png';
 
-// Product data
-const products = [
-  { id: 1, name: 'UltraBook Pro 15', image: laptopImg, price: 2999, desc: 'Powerful and portable laptop with latest Intel processor', category: 'Laptops' },
-  { id: 2, name: 'Galaxy X50', image: phoneImg, price: 899, desc: 'Next-gen mobile experience with 5G connectivity', category: 'Phones' },
-  { id: 3, name: 'SmartHome Speaker', image: speakerImg, price: 299, desc: 'Immersive home environment with voice control', category: 'Audio' },
-  { id: 4, name: 'FitTrack Smartwatch', image: watchImg, price: 399, desc: 'Track your fitness journey with advanced sensors', category: 'Wearables' },
-  { id: 5, name: 'Wireless Mouse', image: mouseImg, price: 79, desc: 'Smooth and precise wireless mouse', category: 'Accessories' },
-  { id: 6, name: 'Wall Charger', image: chargerImg, price: 49, desc: 'Fast charging wall adapter', category: 'Accessories' },
-  { id: 7, name: 'VR Headset', image: vrImg, price: 599, desc: 'Immersive VR experience with 4K display', category: 'Gaming' },
-  { id: 8, name: 'Apple Keyboard', image: keyboardImg, price: 179, desc: 'Sleek and responsive wireless keyboard', category: 'Accessories' },
-];
+// Create image mapping
+const imageMap = {
+  '/src/assets/laptop.png': laptopImg,
+  '/src/assets/Phone.png': phoneImg,
+  '/src/assets/Speaker.png': speakerImg,
+  '/src/assets/smartwatch.png': watchImg,
+  '/src/assets/Wireless mouse.png': mouseImg,
+  '/src/assets/Well charger.png': chargerImg,
+  '/src/assets/VR Headset.png': vrImg,
+  '/src/assets/Keyboard.png': keyboardImg,
+};
 
 const ProductPage = () => {
   const { user, isLoggedIn } = useUser();
-  const { getCartItemsCount } = useCart();
+  const { getCartItemsCount, addToCart } = useCart();
+  const [products, setProducts] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [selectedCategory, setSelectedCategory] = useState('All');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [sortBy, setSortBy] = useState('name');
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  // Load product data
+  useEffect(() => {
+    loadProducts();
+    loadCategories();
+  }, []);
+
+  const loadProducts = async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      console.log('Starting to load product list...');
+      
+      const response = await productsAPI.getProducts();
+      console.log('Product list API response:', response);
+      
+      if (response.success && response.data.items) {
+        setProducts(response.data.items);
+        console.log('Successfully loaded products:', response.data.items.length, 'items');
+      } else {
+        console.warn('Product API response format incorrect:', response);
+        setError('Failed to load products');
+      }
+    } catch (error) {
+      console.error('Error loading products:', error);
+      setError('Failed to load products');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const loadCategories = async () => {
+    try {
+      console.log('Starting to load product categories...');
+      const response = await productsAPI.getCategories();
+      console.log('Categories API response:', response);
+      
+      if (response.success && response.data) {
+        // API returns categories in array format: [{name: "category", count: 10}, ...]
+        const categoryNames = response.data.map(cat => cat.name);
+        setCategories(['All', ...categoryNames]);
+        console.log('Successfully loaded categories:', categoryNames);
+      }
+    } catch (error) {
+      console.error('Error loading categories:', error);
+      // Set default categories
+      setCategories(['All']);
+    }
+  };
+
+  // Filter and sort products
+  const filteredProducts = products
+    .filter(product => {
+      const matchesCategory = selectedCategory === 'All' || product.category === selectedCategory;
+      const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                          product.description.toLowerCase().includes(searchTerm.toLowerCase());
+      return matchesCategory && matchesSearch;
+    })
+    .sort((a, b) => {
+      switch (sortBy) {
+        case 'price_low':
+          return a.price - b.price;
+        case 'price_high':
+          return b.price - a.price;
+        case 'name':
+        default:
+          return a.name.localeCompare(b.name);
+      }
+    });
+
+  const handleAddToCart = async (product) => {
+    try {
+      await addToCart(product, 1);
+    } catch (error) {
+      console.error('Failed to add to cart:', error);
+    }
+  };
 
   return (
     <div style={{
@@ -122,7 +207,9 @@ const ProductPage = () => {
             </div>
             <input
               type="text"
-              placeholder="Search"
+              placeholder="Search products..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
               style={{
                 border: 'none',
                 backgroundColor: 'transparent',
@@ -198,151 +285,300 @@ const ProductPage = () => {
       {/* Breadcrumb */}
       <div style={{
         padding: '20px 40px',
-        backgroundColor: 'white',
-        borderBottom: '1px solid #e5e8eb'
+        fontSize: '14px',
+        color: '#607589'
       }}>
-        <div style={{
-          fontSize: '14px',
-          color: '#61758A'
-        }}>
-          <Link to="/" style={{ color: '#61758A', textDecoration: 'none' }}>Home</Link>
-          <span style={{ margin: '0 8px' }}>&gt;</span>
-          <span style={{ color: '#121417' }}>All Products</span>
-        </div>
+        <Link to="/" style={{ color: '#607589', textDecoration: 'none' }}>Home</Link>
+        <span style={{ margin: '0 8px' }}>/</span>
+        <span style={{ color: '#121417' }}>Products</span>
       </div>
 
       {/* Main Content */}
-      <main style={{
+      <div style={{
         display: 'flex',
-        justifyContent: 'center',
-        padding: '40px 20px'
+        gap: '32px',
+        padding: '0 40px 40px 40px',
+        maxWidth: '1200px',
+        margin: '0 auto'
       }}>
+        {/* Sidebar Filters */}
         <div style={{
-          width: '100%',
-          maxWidth: '1200px'
+          width: '240px',
+          backgroundColor: 'white',
+          borderRadius: '8px',
+          padding: '24px',
+          height: 'fit-content',
+          border: '1px solid #e5e8eb'
         }}>
-          <h1 style={{
-            fontSize: '32px',
-            fontWeight: '700',
+          <h3 style={{
+            fontSize: '18px',
+            fontWeight: '600',
             color: '#121417',
-            margin: '0 0 40px 0'
+            marginBottom: '20px'
           }}>
-            All Products
-          </h1>
+            Filters
+          </h3>
 
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-            gap: '24px'
-          }}>
-            {products.map((product) => (
-              <Link
-                key={product.id}
-                to={`/product/${product.id}`}
-                style={{
-                  textDecoration: 'none',
-                  color: 'inherit'
-                }}
-              >
-                <div style={{
-                  backgroundColor: 'white',
-                  borderRadius: '12px',
-                  padding: '20px',
-                  boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
-                  transition: 'transform 0.2s, box-shadow 0.2s',
-                  cursor: 'pointer'
-                }}
-                onMouseOver={(e) => {
-                  e.currentTarget.style.transform = 'translateY(-4px)';
-                  e.currentTarget.style.boxShadow = '0 4px 16px rgba(0, 0, 0, 0.15)';
-                }}
-                onMouseOut={(e) => {
-                  e.currentTarget.style.transform = 'translateY(0)';
-                  e.currentTarget.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.1)';
-                }}
-                >
-                  {/* Category Badge */}
-                  <div style={{ marginBottom: '12px' }}>
-                    <span style={{
-                      backgroundColor: '#e3f2fd',
-                      color: '#1976d2',
-                      padding: '4px 8px',
-                      borderRadius: '12px',
-                      fontSize: '11px',
-                      fontWeight: '500'
-                    }}>
-                      {product.category}
-                    </span>
-                  </div>
-
-                  {/* Product Image */}
-                  <div style={{
-                    width: '100%',
-                    height: '200px',
-                    borderRadius: '8px',
-                    overflow: 'hidden',
-                    marginBottom: '16px'
-                  }}>
-                    <img
-                      src={product.image}
-                      alt={product.name}
-                      style={{
-                        width: '100%',
-                        height: '100%',
-                        objectFit: 'cover'
-                      }}
-                    />
-                  </div>
-
-                  {/* Product Info */}
-                  <h3 style={{
-                    fontSize: '18px',
-                    fontWeight: '600',
-                    color: '#121417',
-                    margin: '0 0 8px 0'
-                  }}>
-                    {product.name}
-                  </h3>
-
-                  <p style={{
-                    fontSize: '14px',
-                    color: '#61758A',
-                    margin: '0 0 16px 0',
-                    lineHeight: 1.4
-                  }}>
-                    {product.desc}
-                  </p>
-
-                  <div style={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center'
-                  }}>
-                    <span style={{
-                      fontSize: '20px',
-                      fontWeight: '700',
-                      color: '#121417'
-                    }}>
-                      ${product.price}
-                    </span>
-                    
-                    <div style={{
-                      backgroundColor: '#0D80F2',
-                      color: 'white',
-                      padding: '8px 16px',
-                      borderRadius: '6px',
-                      fontSize: '14px',
-                      fontWeight: '600'
-                    }}>
-                      View Details
-                    </div>
-                  </div>
-                </div>
-              </Link>
+          {/* Category Filter */}
+          <div style={{ marginBottom: '24px' }}>
+            <h4 style={{
+              fontSize: '14px',
+              fontWeight: '500',
+              color: '#121417',
+              marginBottom: '12px'
+            }}>
+              Category
+            </h4>
+            {categories.map(category => (
+              <label key={category} style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                marginBottom: '8px',
+                cursor: 'pointer'
+              }}>
+                <input
+                  type="radio"
+                  name="category"
+                  value={category}
+                  checked={selectedCategory === category}
+                  onChange={(e) => setSelectedCategory(e.target.value)}
+                />
+                <span style={{ fontSize: '14px', color: '#607589' }}>{category}</span>
+              </label>
             ))}
           </div>
+
+          {/* Sort By */}
+          <div>
+            <h4 style={{
+              fontSize: '14px',
+              fontWeight: '500',
+              color: '#121417',
+              marginBottom: '12px'
+            }}>
+              Sort By
+            </h4>
+            <select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value)}
+              style={{
+                width: '100%',
+                padding: '8px 12px',
+                border: '1px solid #e5e8eb',
+                borderRadius: '6px',
+                fontSize: '14px',
+                backgroundColor: 'white'
+              }}
+            >
+              <option value="name">Name (A-Z)</option>
+              <option value="price_low">Price (Low to High)</option>
+              <option value="price_high">Price (High to Low)</option>
+            </select>
+          </div>
         </div>
-      </main>
+
+        {/* Products Grid */}
+        <div style={{ flex: 1 }}>
+          <div style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            marginBottom: '24px'
+          }}>
+            <h1 style={{
+              fontSize: '28px',
+              fontWeight: '700',
+              color: '#121417'
+            }}>
+              Products
+            </h1>
+            <p style={{
+              fontSize: '14px',
+              color: '#607589'
+            }}>
+              {filteredProducts.length} products found
+            </p>
+          </div>
+
+          {isLoading ? (
+            <div style={{
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+              height: '400px',
+              fontSize: '16px',
+              color: '#607589'
+            }}>
+              Loading products...
+            </div>
+          ) : error ? (
+            <div style={{
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+              height: '400px',
+              fontSize: '16px',
+              color: '#dc2626'
+            }}>
+              {error}
+            </div>
+          ) : filteredProducts.length === 0 ? (
+            <div style={{
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+              height: '400px',
+              fontSize: '16px',
+              color: '#607589'
+            }}>
+              No products found
+            </div>
+          ) : (
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
+              gap: '24px'
+            }}>
+              {filteredProducts.map(product => (
+                <div key={product.id} style={{
+                  backgroundColor: 'white',
+                  borderRadius: '8px',
+                  border: '1px solid #e5e8eb',
+                  overflow: 'hidden',
+                  transition: 'transform 0.2s, box-shadow 0.2s',
+                  cursor: 'pointer'
+                }}>
+                  <Link to={`/product/${product.id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
+                    <div style={{
+                      width: '100%',
+                      height: '200px',
+                      backgroundColor: '#f8f9fa',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontSize: '14px',
+                      color: '#607589'
+                    }}>
+                      {(() => {
+                        // Handle image URL - use image mapping
+                        let imageUrl = '';
+                        if (product.images && product.images.length > 0) {
+                          const imagePath = product.images[0];
+                          // Get correct image URL from image mapping
+                          imageUrl = imageMap[imagePath];
+                          if (!imageUrl) {
+                            console.log('Image mapping not found:', imagePath);
+                          }
+                        }
+                        
+                        return imageUrl ? (
+                          <img 
+                            src={imageUrl} 
+                            alt={product.name}
+                            style={{
+                              width: '100%',
+                              height: '100%',
+                              objectFit: 'cover'
+                            }}
+                            onError={(e) => {
+                              console.log('Image loading failed:', imageUrl);
+                              e.target.style.display = 'none';
+                              e.target.parentNode.innerHTML = 'No Image';
+                            }}
+                          />
+                        ) : (
+                          'No Image'
+                        );
+                      })()}
+                    </div>
+                    <div style={{ padding: '16px' }}>
+                      <h3 style={{
+                        fontSize: '16px',
+                        fontWeight: '600',
+                        color: '#121417',
+                        marginBottom: '8px',
+                        lineHeight: '1.4'
+                      }}>
+                        {product.name}
+                      </h3>
+                      <p style={{
+                        fontSize: '14px',
+                        color: '#607589',
+                        marginBottom: '12px',
+                        lineHeight: '1.4',
+                        display: '-webkit-box',
+                        WebkitLineClamp: 2,
+                        WebkitBoxOrient: 'vertical',
+                        overflow: 'hidden'
+                      }}>
+                        {product.description}
+                      </p>
+                      <div style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center'
+                      }}>
+                        <span style={{
+                          fontSize: '18px',
+                          fontWeight: '700',
+                          color: '#121417'
+                        }}>
+                          ${product.price.toFixed(2)}
+                        </span>
+                        {product.stock_quantity > 0 ? (
+                          <span style={{
+                            fontSize: '12px',
+                            color: '#16a34a',
+                            backgroundColor: '#dcfce7',
+                            padding: '4px 8px',
+                            borderRadius: '4px'
+                          }}>
+                            In Stock
+                          </span>
+                        ) : (
+                          <span style={{
+                            fontSize: '12px',
+                            color: '#dc2626',
+                            backgroundColor: '#fef2f2',
+                            padding: '4px 8px',
+                            borderRadius: '4px'
+                          }}>
+                            Out of Stock
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </Link>
+                  <div style={{ padding: '0 16px 16px 16px' }}>
+                    <button
+                      onClick={(e) => {
+                        e.preventDefault();
+                        handleAddToCart(product);
+                      }}
+                      disabled={product.stock_quantity === 0}
+                      style={{
+                        width: '100%',
+                        padding: '10px',
+                        backgroundColor: product.stock_quantity > 0 ? '#0D80F2' : '#e5e8eb',
+                        color: product.stock_quantity > 0 ? 'white' : '#607589',
+                        border: 'none',
+                        borderRadius: '6px',
+                        fontSize: '14px',
+                        fontWeight: '500',
+                        cursor: product.stock_quantity > 0 ? 'pointer' : 'not-allowed',
+                        transition: 'background-color 0.2s'
+                      }}
+                    >
+                      {product.stock_quantity > 0 ? 'Add to Cart' : 'Out of Stock'}
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
 
       {/* Footer */}
       <footer style={{
