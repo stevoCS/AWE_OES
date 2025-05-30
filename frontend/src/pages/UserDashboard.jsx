@@ -363,18 +363,23 @@ export const UserDashboard = () => {
                       <td style={{
                         padding: '16px'
                       }}>
-                        <button style={{
-                          backgroundColor: '#0D80F2',
-                          color: 'white',
-                          border: 'none',
-                          borderRadius: '16px',
-                          padding: '6px 16px',
-                          fontSize: '12px',
-                          fontWeight: '500',
-                          cursor: 'pointer'
-                        }}>
-                          {order.tracking}
-                        </button>
+                        <Link
+                          to={`/order-tracking?orderId=${order.id}`}
+                          style={{
+                            backgroundColor: '#0D80F2',
+                            color: 'white',
+                            border: 'none',
+                            borderRadius: '16px',
+                            padding: '6px 16px',
+                            fontSize: '12px',
+                            fontWeight: '500',
+                            cursor: 'pointer',
+                            textDecoration: 'none',
+                            display: 'inline-block'
+                          }}
+                        >
+                          View
+                        </Link>
                       </td>
                     </tr>
                   ))}

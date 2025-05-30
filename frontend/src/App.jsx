@@ -12,6 +12,7 @@ import OrderConfirmation from './pages/OrderConfirmation';
 import Payment from './pages/Payment';
 import PaymentSuccess from './pages/PaymentSuccess';
 import PaymentFailed from './pages/PaymentFailed';
+import OrderTracking from './pages/OrderTracking';
 import TestNavigation from './pages/TestNavigation';
 import { CartProvider } from './context/CartContext';
 import { UserProvider } from './context/UserContext';
@@ -103,6 +104,7 @@ function App() {
               <Route path="/payment" element={<RouteWrapper Component={Payment} routeName="Payment" />} />
               <Route path="/payment-success" element={<RouteWrapper Component={PaymentSuccess} routeName="PaymentSuccess" />} />
               <Route path="/payment-failed" element={<RouteWrapper Component={PaymentFailed} routeName="PaymentFailed" />} />
+              <Route path="/order-tracking" element={<RouteWrapper Component={OrderTracking} routeName="OrderTracking" />} />
               <Route path="/test-navigation" element={<RouteWrapper Component={TestNavigation} routeName="TestNavigation" />} />
               {/* Catch-all route for undefined paths */}
               <Route path="*" element={
