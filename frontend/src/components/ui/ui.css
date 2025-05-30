@@ -1,0 +1,130 @@
+/* UI组件样式 */
+
+/* Button 组件样式 */
+.ui-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  font-family: 'Space Grotesk', Arial, sans-serif;
+  font-weight: 700;
+  font-size: 14px;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  text-decoration: none;
+  outline: none;
+  padding: 0;
+  min-height: 40px;
+  min-width: 40px;
+}
+
+.ui-button--default {
+  background-color: #0c7ff2;
+  color: white;
+  padding: 0 32px;
+  height: 48px;
+  font-size: 16px;
+}
+
+.ui-button--default:hover {
+  background-color: #0a68c4;
+}
+
+.ui-button--ghost {
+  background-color: transparent;
+  color: #111416;
+  padding: 8px;
+  width: 40px;
+  height: 40px;
+}
+
+.ui-button--ghost:hover {
+  background-color: #eff2f4;
+}
+
+/* Card 组件样式 */
+.ui-card {
+  border-radius: 8px;
+  border: 1px solid #e5e8eb;
+  background-color: white;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.ui-card-content {
+  padding: 24px;
+}
+
+/* Input 组件样式 */
+.ui-input {
+  width: 100%;
+  padding: 16px;
+  border-radius: 8px;
+  border: 1px solid #e5e8eb;
+  background-color: #eff2f4;
+  font-family: 'Space Grotesk', Arial, sans-serif;
+  font-size: 16px;
+  color: #607589;
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.ui-input:focus {
+  border-color: #0c7ff2;
+  box-shadow: 0 0 0 2px rgba(12, 127, 242, 0.1);
+}
+
+.ui-input::placeholder {
+  color: #607589;
+}
+
+/* 图标样式 */
+.ui-icon {
+  display: block;
+  stroke: currentColor;
+  fill: none;
+}
+
+/* 搜索栏样式 */
+.search-container {
+  display: flex;
+  min-width: 160px;
+  max-width: 256px;
+  align-items: center;
+}
+
+.search-wrapper {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  border-radius: 8px;
+  background-color: #eff2f4;
+}
+
+.search-icon-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding-left: 16px;
+  padding-right: 0;
+  height: 40px;
+  background-color: #eff2f4;
+  border-radius: 8px 0 0 8px;
+}
+
+.search-input {
+  border: 0;
+  background-color: #eff2f4;
+  height: 40px;
+  border-radius: 0 8px 8px 0;
+  padding-left: 8px;
+  padding-right: 16px;
+  font-family: 'Space Grotesk', Arial, sans-serif;
+  color: #607589;
+  outline: none;
+  flex: 1;
+}
+
+.search-input::placeholder {
+  color: #607589;
+} 

@@ -1,0 +1,257 @@
+/* 导入 Space Grotesk 字体 */
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300..700&display=swap');
+
+/* 登录页面容器 */
+.login-container {
+  background-color: white;
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  width: 100%;
+  font-family: 'Space Grotesk', Arial, sans-serif;
+}
+
+.login-wrapper {
+  background-color: white;
+  width: 100%;
+  max-width: 1280px;
+  position: relative;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Header 样式 */
+.login-header {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 40px;
+  background-color: transparent;
+  border-bottom: 1px solid #e5e8ea;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 32px;
+}
+
+.brand-section {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  text-decoration: none;
+  color: inherit;
+}
+
+.logo-container {
+  position: relative;
+  width: 16px;
+  height: 16px;
+}
+
+.logo-image {
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  top: 1px;
+  left: 1px;
+}
+
+.brand-text {
+  font-family: 'Space Grotesk', Arial, sans-serif;
+  font-weight: 700;
+  color: #111416;
+  font-size: 18px;
+}
+
+.nav-section {
+  display: flex;
+  align-items: center;
+  gap: 36px;
+}
+
+.nav-link {
+  font-family: 'Space Grotesk', Arial, sans-serif;
+  font-weight: 500;
+  color: #111416;
+  font-size: 14px;
+  text-decoration: none;
+}
+
+.nav-link:hover {
+  color: #0c7ff2;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 32px;
+  flex: 1;
+}
+
+/* 主要内容区域 */
+.login-main {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+  padding: 80px 0;
+}
+
+.login-card {
+  border: 0;
+  box-shadow: none;
+  background-color: transparent;
+}
+
+.login-card-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0;
+}
+
+.login-title {
+  width: 480px;
+  font-family: 'Space Grotesk', Arial, sans-serif;
+  font-weight: 700;
+  color: #111416;
+  font-size: 28px;
+  text-align: center;
+  line-height: 35px;
+  margin-bottom: 20px;
+}
+
+.login-form {
+  display: flex;
+  flex-direction: column;
+  width: 480px;
+  align-items: center;
+  gap: 12px;
+  padding: 20px 0;
+}
+
+.form-field {
+  width: 100%;
+  padding: 16px;
+}
+
+.form-input {
+  height: 56px;
+  padding: 16px;
+  border-radius: 8px;
+  background-color: #eff2f4;
+  font-family: 'Space Grotesk', Arial, sans-serif;
+  color: #607589;
+  font-size: 16px;
+  border: 1px solid transparent;
+  outline: none;
+  transition: border-color 0.2s ease;
+}
+
+.form-input:focus {
+  border-color: #0c7ff2;
+}
+
+.form-button {
+  width: 100%;
+  height: 40px;
+  background-color: #0c7ff2;
+  font-family: 'Space Grotesk', Arial, sans-serif;
+  font-weight: 700;
+  color: white;
+  font-size: 14px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.form-button:hover {
+  background-color: #0a68c4;
+}
+
+.form-divider {
+  width: 100%;
+  padding: 4px 16px 12px 16px;
+  text-align: center;
+}
+
+.divider-text {
+  font-family: 'Space Grotesk', Arial, sans-serif;
+  font-weight: 400;
+  color: #607589;
+  font-size: 14px;
+}
+
+/* Footer 样式 */
+.login-footer {
+  width: 100%;
+  margin-top: auto;
+}
+
+.footer-content {
+  display: flex;
+  flex-direction: column;
+  max-width: 960px;
+  margin: 0 auto;
+}
+
+.footer-inner {
+  display: flex;
+  flex-direction: column;
+  height: 180px;
+  align-items: center;
+  gap: 24px;
+  padding: 40px 20px;
+}
+
+.footer-links {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  width: 100%;
+}
+
+.footer-link-item {
+  display: flex;
+  flex-direction: column;
+  width: 160px;
+  align-items: center;
+}
+
+.footer-link-text {
+  font-family: 'Space Grotesk', Arial, sans-serif;
+  font-weight: 400;
+  color: #607589;
+  font-size: 16px;
+  text-align: center;
+  line-height: 24px;
+  text-decoration: none;
+}
+
+.footer-link-text:hover {
+  color: #0c7ff2;
+}
+
+.footer-copyright-container {
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.footer-copyright {
+  width: 100%;
+  font-family: 'Space Grotesk', Arial, sans-serif;
+  font-weight: 400;
+  color: #607589;
+  font-size: 16px;
+  text-align: center;
+  line-height: 24px;
+} 

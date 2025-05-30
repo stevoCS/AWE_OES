@@ -1,7 +1,8 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { useUser } from '../context/UserContext';
 import './Home.css';
-import bannerImg from '../assets/home page image.png'; // 確認圖片路徑
+import bannerImg from '../assets/home page image.png'; 
 import laptopImg from '../assets/laptop.png';
 import phoneImg from '../assets/Phone.png';
 import speakerImg from '../assets/Speaker.png';
@@ -28,6 +29,8 @@ const bestSellers = [
 ];
 
 const Home = () => {
+  const { user, isLoggedIn } = useUser();
+
   return (
     <div className="home-container">
       {/* Header */}
@@ -47,7 +50,18 @@ const Home = () => {
             <img src={searchIcon} alt="search" className="search-icon-internal" /> {/* Changed class */}
             <input type="text" placeholder="Search" />
           </div>
-          <Link to="/login" className="login-btn">Log in</Link>
+          {isLoggedIn ? (
+            <Link to="/dashboard" className="login-btn" style={{ 
+              minWidth: 'auto', 
+              width: 'auto',
+              paddingLeft: '12px',
+              paddingRight: '12px'
+            }}>
+              Welcome, {user.firstName}
+            </Link>
+          ) : (
+            <Link to="/login" className="login-btn">Log in</Link>
+          )}
           <Link to="/cart" className="cart-btn">
             <img src={cartIcon} alt="cart" className="cart-icon" />
           </Link>
