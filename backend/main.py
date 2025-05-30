@@ -31,7 +31,8 @@ allowed_origins = [
     frontend_url,
     "http://127.0.0.1:5173",
     "http://127.0.0.1:5174", 
-    "http://127.0.0.1:3000"
+    "http://127.0.0.1:3000",
+    "https://awe-oes.onrender.com",
 ]
 
 # CORS middleware configuration
