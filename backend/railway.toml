@@ -1,13 +1,16 @@
 [build]
-buildCommand = "pip install -r requirements.txt"
+builder = "nixpacks"
 
 [deploy]
-startCommand = "uvicorn main:app --host 0.0.0.0 --port $PORT"
+startCommand = "./start.sh"
 healthcheckPath = "/health"
 healthcheckTimeout = 300
+restartPolicyType = "on_failure"
+restartPolicyMaxRetries = 10
 
 [env]
 # Environment variables will be set in Railway dashboard
 # MONGODB_URL
 # SECRET_KEY  
-# FRONTEND_URL 
+# FRONTEND_URL
+PYTHONPATH = "/app"
