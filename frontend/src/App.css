@@ -1,3 +1,71 @@
+/* Import Space Grotesk font */
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300..700&display=swap');
+
+/* CSS Variables for theme system */
+:root {
+  /* Default light theme variables */
+  --color-primary: #0D80F2;
+  --color-primary-hover: #0a68c4;
+  --color-background: #ffffff;
+  --color-background-secondary: #f8f9fa;
+  --color-background-tertiary: #f0f2f5;
+  --color-text-primary: #121417;
+  --color-text-secondary: #607589;
+  --color-text-tertiary: #61758A;
+  --color-text-muted: #9ca3af;
+  --color-border: #e5e8eb;
+  --color-border-light: #f0f2f5;
+  --color-border-dark: #d1d5db;
+  --color-success: #16a34a;
+  --color-error: #dc2626;
+  --color-warning: #ea580c;
+  --color-info: #0D80F2;
+  --color-overlay: rgba(0, 0, 0, 0.1);
+  --color-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  --color-shadow-light: 0 1px 3px rgba(0, 0, 0, 0.1);
+  --color-header-bg: #ffffff;
+  --color-header-border: #e5e8eb;
+  --color-card-bg: #ffffff;
+  --color-input-bg: #ffffff;
+  --color-button-bg: #ffffff;
+  --color-cart-badge: #16a34a;
+  --color-placeholder-bg: #f0f2f5;
+  --color-link-color: #0D80F2;
+  --color-link-hover: #0a68c4;
+}
+
+/* Dark theme variables */
+.theme-dark {
+  --color-primary: #3b82f6;
+  --color-primary-hover: #2563eb;
+  --color-background: #111827;
+  --color-background-secondary: #1f2937;
+  --color-background-tertiary: #374151;
+  --color-text-primary: #f9fafb;
+  --color-text-secondary: #d1d5db;
+  --color-text-tertiary: #9ca3af;
+  --color-text-muted: #6b7280;
+  --color-border: #374151;
+  --color-border-light: #4b5563;
+  --color-border-dark: #1f2937;
+  --color-success: #22c55e;
+  --color-error: #ef4444;
+  --color-warning: #f59e0b;
+  --color-info: #3b82f6;
+  --color-overlay: rgba(0, 0, 0, 0.3);
+  --color-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  --color-shadow-light: 0 1px 3px rgba(0, 0, 0, 0.2);
+  --color-header-bg: #1f2937;
+  --color-header-border: #374151;
+  --color-card-bg: #1f2937;
+  --color-input-bg: #374151;
+  --color-button-bg: #374151;
+  --color-cart-badge: #22c55e;
+  --color-placeholder-bg: #374151;
+  --color-link-color: #60a5fa;
+  --color-link-hover: #3b82f6;
+}
+
 /* Reset and base styles for AWE Electronics */
 
 * {
@@ -10,6 +78,9 @@
   width: 100%;
   height: 100vh;
   font-family: 'Space Grotesk', Arial, sans-serif;
+  background-color: var(--color-background);
+  color: var(--color-text-primary);
+  transition: background-color 0.2s ease, color 0.2s ease;
 }
 
 #app-container {
@@ -17,6 +88,8 @@
   height: 100%;
   margin: 0;
   padding: 0;
+  background-color: var(--color-background);
+  color: var(--color-text-primary);
 }
 
 /* Remove any default body margins */
@@ -24,6 +97,9 @@ body {
   margin: 0;
   padding: 0;
   font-family: 'Space Grotesk', Arial, sans-serif;
+  background-color: var(--color-background);
+  color: var(--color-text-primary);
+  transition: background-color 0.2s ease, color 0.2s ease;
 }
 
 /* Ensure all pages render properly */
@@ -32,6 +108,8 @@ body {
   min-height: 100vh;
   margin: 0;
   padding: 0;
+  background-color: var(--color-background);
+  color: var(--color-text-primary);
 }
 
 .logo {
@@ -64,8 +142,144 @@ body {
 
 .card {
   padding: 2em;
+  background-color: var(--color-card-bg);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  box-shadow: var(--color-shadow-light);
+  transition: all 0.2s ease;
+}
+
+.card:hover {
+  box-shadow: var(--color-shadow);
 }
 
 .read-the-docs {
   color: #888;
+}
+
+/* Global button styles */
+button {
+  font-family: 'Space Grotesk', Arial, sans-serif;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+/* Global input styles */
+input, textarea, select {
+  font-family: 'Space Grotesk', Arial, sans-serif;
+  background-color: var(--color-input-bg);
+  color: var(--color-text-primary);
+  border: 1px solid var(--color-border);
+  transition: all 0.2s ease;
+}
+
+input:focus, textarea:focus, select:focus {
+  outline: none;
+  border-color: var(--color-primary);
+}
+
+/* Global link styles */
+a {
+  color: var(--color-link-color);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+a:hover {
+  color: var(--color-link-hover);
+}
+
+/* Scrollbar styling for webkit browsers */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-background-secondary);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border-radius: 4px;
+  transition: background 0.2s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-border-dark);
+}
+
+/* Firefox scrollbar */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-border) var(--color-background-secondary);
+}
+
+/* Animation classes */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.fade-in {
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+.slide-in {
+  animation: slideIn 0.3s ease-in-out;
+}
+
+/* Responsive utilities */
+@media (max-width: 768px) {
+  #root {
+    font-size: 14px;
+  }
+  
+  .page-container {
+    padding: 0 16px;
+  }
+}
+
+@media (max-width: 480px) {
+  #root {
+    font-size: 13px;
+  }
+}
+
+/* Dark mode specific adjustments */
+.theme-dark img {
+  filter: brightness(0.9);
+}
+
+.theme-dark .banner-image {
+  filter: brightness(0.8);
+}
+
+/* Ensure proper contrast in dark mode */
+.theme-dark input::placeholder {
+  color: var(--color-text-muted);
+}
+
+.theme-dark select option {
+  background-color: var(--color-input-bg);
+  color: var(--color-text-primary);
 }

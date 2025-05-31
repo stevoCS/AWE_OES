@@ -1,8 +1,10 @@
-import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState, useEffect, useRef } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { useUser } from '../context/UserContext';
 import { useCart } from '../context/CartContext';
+import { useTheme } from '../context/ThemeContext';
 import { productsAPI } from '../api/config';
+import Layout from '../components/Layout';
 import './Home.css';
 import bannerImg from '../assets/home page image.png'; 
 import logoIcon from '../assets/Vector - 0.svg';
@@ -34,9 +36,13 @@ const imageMap = {
 const Home = () => {
   const { user, isLoggedIn } = useUser();
   const { getCartItemsCount } = useCart();
+  const { theme } = useTheme();
+  const navigate = useNavigate();
   const [newArrivals, setNewArrivals] = useState([]);
   const [bestSellers, setBestSellers] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const newArrivalsRef = useRef(null);
+  const bestSellersRef = useRef(null);
 
   useEffect(() => {
     loadProducts();
@@ -75,22 +81,48 @@ const Home = () => {
     }
   };
 
+  const handleSubscribeClick = () => {
+    navigate('/register');
+  };
+
   const renderProductSection = (products, title) => (
-    <section className="home-section">
+    <section 
+      className="home-section" 
+      id={title === "New Arrivals" ? "new-arrivals" : "best-sellers"}
+      style={{ backgroundColor: theme.background }}
+    >
       <div className="section-content">
-        <h2 className="section-title">{title}</h2>
-        <div className="product-list">
+        <h2 
+          className="section-title"
+          style={{ color: theme.textPrimary }}
+        >
+          {title}
+        </h2>
+        <div 
+          ref={title === "New Arrivals" ? newArrivalsRef : bestSellersRef}
+          className="product-list"
+          style={{
+            display: 'flex',
+            gap: '16px',
+            overflowX: 'auto',
+            scrollBehavior: 'smooth',
+            paddingBottom: '8px',
+            scrollbarWidth: 'thin',
+            scrollbarColor: `${theme.border} transparent`
+          }}
+        >
           {isLoading ? (
             // Loading state
             Array.from({ length: 4 }).map((_, index) => (
               <div key={index} className="product-card" style={{
-                background: '#f0f2f5',
+                background: theme.placeholderBg,
+                border: `1px solid ${theme.border}`,
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 minHeight: '300px'
               }}>
-                <span style={{ color: '#607589' }}>Loading...</span>
+                <span style={{ color: theme.textMuted }}>Loading...</span>
               </div>
             ))
           ) : products.length > 0 ? (
@@ -112,15 +144,32 @@ const Home = () => {
                   to={`/product/${product.id}`}
                   style={{ textDecoration: 'none', color: 'inherit' }}
                 >
-                  <div className="product-card">
+                  <div 
+                    className="product-card" 
+                    style={{ 
+                      minWidth: '238px', 
+                      flexShrink: 0,
+                      backgroundColor: theme.cardBg,
+                      border: `1px solid ${theme.border}`,
+                      transition: 'transform 0.2s ease, box-shadow 0.2s ease'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.target.style.transform = 'translateY(-2px)';
+                      e.target.style.boxShadow = theme.shadow;
+                    }}
+                    onMouseLeave={(e) => {
+                      e.target.style.transform = 'translateY(0)';
+                      e.target.style.boxShadow = 'none';
+                    }}
+                  >
                     <div 
                       className="product-img" 
                       style={{
-                        backgroundColor: '#f0f2f5',
+                        backgroundColor: theme.placeholderBg,
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        color: '#607589',
+                        color: theme.textMuted,
                         fontSize: '14px'
                       }}
                     >
@@ -144,13 +193,23 @@ const Home = () => {
                       )}
                     </div>
                     <div className="product-info">
-                      <div className="product-name">{product.name}</div>
-                      <div className="product-desc">{product.description}</div>
+                      <div 
+                        className="product-name"
+                        style={{ color: theme.textPrimary }}
+                      >
+                        {product.name}
+                      </div>
+                      <div 
+                        className="product-desc"
+                        style={{ color: theme.textTertiary }}
+                      >
+                        {product.description}
+                      </div>
                       <div style={{
                         marginTop: '8px',
                         fontSize: '16px',
                         fontWeight: '600',
-                        color: '#121417'
+                        color: theme.textPrimary
                       }}>
                         ${product.price.toFixed(2)}
                       </div>
@@ -165,7 +224,7 @@ const Home = () => {
               gridColumn: '1 / -1',
               textAlign: 'center',
               padding: '40px',
-              color: '#607589'
+              color: theme.textMuted
             }}>
               No products available
             </div>
@@ -176,70 +235,36 @@ const Home = () => {
   );
 
   return (
-    <div className="home-container">
-      {/* Header */}
-      <header className="home-header">
-        <div className="header-left">
-          <Link to="/" className="brand-link">
-            <img src={logoIcon} alt="AWE Electronics Logo" className="logo-icon" />
-            <span className="brand-title">AWE Electronics</span>
-          </Link>
-          <nav className="sub-titles"> {/* Changed div to nav for semantic reasons */}
-            <Link to="/new-arrivals" className="sub-title">New Arrivals</Link>
-            <Link to="/best-sellers" className="sub-title">Best Sellers</Link>
-          </nav>
-        </div>
-        <div className="header-right">
-          <div className="search-bar">
-            <img src={searchIcon} alt="search" className="search-icon-internal" /> {/* Changed class */}
-            <input type="text" placeholder="Search" />
-          </div>
-          {isLoggedIn ? (
-            <Link to="/dashboard" className="login-btn" style={{ 
-              minWidth: 'auto', 
-              width: 'auto',
-              paddingLeft: '12px',
-              paddingRight: '12px'
-            }}>
-              Welcome, {user.firstName}
-            </Link>
-          ) : (
-            <Link to="/login" className="login-btn">Log in</Link>
-          )}
-          <Link to="/cart" className="cart-btn" style={{ position: 'relative' }}>
-            <img src={cartIcon} alt="cart" className="cart-icon" />
-            {getCartItemsCount() > 0 && (
-              <span style={{
-                position: 'absolute',
-                top: '-6px',
-                right: '-6px',
-                backgroundColor: '#dc2626',
-                color: 'white',
-                borderRadius: '50%',
-                width: '18px',
-                height: '18px',
-                fontSize: '11px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontWeight: '600'
-              }}>
-                {getCartItemsCount()}
-              </span>
-            )}
-          </Link>
-        </div>
-      </header>
-
+    <Layout className="home-container">
       {/* Banner */}
       <section className="home-banner" style={{ backgroundImage: `url(${bannerImg})` }}>
-        {/* Removed <img> tag, using background-image now for better overlay control */}
-        <div className="banner-overlay"></div> {/* Added for overlay */}
+        <div className="banner-overlay"></div>
         <div className="banner-content">
           <h1 className="banner-title">Tech That Moves You</h1>
           <p className="banner-desc">Explore the latest in electronics, from cutting-edge laptops to immersive audio experiences. Find your perfect tech companion today.</p>
           <Link to="/product">
-            <button className="shop-now-btn">Shop Now</button>
+            <button 
+              className="shop-now-btn"
+              style={{
+                backgroundColor: theme.primary,
+                color: 'white',
+                border: 'none',
+                borderRadius: '8px',
+                padding: '0 32px',
+                height: '48px',
+                fontSize: '16px',
+                fontWeight: '700',
+                cursor: 'pointer',
+                lineHeight: '48px',
+                display: 'block',
+                margin: '0 auto',
+                transition: 'background-color 0.2s ease'
+              }}
+              onMouseEnter={(e) => e.target.style.backgroundColor = theme.primaryHover}
+              onMouseLeave={(e) => e.target.style.backgroundColor = theme.primary}
+            >
+              Shop Now
+            </button>
           </Link>
         </div>
       </section>
@@ -251,25 +276,50 @@ const Home = () => {
       {renderProductSection(bestSellers, "Best Sellers")}
 
       {/* Subscribe */}
-      <section className="subscribe-section">
-        <div className="section-content"> {/* Added wrapper for consistency, though not strictly needed if full width */}
-          <h2 className="subscribe-title">Stay Connected</h2>
-          <p className="subscribe-desc">Sign up for our newsletter and be the first to know about new products, exclusive deals, and more.</p>
-          <button className="subscribe-btn">Subscribe Now</button>
+      <section 
+        className="subscribe-section"
+        style={{
+          backgroundColor: theme.backgroundSecondary,
+          color: theme.textPrimary
+        }}
+      >
+        <div className="section-content">
+          <h2 
+            className="subscribe-title"
+            style={{ color: theme.textPrimary }}
+          >
+            Stay Connected
+          </h2>
+          <p 
+            className="subscribe-desc"
+            style={{ color: theme.textSecondary }}
+          >
+            Sign up for our newsletter and be the first to know about new products, exclusive deals, and more.
+          </p>
+          <button 
+            className="subscribe-btn" 
+            onClick={handleSubscribeClick}
+            style={{
+              backgroundColor: theme.primary,
+              color: 'white',
+              border: 'none',
+              borderRadius: '8px',
+              padding: '0 32px',
+              height: '48px',
+              fontSize: '16px',
+              fontWeight: '700',
+              cursor: 'pointer',
+              lineHeight: '48px',
+              transition: 'background-color 0.2s ease'
+            }}
+            onMouseEnter={(e) => e.target.style.backgroundColor = theme.primaryHover}
+            onMouseLeave={(e) => e.target.style.backgroundColor = theme.primary}
+          >
+            Subscribe Now
+          </button>
         </div>
       </section>
-
-      {/* Footer */}
-      <footer className="home-footer">
-        <div className="footer-links">
-          {/* Consider using <Link> if these are actual navigation links */}
-          <Link to="/about-us" className="footer-link-item">About Us</Link>
-          <Link to="/customer-support" className="footer-link-item">Customer Support</Link>
-          <Link to="/terms-of-service" className="footer-link-item">Terms of Service</Link>
-        </div>
-        <div className="footer-copyright">© 2025 AWE Electronics. All rights reserved.</div>
-      </footer>
-    </div>
+    </Layout>
   );
 };
 

@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { SearchIcon, ShoppingCartIcon } from '../components/ui/icons';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '../components/ui/button';
 import { Card, CardContent } from '../components/ui/card';
-import { Input } from '../components/ui/input';
+import Layout from '../components/Layout';
 import { useUser } from '../context/UserContext';
 import { useCart } from '../context/CartContext';
-import './Login.css';
+import { useTheme } from '../context/ThemeContext';
 import logoIcon from '../assets/Vector - 0.svg';
+import './Login.css';
 
 export const Login = () => {
   const [email, setEmail] = useState('');
@@ -16,13 +16,7 @@ export const Login = () => {
   const { login, isLoading } = useUser();
   const { getCartItemsCount } = useCart();
   const navigate = useNavigate();
-
-  // Footer links data
-  const footerLinks = [
-    { title: "About Us", href: "/about-us" },
-    { title: "Customer Support", href: "/customer-support" },
-    { title: "Terms of Service", href: "/terms-of-service" },
-  ];
+  const { theme } = useTheme();
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -52,148 +46,131 @@ export const Login = () => {
   };
 
   return (
-    <div className="login-container">
-      <div className="login-wrapper">
-        {/* Header */}
-        <header className="login-header">
-          <div className="header-left">
-            <Link to="/" className="brand-section">
-              <div className="logo-container">
-                <img
-                  className="logo-image"
-                  alt="Vector"
-                  src={logoIcon}
-                />
-              </div>
-              <div className="brand-text">
-                AWE Electronics
-              </div>
-            </Link>
+    <Layout>
+      <div style={{
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        minHeight: 'calc(100vh - 200px)', // Subtract header + footer height
+        padding: '40px 20px',
+        fontFamily: "'Space Grotesk', Arial, sans-serif",
+        backgroundColor: theme.background
+      }}>
+        <Card className="login-card" style={{
+          backgroundColor: theme.cardBg,
+          border: `1px solid ${theme.border}`,
+          boxShadow: theme.shadowLight
+        }}>
+          <CardContent className="login-card-content">
+            <h1 className="login-title" style={{
+              color: theme.textPrimary
+            }}>
+              Log in or create an account
+            </h1>
 
-            <nav className="nav-section">
-              <Link to="/new-arrivals" className="nav-link">
-                New Arrivals
-              </Link>
-              <Link to="/best-sellers" className="nav-link">
-                Best Sellers
-              </Link>
-            </nav>
-          </div>
-
-          <div className="header-right">
-            <div className="search-container">
-              <div className="search-wrapper">
-                <div className="search-icon-container">
-                  <SearchIcon className="ui-icon" style={{ width: '20px', height: '20px', color: '#607589' }} />
+            <form className="login-form" onSubmit={handleLogin}>
+              {error && (
+                <div style={{ 
+                  color: theme.error, 
+                  fontSize: '14px', 
+                  marginBottom: '16px',
+                  textAlign: 'center',
+                  padding: '8px',
+                  backgroundColor: theme.error + '20',
+                  borderRadius: '4px',
+                  border: `1px solid ${theme.error}50`
+                }}>
+                  {error}
                 </div>
+              )}
+              
+              <div className="form-field">
                 <input
-                  className="search-input"
-                  placeholder="Search"
-                  type="text"
+                  className="form-input"
+                  style={{
+                    backgroundColor: theme.inputBg,
+                    color: theme.textPrimary,
+                    border: `1px solid ${theme.border}`,
+                    transition: 'border-color 0.2s ease'
+                  }}
+                  onFocus={(e) => e.target.style.borderColor = theme.primary}
+                  onBlur={(e) => e.target.style.borderColor = theme.border}
+                  placeholder="Email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  disabled={isLoading}
                 />
               </div>
-            </div>
 
-            <Button variant="ghost">
-              <ShoppingCartIcon style={{ width: '17px', height: '17px', color: '#111416' }} />
-            </Button>
-          </div>
-        </header>
-
-        {/* Main Content */}
-        <main className="login-main">
-          <Card className="login-card">
-            <CardContent className="login-card-content">
-              <h1 className="login-title">
-                Log in or create an account
-              </h1>
-
-              <form className="login-form" onSubmit={handleLogin}>
-                {error && (
-                  <div style={{ 
-                    color: '#dc2626', 
-                    fontSize: '14px', 
-                    marginBottom: '16px',
-                    textAlign: 'center',
-                    padding: '8px',
-                    backgroundColor: '#fef2f2',
-                    borderRadius: '4px',
-                    border: '1px solid #fecaca'
-                  }}>
-                    {error}
-                  </div>
-                )}
-                
-                <div className="form-field">
-                  <input
-                    className="form-input"
-                    placeholder="Email"
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    required
-                    disabled={isLoading}
-                  />
-                </div>
-
-                <div className="form-field">
-                  <input
-                    type="password"
-                    className="form-input"
-                    placeholder="Password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    required
-                    disabled={isLoading}
-                  />
-                </div>
-
-                <div className="form-field">
-                  <button type="submit" className="form-button" disabled={isLoading}>
-                    {isLoading ? 'Logging in...' : 'Log In'}
-                  </button>
-                </div>
-
-                <div className="form-divider">
-                  <p className="divider-text">
-                    Or Registration
-                  </p>
-                </div>
-
-                <div className="form-field">
-                  <button type="button" className="form-button" onClick={handleSignUp} disabled={isLoading}>
-                    Sign up
-                  </button>
-                </div>
-              </form>
-            </CardContent>
-          </Card>
-        </main>
-
-        {/* Footer */}
-        <footer className="login-footer">
-          <div className="footer-content">
-            <div className="footer-inner">
-              <div className="footer-links">
-                {footerLinks.map((link, index) => (
-                  <div key={index} className="footer-link-item">
-                    <Link to={link.href} className="footer-link-text">
-                      {link.title}
-                    </Link>
-                  </div>
-                ))}
+              <div className="form-field">
+                <input
+                  type="password"
+                  className="form-input"
+                  style={{
+                    backgroundColor: theme.inputBg,
+                    color: theme.textPrimary,
+                    border: `1px solid ${theme.border}`,
+                    transition: 'border-color 0.2s ease'
+                  }}
+                  onFocus={(e) => e.target.style.borderColor = theme.primary}
+                  onBlur={(e) => e.target.style.borderColor = theme.border}
+                  placeholder="Password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  disabled={isLoading}
+                />
               </div>
 
-              <div className="footer-copyright-container">
-                <div className="footer-copyright">
-                  © 2025 AWE Electronics. All rights reserved.
-                </div>
+              <div className="form-field">
+                <button 
+                  type="submit" 
+                  className="form-button"
+                  style={{
+                    backgroundColor: theme.primary,
+                    color: 'white',
+                    transition: 'background-color 0.2s ease'
+                  }}
+                  onMouseEnter={(e) => e.target.style.backgroundColor = theme.primaryHover}
+                  onMouseLeave={(e) => e.target.style.backgroundColor = theme.primary}
+                  disabled={isLoading}
+                >
+                  {isLoading ? 'Logging in...' : 'Log In'}
+                </button>
               </div>
-            </div>
-          </div>
-        </footer>
+
+              <div className="form-divider">
+                <p className="divider-text" style={{
+                  color: theme.textSecondary
+                }}>
+                  Or Registration
+                </p>
+              </div>
+
+              <div className="form-field">
+                <button 
+                  type="button" 
+                  className="form-button"
+                  style={{
+                    backgroundColor: theme.primary,
+                    color: 'white',
+                    transition: 'background-color 0.2s ease'
+                  }}
+                  onMouseEnter={(e) => e.target.style.backgroundColor = theme.primaryHover}
+                  onMouseLeave={(e) => e.target.style.backgroundColor = theme.primary}
+                  onClick={handleSignUp} 
+                  disabled={isLoading}
+                >
+                  Sign up
+                </button>
+              </div>
+            </form>
+          </CardContent>
+        </Card>
       </div>
-    </div>
+    </Layout>
   );
 };
 

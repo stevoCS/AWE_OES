@@ -1,13 +1,14 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { SearchIcon, ShoppingCartIcon } from '../components/ui/icons';
 import { Button } from '../components/ui/button';
 import { useUser } from '../context/UserContext';
+import { useTheme } from '../context/ThemeContext';
+import Layout from '../components/Layout';
 import './Login.css'; // Reuse the style of the login page.
-import logoIcon from '../assets/Vector - 0.svg';
 
 export const Account = () => {
   const { user, logout, updateUser, isLoggedIn } = useUser();
+  const { theme } = useTheme();
   const navigate = useNavigate();
   const [editData, setEditData] = useState({
     firstName: user?.firstName || '',
@@ -48,486 +49,399 @@ export const Account = () => {
   if (!user) return null;
 
   return (
-    <div style={{
-      backgroundColor: '#f8f9fa',
-      minHeight: '100vh',
-      fontFamily: "'Space Grotesk', Arial, sans-serif"
-    }}>
-      {/* Header */}
-      <header style={{
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        padding: '12px 40px',
-        backgroundColor: 'white',
-        borderBottom: '1px solid #e5e8eb',
-        position: 'sticky',
-        top: 0,
-        zIndex: 100
+    <Layout>
+      <div style={{
+        backgroundColor: theme.background,
+        minHeight: '100vh',
+        fontFamily: "'Space Grotesk', Arial, sans-serif"
       }}>
+        {/* Breadcrumb */}
         <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '32px'
+          padding: '20px 40px',
+          fontSize: '14px',
+          color: theme.textSecondary,
+          backgroundColor: theme.cardBg,
+          borderBottom: `1px solid ${theme.border}`
         }}>
-          <Link to="/" style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '16px',
-            textDecoration: 'none',
-            color: 'inherit'
+          <Link to="/" style={{ color: theme.textSecondary, textDecoration: 'none' }}>Home</Link>
+          <span style={{ margin: '0 8px' }}>/</span>
+          <Link to="/dashboard" style={{ color: theme.textSecondary, textDecoration: 'none' }}>Dashboard</Link>
+          <span style={{ margin: '0 8px' }}>/</span>
+          <span style={{ color: theme.textPrimary }}>Account Settings</span>
+        </div>
+
+        {/* Main Content */}
+        <main style={{
+          display: 'flex',
+          justifyContent: 'center',
+          padding: '40px 20px',
+          minHeight: 'calc(100vh - 200px)'
+        }}>
+          <div style={{
+            width: '100%',
+            maxWidth: '800px',
+            backgroundColor: theme.cardBg,
+            borderRadius: '12px',
+            padding: '40px',
+            position: 'relative',
+            boxShadow: theme.shadowLight,
+            border: `1px solid ${theme.border}`
           }}>
-            <img src={logoIcon} alt="AWE Electronics Logo" style={{ width: '32px', height: '32px' }} />
-            <span style={{
+            {/* Account Management Title */}
+            <h1 style={{
+              fontSize: '32px',
               fontWeight: '700',
-              fontSize: '18px',
-              color: '#121417'
+              color: theme.textPrimary,
+              marginBottom: '8px',
+              textAlign: 'center'
             }}>
-              AWE Electronics
-            </span>
-          </Link>
+              Account Settings
+            </h1>
 
-          <nav style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '36px'
-          }}>
-            <Link to="/new-arrivals" style={{
-              fontWeight: '500',
-              fontSize: '14px',
-              color: '#121417',
-              textDecoration: 'none'
+            <p style={{
+              fontSize: '16px',
+              color: theme.textSecondary,
+              textAlign: 'center',
+              marginBottom: '32px'
             }}>
-              New Arrivals
-            </Link>
-            <Link to="/best-sellers" style={{
-              fontWeight: '500',
-              fontSize: '14px',
-              color: '#121417',
-              textDecoration: 'none'
-            }}>
-              Best Sellers
-            </Link>
-          </nav>
-        </div>
+              Manage your personal information and preferences
+            </p>
 
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '32px',
-          flex: 1,
-          justifyContent: 'flex-end'
-        }}>
-          {/* Search Bar */}
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            backgroundColor: '#f0f2f5',
-            borderRadius: '8px',
-            minWidth: '160px',
-            maxWidth: '256px'
-          }}>
-            <div style={{
-              padding: '0 16px',
-              height: '40px',
-              display: 'flex',
-              alignItems: 'center'
-            }}>
-              <SearchIcon style={{ width: '20px', height: '20px', color: '#607589' }} />
-            </div>
-            <input
-              type="text"
-              placeholder="Search"
-              style={{
-                border: 'none',
-                backgroundColor: 'transparent',
-                outline: 'none',
-                padding: '8px 16px 8px 0',
-                flex: 1,
-                height: '40px',
+            {/* Success Message */}
+            {message && (
+              <div style={{
+                backgroundColor: theme.success + '20',
+                border: `1px solid ${theme.success}`,
+                borderRadius: '8px',
+                padding: '12px 16px',
+                marginBottom: '24px',
+                color: theme.success,
                 fontSize: '14px',
-                color: '#607589'
-              }}
-            />
-          </div>
-
-          {/* Cart Button */}
-          <Button variant="ghost" style={{
-            padding: '8px',
-            backgroundColor: '#f0f2f5',
-            borderRadius: '8px'
-          }}>
-            <ShoppingCartIcon style={{ width: '17px', height: '17px', color: '#111416' }} />
-          </Button>
-
-          {/* User Avatar */}
-          <div style={{
-            width: '40px',
-            height: '40px',
-            borderRadius: '50%',
-            background: 'linear-gradient(135deg, #0D80F2, #0a68c4)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            color: 'white',
-            fontWeight: '600',
-            fontSize: '16px'
-          }}>
-            {user.firstName?.charAt(0)?.toUpperCase() || 'U'}
-          </div>
-        </div>
-      </header>
-
-      {/* Main Content */}
-      <main style={{
-        display: 'flex',
-        justifyContent: 'center',
-        padding: '40px 20px',
-        minHeight: 'calc(100vh - 200px)'
-      }}>
-        <div style={{
-          width: '100%',
-          maxWidth: '800px',
-          backgroundColor: 'white',
-          borderRadius: '12px',
-          padding: '40px',
-          position: 'relative',
-          boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)'
-        }}>
-          {/* Account Management Title */}
-          <h1 style={{
-            fontSize: '32px',
-            fontWeight: '700',
-            color: '#121417',
-            margin: '0 0 60px 0',
-            textAlign: 'left'
-          }}>
-            Account Management
-          </h1>
-
-          {/* Personal Information Section */}
-          <div style={{
-            display: 'flex',
-            gap: '60px',
-            alignItems: 'flex-start'
-          }}>
-            {/* Left Column - Form Fields */}
-            <div style={{
-              flex: '1',
-              maxWidth: '400px'
-            }}>
-              <h2 style={{
-                fontSize: '22px',
-                fontWeight: '700',
-                color: '#121417',
-                margin: '0 0 30px 0'
+                textAlign: 'center'
               }}>
-                Personal Information
-              </h2>
+                {message}
+              </div>
+            )}
 
-              {/* Success Message */}
-              {message && (
-                <div style={{ 
-                  color: '#16a34a', 
-                  fontSize: '14px', 
-                  marginBottom: '20px',
-                  padding: '12px',
-                  backgroundColor: '#f0fdf4',
-                  borderRadius: '8px',
-                  border: '1px solid #bbf7d0'
-                }}>
-                  {message}
-                </div>
-              )}
-
-              <form onSubmit={handleSave}>
-                {/* Full Name Field */}
-                <div style={{ marginBottom: '24px' }}>
+            {/* Account Form */}
+            <form onSubmit={handleSave}>
+              <div style={{
+                display: 'grid',
+                gridTemplateColumns: '1fr 1fr',
+                gap: '24px',
+                marginBottom: '24px'
+              }}>
+                <div>
                   <label style={{
-                    fontSize: '16px',
-                    fontWeight: '500',
-                    color: '#121417',
                     display: 'block',
+                    fontSize: '14px',
+                    fontWeight: '500',
+                    color: theme.textPrimary,
                     marginBottom: '8px'
                   }}>
-                    Full Name
+                    First Name
                   </label>
                   <input
                     type="text"
                     name="firstName"
-                    value={`${editData.firstName} ${editData.lastName}`.trim()}
-                    onChange={(e) => {
-                      const names = e.target.value.split(' ');
-                      const firstName = names[0] || '';
-                      const lastName = names.slice(1).join(' ') || '';
-                      setEditData(prev => ({
-                        ...prev,
-                        firstName,
-                        lastName
-                      }));
-                    }}
-                    placeholder="Enter your full name"
+                    value={editData.firstName}
+                    onChange={handleInputChange}
                     style={{
                       width: '100%',
-                      padding: '15px',
-                      border: '1px solid #DBE0E5',
+                      padding: '12px',
+                      border: `1px solid ${theme.border}`,
                       borderRadius: '8px',
-                      backgroundColor: 'white',
                       fontSize: '16px',
-                      outline: 'none',
                       boxSizing: 'border-box',
-                      transition: 'border-color 0.2s'
+                      backgroundColor: theme.cardBg,
+                      color: theme.textPrimary,
+                      outline: 'none',
+                      transition: 'border-color 0.2s ease'
                     }}
-                    onFocus={(e) => e.target.style.borderColor = '#0D80F2'}
-                    onBlur={(e) => e.target.style.borderColor = '#DBE0E5'}
+                    onFocus={(e) => e.target.style.borderColor = theme.primary}
+                    onBlur={(e) => e.target.style.borderColor = theme.border}
                   />
                 </div>
 
-                {/* Email Address Field */}
-                <div style={{ marginBottom: '24px' }}>
+                <div>
                   <label style={{
-                    fontSize: '16px',
-                    fontWeight: '500',
-                    color: '#121417',
                     display: 'block',
+                    fontSize: '14px',
+                    fontWeight: '500',
+                    color: theme.textPrimary,
                     marginBottom: '8px'
                   }}>
-                    Email Address
+                    Last Name
                   </label>
                   <input
-                    type="email"
-                    name="email"
-                    value={editData.email}
+                    type="text"
+                    name="lastName"
+                    value={editData.lastName}
                     onChange={handleInputChange}
-                    placeholder="Enter your email address"
                     style={{
                       width: '100%',
-                      padding: '15px',
-                      border: '1px solid #DBE0E5',
+                      padding: '12px',
+                      border: `1px solid ${theme.border}`,
                       borderRadius: '8px',
-                      backgroundColor: 'white',
                       fontSize: '16px',
-                      outline: 'none',
                       boxSizing: 'border-box',
-                      transition: 'border-color 0.2s'
+                      backgroundColor: theme.cardBg,
+                      color: theme.textPrimary,
+                      outline: 'none',
+                      transition: 'border-color 0.2s ease'
                     }}
-                    onFocus={(e) => e.target.style.borderColor = '#0D80F2'}
-                    onBlur={(e) => e.target.style.borderColor = '#DBE0E5'}
+                    onFocus={(e) => e.target.style.borderColor = theme.primary}
+                    onBlur={(e) => e.target.style.borderColor = theme.border}
                   />
                 </div>
+              </div>
 
-                {/* Contact Number Field */}
-                <div style={{ marginBottom: '24px' }}>
-                  <label style={{
+              <div style={{ marginBottom: '24px' }}>
+                <label style={{
+                  display: 'block',
+                  fontSize: '14px',
+                  fontWeight: '500',
+                  color: theme.textPrimary,
+                  marginBottom: '8px'
+                }}>
+                  Email Address
+                </label>
+                <input
+                  type="email"
+                  name="email"
+                  value={editData.email}
+                  onChange={handleInputChange}
+                  style={{
+                    width: '100%',
+                    padding: '12px',
+                    border: `1px solid ${theme.border}`,
+                    borderRadius: '8px',
+                    fontSize: '16px',
+                    boxSizing: 'border-box',
+                    backgroundColor: theme.cardBg,
+                    color: theme.textPrimary,
+                    outline: 'none',
+                    transition: 'border-color 0.2s ease'
+                  }}
+                  onFocus={(e) => e.target.style.borderColor = theme.primary}
+                  onBlur={(e) => e.target.style.borderColor = theme.border}
+                />
+              </div>
+
+              <div style={{ marginBottom: '24px' }}>
+                <label style={{
+                  display: 'block',
+                  fontSize: '14px',
+                  fontWeight: '500',
+                  color: theme.textPrimary,
+                  marginBottom: '8px'
+                }}>
+                  Contact Number
+                </label>
+                <input
+                  type="tel"
+                  name="contactNumber"
+                  value={editData.contactNumber}
+                  onChange={handleInputChange}
+                  style={{
+                    width: '100%',
+                    padding: '12px',
+                    border: `1px solid ${theme.border}`,
+                    borderRadius: '8px',
+                    fontSize: '16px',
+                    boxSizing: 'border-box',
+                    backgroundColor: theme.cardBg,
+                    color: theme.textPrimary,
+                    outline: 'none',
+                    transition: 'border-color 0.2s ease'
+                  }}
+                  onFocus={(e) => e.target.style.borderColor = theme.primary}
+                  onBlur={(e) => e.target.style.borderColor = theme.border}
+                />
+              </div>
+
+              <div style={{ marginBottom: '24px' }}>
+                <label style={{
+                  display: 'block',
+                  fontSize: '14px',
+                  fontWeight: '500',
+                  color: theme.textPrimary,
+                  marginBottom: '8px'
+                }}>
+                  Shipping Address
+                </label>
+                <textarea
+                  name="shippingAddress"
+                  value={editData.shippingAddress}
+                  onChange={handleInputChange}
+                  rows="3"
+                  style={{
+                    width: '100%',
+                    padding: '12px',
+                    border: `1px solid ${theme.border}`,
+                    borderRadius: '8px',
+                    fontSize: '16px',
+                    boxSizing: 'border-box',
+                    backgroundColor: theme.cardBg,
+                    color: theme.textPrimary,
+                    resize: 'vertical',
+                    outline: 'none',
+                    transition: 'border-color 0.2s ease',
+                    fontFamily: "'Space Grotesk', Arial, sans-serif"
+                  }}
+                  onFocus={(e) => e.target.style.borderColor = theme.primary}
+                  onBlur={(e) => e.target.style.borderColor = theme.border}
+                />
+              </div>
+
+              <div style={{ marginBottom: '32px' }}>
+                <label style={{
+                  display: 'block',
+                  fontSize: '14px',
+                  fontWeight: '500',
+                  color: theme.textPrimary,
+                  marginBottom: '8px'
+                }}>
+                  Personal Preferences
+                </label>
+                <textarea
+                  name="personalPreference"
+                  value={editData.personalPreference}
+                  onChange={handleInputChange}
+                  rows="3"
+                  placeholder="Tell us about your preferences..."
+                  style={{
+                    width: '100%',
+                    padding: '12px',
+                    border: `1px solid ${theme.border}`,
+                    borderRadius: '8px',
+                    fontSize: '16px',
+                    boxSizing: 'border-box',
+                    backgroundColor: theme.cardBg,
+                    color: theme.textPrimary,
+                    resize: 'vertical',
+                    outline: 'none',
+                    transition: 'border-color 0.2s ease',
+                    fontFamily: "'Space Grotesk', Arial, sans-serif"
+                  }}
+                  onFocus={(e) => e.target.style.borderColor = theme.primary}
+                  onBlur={(e) => e.target.style.borderColor = theme.border}
+                />
+              </div>
+
+              {/* Action Buttons */}
+              <div style={{
+                display: 'flex',
+                gap: '16px',
+                justifyContent: 'center'
+              }}>
+                <button
+                  type="button"
+                  onClick={() => navigate('/dashboard')}
+                  style={{
+                    padding: '12px 24px',
+                    backgroundColor: theme.cardBg,
+                    color: theme.textSecondary,
+                    border: `1px solid ${theme.border}`,
+                    borderRadius: '8px',
                     fontSize: '16px',
                     fontWeight: '500',
-                    color: '#121417',
-                    display: 'block',
-                    marginBottom: '8px'
-                  }}>
-                    Contact Number
-                  </label>
-                  <input
-                    type="tel"
-                    name="contactNumber"
-                    value={editData.contactNumber}
-                    onChange={handleInputChange}
-                    placeholder="Enter your phone number"
-                    style={{
-                      width: '100%',
-                      padding: '15px',
-                      border: '1px solid #DBE0E5',
-                      borderRadius: '8px',
-                      backgroundColor: 'white',
-                      fontSize: '16px',
-                      outline: 'none',
-                      boxSizing: 'border-box',
-                      transition: 'border-color 0.2s'
-                    }}
-                    onFocus={(e) => e.target.style.borderColor = '#0D80F2'}
-                    onBlur={(e) => e.target.style.borderColor = '#DBE0E5'}
-                  />
-                </div>
-
-                {/* Shipping Address Field */}
-                <div style={{ marginBottom: '24px' }}>
-                  <label style={{
-                    fontSize: '16px',
-                    fontWeight: '500',
-                    color: '#121417',
-                    display: 'block',
-                    marginBottom: '8px'
-                  }}>
-                    Shipping Address
-                  </label>
-                  <textarea
-                    name="shippingAddress"
-                    value={editData.shippingAddress}
-                    onChange={handleInputChange}
-                    placeholder="Enter your shipping address"
-                    rows="3"
-                    style={{
-                      width: '100%',
-                      padding: '15px',
-                      border: '1px solid #DBE0E5',
-                      borderRadius: '8px',
-                      backgroundColor: 'white',
-                      fontSize: '16px',
-                      outline: 'none',
-                      resize: 'vertical',
-                      boxSizing: 'border-box',
-                      transition: 'border-color 0.2s'
-                    }}
-                    onFocus={(e) => e.target.style.borderColor = '#0D80F2'}
-                    onBlur={(e) => e.target.style.borderColor = '#DBE0E5'}
-                  />
-                </div>
-
-                {/* Personal Preference Field */}
-                <div style={{ marginBottom: '40px' }}>
-                  <label style={{
-                    fontSize: '16px',
-                    fontWeight: '500',
-                    color: '#121417',
-                    display: 'block',
-                    marginBottom: '8px'
-                  }}>
-                    Personal Preference
-                  </label>
-                  <select
-                    name="personalPreference"
-                    value={editData.personalPreference}
-                    onChange={handleInputChange}
-                    style={{
-                      width: '100%',
-                      padding: '15px',
-                      border: '1px solid #DBE0E5',
-                      borderRadius: '8px',
-                      backgroundColor: 'white',
-                      fontSize: '16px',
-                      outline: 'none',
-                      boxSizing: 'border-box',
-                      transition: 'border-color 0.2s'
-                    }}
-                    onFocus={(e) => e.target.style.borderColor = '#0D80F2'}
-                    onBlur={(e) => e.target.style.borderColor = '#DBE0E5'}
-                  >
-                    <option value="">Select your preference</option>
-                    <option value="electronics">Electronics</option>
-                    <option value="gaming">Gaming</option>
-                    <option value="mobile">Mobile Devices</option>
-                    <option value="audio">Audio Equipment</option>
-                    <option value="accessories">Accessories</option>
-                  </select>
-                </div>
-
-                {/* Save Button */}
+                    cursor: 'pointer',
+                    transition: 'all 0.2s'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.target.style.backgroundColor = theme.backgroundSecondary;
+                    e.target.style.borderColor = theme.primary;
+                  }}
+                  onMouseLeave={(e) => {
+                    e.target.style.backgroundColor = theme.cardBg;
+                    e.target.style.borderColor = theme.border;
+                  }}
+                >
+                  Cancel
+                </button>
                 <button
                   type="submit"
                   style={{
-                    backgroundColor: '#0D80F2',
+                    padding: '12px 24px',
+                    backgroundColor: theme.primary,
                     color: 'white',
                     border: 'none',
                     borderRadius: '8px',
-                    padding: '12px 24px',
                     fontSize: '16px',
-                    fontWeight: '700',
+                    fontWeight: '600',
                     cursor: 'pointer',
                     transition: 'background-color 0.2s'
                   }}
-                  onMouseOver={(e) => e.target.style.backgroundColor = '#0a68c4'}
-                  onMouseOut={(e) => e.target.style.backgroundColor = '#0D80F2'}
+                  onMouseEnter={(e) => e.target.style.backgroundColor = theme.primaryHover}
+                  onMouseLeave={(e) => e.target.style.backgroundColor = theme.primary}
                 >
-                  Save
+                  Save Changes
                 </button>
-              </form>
-            </div>
+              </div>
+            </form>
 
-            {/* Right Column - Profile Picture */}
+            {/* Account Actions */}
             <div style={{
-              display: 'flex',
-              justifyContent: 'center',
-              alignItems: 'flex-start',
-              paddingTop: '80px'
+              marginTop: '40px',
+              paddingTop: '32px',
+              borderTop: `1px solid ${theme.border}`
             }}>
-              <div style={{
-                width: '200px',
-                height: '200px',
-                borderRadius: '50%',
-                backgroundColor: '#f0f0f0',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                position: 'relative',
-                overflow: 'hidden'
+              <h3 style={{
+                fontSize: '18px',
+                fontWeight: '600',
+                color: theme.textPrimary,
+                marginBottom: '16px'
               }}>
-                {/* Profile Image Placeholder */}
-                <div style={{
-                  width: '150px',
-                  height: '150px',
-                  borderRadius: '50%',
-                  background: 'linear-gradient(135deg, #8B4513, #A0522D)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  fontSize: '48px'
-                }}>
-                  🐵
-                </div>
+                Account Actions
+              </h3>
+              
+              <div style={{
+                display: 'flex',
+                gap: '16px',
+                justifyContent: 'center'
+              }}>
+                <Link
+                  to="/dashboard"
+                  style={{
+                    padding: '12px 24px',
+                    backgroundColor: theme.cardBg,
+                    color: theme.primary,
+                    textDecoration: 'none',
+                    borderRadius: '8px',
+                    fontSize: '16px',
+                    fontWeight: '500',
+                    border: `1px solid ${theme.primary}`,
+                    transition: 'all 0.2s'
+                  }}
+                >
+                  Back to Dashboard
+                </Link>
+                <button
+                  onClick={() => {
+                    logout();
+                    navigate('/');
+                  }}
+                  style={{
+                    padding: '12px 24px',
+                    backgroundColor: theme.error,
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '8px',
+                    fontSize: '16px',
+                    fontWeight: '500',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s'
+                  }}
+                >
+                  Logout
+                </button>
               </div>
             </div>
           </div>
-        </div>
-      </main>
-
-      {/* Footer */}
-      <footer style={{
-        backgroundColor: 'white',
-        borderTop: '1px solid #e5e8eb',
-        padding: '40px 20px',
-        textAlign: 'center'
-      }}>
-        <div style={{
-          maxWidth: '800px',
-          margin: '0 auto'
-        }}>
-          <div style={{
-            display: 'flex',
-            justifyContent: 'center',
-            gap: '60px',
-            marginBottom: '20px'
-          }}>
-            <Link to="/about-us" style={{
-              color: '#61758A',
-              textDecoration: 'none',
-              fontSize: '16px'
-            }}>
-              About Us
-            </Link>
-            <Link to="/customer-support" style={{
-              color: '#61758A',
-              textDecoration: 'none',
-              fontSize: '16px'
-            }}>
-              Customer Support
-            </Link>
-            <Link to="/terms-of-service" style={{
-              color: '#61758A',
-              textDecoration: 'none',
-              fontSize: '16px'
-            }}>
-              Terms of Service
-            </Link>
-          </div>
-          <div style={{
-            color: '#61758A',
-            fontSize: '16px'
-          }}>
-            © 2025 AWE Electronics. All rights reserved.
-          </div>
-        </div>
-      </footer>
-    </div>
+        </main>
+      </div>
+    </Layout>
   );
 };
 

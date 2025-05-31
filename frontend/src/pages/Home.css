@@ -1,380 +1,734 @@
-/* Ensure Space Grotesk is imported in your project's main CSS/index.html, e.g., via Google Fonts */
+/* Global Style Settings */
+/* Ensure Space Grotesk font is imported in main CSS/index.html, e.g., via Google Fonts */
 /* @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300..700&display=swap'); */
 
+/* Home Container Styles */
 .home-container {
-    font-family: 'Space Grotesk', Arial, sans-serif;
-    background: #fff;
-    color: #121417;
-    margin: 0; /* Reset default margin */
-    padding: 0; /* Reset default padding */
-  }
-  
+  font-family: 'Space Grotesk', Arial, sans-serif;
+  background: #fff;
+  color: #121417;
+  margin: 0; /* Reset default margin */
+  padding: 0; /* Reset default padding */
+}
+
+/* Header Navigation Styles */
+.home-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 24px; /* Figma design: 24px left/right padding */
+  border-bottom: 1px solid #E5E8EB;
+  background: #fff;
+  height: 64px; /* Figma design: header height */
+  box-sizing: border-box;
+  max-width: 1280px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+/* Header Left Section Styles */
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 32px;
+}
+
+/* Brand Link Styles */
+.brand-link {
+  display: flex;
+  align-items: center;
+  gap: 8px; /* Figma design: 8px spacing */
+  text-decoration: none;
+  color: inherit;
+}
+
+/* Logo Icon Styles */
+.logo-icon {
+  width: 32px; /* Figma design: 32x32 */
+  height: 32px;
+}
+
+/* Brand Title Styles */
+.brand-title {
+  font-weight: 700; /* Bold */
+  font-size: 18px;
+  color: #121417; /* Figma design: #101828, very close */
+}
+
+/* Sub Navigation Styles */
+.sub-titles {
+  display: flex;
+  align-items: center;
+  gap: 32px; /* Figma design: 32px spacing */
+}
+
+/* Sub Title Link Styles */
+.sub-title {
+  font-weight: 500; /* Medium weight */
+  font-size: 14px;
+  color: #344054; /* Figma design: #344054 */
+  text-decoration: none;
+  padding: 8px 0; /* Add padding to improve click area and alignment */
+}
+
+/* Sub Title Hover Effect */
+.sub-title:hover {
+  color: #0D80F2; /* Hover color */
+}
+
+/* Header Right Section Styles */
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 5px; /* Figma design: 24px spacing */
+}
+
+/* Search Bar Styles */
+.search-bar {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  border-radius: 8px;
+  width: 120px;
+  height: 40px;
+  min-width: 120px;
+  min-height: 40px;
+  transition: background 0.2s;
+  padding: 0;
+  box-shadow: none;
+}
+
+/* Search Bar Hover and Focus States */
+.search-bar:hover,
+.search-bar:focus-within {
+  background: #F0F2F5;
+}
+
+/* Search Input Styles */
+.search-bar input {
+  border: none;
+  background: transparent;
+  font-size: 14px;
+  color: #344054;
+  height: 40px;
+  outline: none;
+  padding-left: 40px;
+  width: 100%;
+  min-width: 0;
+}
+
+/* Search Input Placeholder Styles */
+.search-bar input::placeholder {
+  color: #61758A;
+}
+
+/* Search Icon Styles */
+.search-icon-internal {
+  position: absolute;
+  left: 18px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 16px;
+  height: 16px;
+  pointer-events: none;
+}
+
+/* Login Button Styles */
+.login-btn {
+  background: transparent;
+  border: none;
+  border-radius: 8px;
+  width: 72px;
+  height: 40px;
+  min-width: 56px;
+  min-height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.2s;
+  padding: 0;
+  color: #344054;
+  font-size: 14px;
+  font-weight: 500;
+  text-decoration: none;
+  box-shadow: none;
+}
+
+/* Login Button Hover and Focus States */
+.login-btn:hover,
+.login-btn:focus {
+  background: #F0F2F5;
+}
+
+/* Cart Button Styles */
+.cart-btn {
+  background: transparent;
+  border: none;
+  border-radius: 8px;
+  width: 40px;
+  height: 40px;
+  min-width: 40px;
+  min-height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.2s;
+  padding: 0;
+  box-shadow: none;
+}
+
+/* Cart Button Hover and Focus States */
+.cart-btn:hover,
+.cart-btn:focus {
+  background: #F0F2F5;
+}
+
+/* Cart Icon Styles */
+.cart-icon {
+  width: 20px;
+  height: 20px;
+  display: block;
+}
+
+/* Banner Section Styles */
+.home-banner {
+  position: relative;
+  width: 100%;
+  max-width: 960px;
+  height: 512px;
+  background-size: cover;
+  background-position: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  color: #fff;
+  margin: 0 auto 64px;
+}
+
+/* Banner Image Styles */
+.banner-image {
+  width: 100%;
+  max-width: 928px;
+  height: 480px;
+  min-height: 480px;
+  border-radius: 8px;
+  object-fit: cover;
+}
+
+/* Banner Overlay Styles */
+.banner-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+}
+
+/* Banner Content Styles */
+.banner-content {
+  position: relative;
+  z-index: 2; /* Above the overlay */
+  width: 100%;
+  max-width: 720px; /* Figma: Text block width ~720px */
+  padding: 0 20px; /* Add some padding for smaller screens */
+  margin: 0 auto;
+}
+
+/* Banner Title Styles */
+.banner-title {
+  font-size: 48px;
+  font-weight: 700; /* Bold */
+  margin-bottom: 16px; /* Figma: 16px */
+  line-height: 1.25;
+  text-align: center;
+}
+
+/* Banner Description Styles */
+.banner-desc {
+  font-size: 18px;
+  font-weight: 400; /* Regular */
+  margin-bottom: 32px; /* Figma: 32px */
+  color: #E5E8EB; /* Lighter text color for better readability on dark bg, Figma: #FFFFFF, but this could be too stark. */
+  text-align: center;
+  /* Figma uses #FFFFFF for description too, if image is dark enough this is fine */
+  /* Your original color was #61758A, which is for light backgrounds */
+  /* Figma design's "image_847b4e.jpg" uses white text directly */
+}
+
+/* Shop Now Button Styles */
+.shop-now-btn {
+  background: #0D80F2;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 0 32px; /* Figma: 12px height padding, 32px width padding */
+  height: 48px;   /* Figma: 48px height */
+  font-size: 16px;
+  font-weight: 700; /* Bold */
+  cursor: pointer;
+  line-height: 48px; /* Vertically center text for padding 0 */
+  display: block;
+  margin: 0 auto;
+}
+
+/* Shop Now Button Hover Effect */
+.shop-now-btn:hover {
+  background: #0a68c4;
+}
+
+/* Product Sections (New Arrivals, Best Sellers) */
+.home-section {
+  /* No horizontal padding here, handled by section-content */
+  margin-top: 64px; /* Figma: 64px top margin */
+  margin-bottom: 64px; /* Figma: 64px bottom margin */
+}
+
+/* Section Content Wrapper Styles */
+.section-content { /* New wrapper */
+  max-width: 1000px; /* Figma: content width 1000px */
+  margin-left: auto;
+  margin-right: auto;
+  padding: 0 20px; /* Optional: small padding for safety, can be 0 if 1000px is strict */
+}
+
+/* Section Title Styles */
+.section-title {
+  font-size: 22px;
+  font-weight: 700; /* Bold */
+  color: #121417; /* Figma: #101828 */
+  margin-bottom: 24px; /* Figma: 24px */
+}
+
+/* Product List Styles */
+.product-list {
+  display: flex;
+  gap: 16px; /* Figma: 16px between cards */
+  flex-wrap: nowrap; /* Prevent wrapping to keep single row */
+  /* justify-content: space-between; /* If you want to ensure full width usage if not exactly 4 items */
+}
+
+/* Product List Horizontal Scroll Styles */
+.product-list::-webkit-scrollbar {
+  height: 6px;
+}
+
+.product-list::-webkit-scrollbar-track {
+  background: #f1f3f4;
+  border-radius: 3px;
+}
+
+.product-list::-webkit-scrollbar-thumb {
+  background: #e5e8eb;
+  border-radius: 3px;
+  transition: background 0.2s ease;
+}
+
+.product-list::-webkit-scrollbar-thumb:hover {
+  background: #d1d5db;
+}
+
+/* Hide scrollbar for Firefox */
+.product-list {
+  scrollbar-width: thin;
+  scrollbar-color: #e5e8eb #f1f3f4;
+}
+
+/* Product Card Styles */
+.product-card {
+  background: #fff;
+  border-radius: 8px; /* Figma: 8px */
+  border: 1px solid #E5E8EB; /* Figma: #EAECF0 border */
+  /* box-shadow: 0 2px 8px rgba(0,0,0,0.04); /* Your original shadow, figma seems to use border mostly */
+  width: 238px; /* (1000px content width - 3*16px gap) / 4 cards = (1000 - 48) / 4 = 952 / 4 = 238px */
+  display: flex;
+  flex-direction: column;
+  /* align-items: center; /* Not needed if content inside is full width */
+  padding-bottom: 16px; /* Figma: padding bottom for text */
+  box-sizing: border-box;
+  overflow: hidden; /* Ensure image corners are rounded */
+}
+
+/* Product Image Styles */
+.product-img {
+  width: 100%;
+  height: 200px; /* Figma: image container height seems ~200px, not 238px */
+  /* border-radius: 8px 8px 0 0; /* Already handled by card overflow or can be explicit */
+  background: #F0F2F5; /* Placeholder/actual image bg */
+  margin-bottom: 16px; /* Figma: 16px from image to text */
+  object-fit: cover; /* If using actual <img>, to cover the area */
+}
+
+/* Product Info Styles */
+.product-info {
+  width: 100%;
+  padding: 0 16px; /* Figma: 16px horizontal padding for text */
+  box-sizing: border-box;
+}
+
+/* Product Name Styles */
+.product-name {
+  font-size: 16px;
+  font-weight: 500; /* Medium */
+  color: #121417; /* Figma: #101828 */
+  margin-bottom: 4px; /* Figma: 4px */
+  line-height: 1.5;
+}
+
+/* Product Description Styles */
+.product-desc {
+  font-size: 14px;
+  font-weight: 400; /* Regular */
+  color: #61758A; /* Figma: #667085 */
+  line-height: 1.43;
+}
+
+/* Subscribe Section */
+.subscribe-section {
+  background: #F8F9FC;
+  width: 960px;
+  height: 317px;
+  margin: 64px auto 0;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Subscribe Title Styles */
+.subscribe-title {
+  font-size: 36px;
+  font-weight: 700;
+  color: #121417;
+  margin-bottom: 16px;
+}
+
+/* Subscribe Description Styles */
+.subscribe-desc {
+  font-size: 18px;
+  font-weight: 400;
+  margin-bottom: 32px;
+  color: #344054;
+  max-width: 560px;
+}
+
+/* Subscribe Button Styles */
+.subscribe-btn {
+  background: #0D80F2;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 0 32px;
+  height: 48px;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  line-height: 48px;
+}
+
+/* Subscribe Button Hover Effect */
+.subscribe-btn:hover {
+  background: #0a68c4;
+}
+
+/* Footer */
+.home-footer {
+  background: #fff;
+  border-top: 1px solid #E5E8EB;
+  padding: 48px 0;
+  text-align: center;
+  color: #61758A;
+  width: 100%;
+  max-width: 960px;
+  margin: 0 auto;
+  box-sizing: border-box;
+}
+
+/* Footer Links Styles */
+.footer-links {
+  display: flex;
+  justify-content: center;
+  gap: 24px;
+  margin-bottom: 32px;
+}
+
+/* Footer Link Item Styles */
+.footer-link-item {
+  font-size: 14px;
+  font-weight: 500;
+  color: #344054;
+  text-decoration: none;
+}
+
+/* Footer Link Item Hover Effect */
+.footer-link-item:hover {
+  color: #0D80F2;
+}
+
+/* Footer Copyright Styles */
+.footer-copyright {
+  font-size: 14px;
+  font-weight: 400;
+  color: #61758A;
+}
+
+/* Mobile Adaptation - 768px and below */
+@media (max-width: 768px) {
+  /* Header Navigation Mobile Adaptation */
   .home-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 12px 24px; /* Figma: 24px left/right padding */
-    border-bottom: 1px solid #E5E8EB;
-    background: #fff;
-    height: 64px; /* Figma header height */
-    box-sizing: border-box;
+      padding: 12px 16px; /* Reduce left/right padding */
+      height: 56px; /* Reduce header height */
   }
   
   .header-left {
-    display: flex;
-    align-items: center;
-    gap: 32px;
-  }
-  
-  .brand-link {
-    display: flex;
-    align-items: center;
-    gap: 8px; /* Figma: 8px gap */
-    text-decoration: none;
-    color: inherit;
-  }
-  
-  .logo-icon {
-    width: 32px; /* Figma: 32x32 */
-    height: 32px;
+      gap: 16px; /* Reduce spacing */
   }
   
   .brand-title {
-    font-weight: 700; /* Bold */
-    font-size: 18px;
-    color: #121417; /* Figma: #101828, very similar */
+      font-size: 16px; /* Reduce brand title font size */
   }
   
+  /* Hide sub navigation, mobile typically uses hamburger menu */
   .sub-titles {
-    display: flex;
-    align-items: center;
-    gap: 32px; /* Figma: 32px gap */
+      display: none;
   }
   
-  .sub-title { /* Applied to Link now */
-    font-weight: 500; /* Medium */
-    font-size: 14px;
-    color: #344054; /* Figma: #344054 */
-    text-decoration: none;
-    padding: 8px 0; /* Added padding for better click area and alignment */
-  }
-  .sub-title:hover {
-    color: #0D80F2; /* Example hover color */
-  }
-  
-  
+  /* Header Right Section Adaptation */
   .header-right {
-    display: flex;
-    align-items: center;
-    gap: 5px; /* Figma: 24px gap */
+      gap: 8px; /* Reduce spacing */
   }
   
+  /* Search Bar Mobile Adaptation */
   .search-bar {
-    position: relative;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: transparent;
-    border: none;
-    border-radius: 8px;
-    width: 120px;
-    height: 40px;
-    min-width: 120px;
-    min-height: 40px;
-    transition: background 0.2s;
-    padding: 0;
-    box-shadow: none;
+      width: 32px; /* Show only search icon */
+      min-width: 32px;
   }
-  .search-bar:hover,
-  .search-bar:focus-within {
-    background: #F0F2F5;
-  }
+  
   .search-bar input {
-    border: none;
-    background: transparent;
-    font-size: 14px;
-    color: #344054;
-    height: 40px;
-    outline: none;
-    padding-left: 40px;
-    width: 100%;
-    min-width: 0;
+      display: none; /* Hide input field, show only icon */
   }
-  .search-bar input::placeholder {
-    color: #61758A;
-  }
-  .search-icon-internal {
-    position: absolute;
-    left: 18px;
-    top: 50%;
-    transform: translateY(-50%);
-    width: 16px;
-    height: 16px;
-    pointer-events: none;
-  }
-
+  
+  /* Login Button Mobile Adaptation */
   .login-btn {
-    background: transparent; 
-    border: none;           
-    border-radius: 8px;     
-    width: 72px;           
-    height: 40px;
-    min-width: 56px;
-    min-height: 40px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: background 0.2s;
-    padding: 0;
-    color: #344054;
-    font-size: 14px;
-    font-weight: 500;
-    text-decoration: none;
-    box-shadow: none;
-  }
-  .login-btn:hover,
-  .login-btn:focus {
-    background: #F0F2F5;
+      width: 32px; /* Show only icon or abbreviation */
+      min-width: 32px;
+      font-size: 12px;
   }
   
-  .cart-btn {
-    background: transparent;
-    border: none;
-    border-radius: 8px;
-    width: 40px;
-    height: 40px;
-    min-width: 40px;
-    min-height: 40px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: background 0.2s;
-    padding: 0;
-    box-shadow: none;
-  }
-  
-  .cart-btn:hover,
-  .cart-btn:focus {
-    background: #F0F2F5;
-  }
-  
-  .cart-icon {
-    width: 20px;
-    height: 20px;
-    display: block;
-  }
-  
-  
-  /* Banner */
+  /* Banner Section Mobile Adaptation */
   .home-banner {
-    position: relative;
-    width: 100%;
-    height: 480px; /* Figma: 480px */
-    background-size: cover;
-    background-position: center;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    text-align: center; /* For banner-content */
-    color: #fff; /* Text color on banner */
-    margin-bottom: 64px; /* Figma: ~64px to next section */
+      margin: 0 auto 32px; /* Reduce bottom margin */
+      padding: 0 16px; /* Add left/right padding */
   }
   
-  .banner-overlay { /* New class for overlay */
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    z-index: 1;
+  .banner-image {
+      max-width: 100%;
+      height: 280px; /* Reduce height */
+      min-height: 280px;
   }
   
   .banner-content {
-    position: relative;
-    z-index: 2; /* Above the overlay */
-    max-width: 720px; /* Figma: Text block width ~720px */
-    padding: 0 20px; /* Add some padding for smaller screens */
+      max-width: 100%;
+      padding: 0 16px;
   }
   
   .banner-title {
-    font-size: 48px;
-    font-weight: 700; /* Bold */
-    margin-bottom: 16px; /* Figma: 16px */
-    line-height: 1.25;
+      font-size: 32px; /* Reduce title font size */
+      margin-bottom: 12px;
   }
   
   .banner-desc {
-    font-size: 18px;
-    font-weight: 400; /* Regular */
-    margin-bottom: 32px; /* Figma: 32px */
-    color: #E5E8EB; /* Lighter text color for better readability on dark bg, Figma: #FFFFFF, but this could be too stark. */
-    /* Figma uses #FFFFFF for description too, if image is dark enough this is fine */
-    /* Your original color was #61758A, which is for light backgrounds */
-    /* Figma design's "image_847b4e.jpg" uses white text directly */
+      font-size: 16px; /* Reduce description font size */
+      margin-bottom: 24px;
   }
   
   .shop-now-btn {
-    background: #0D80F2;
-    color: #fff;
-    border: none;
-    border-radius: 8px;
-    padding: 0 32px; /* Figma: 12px height padding, 32px width padding */
-    height: 48px;   /* Figma: 48px height */
-    font-size: 16px;
-    font-weight: 700; /* Bold */
-    cursor: pointer;
-    line-height: 48px; /* Vertically center text for padding 0 */
-  }
-  .shop-now-btn:hover {
-    background: #0a68c4;
+      width: 100%;
+      max-width: 280px; /* Limit maximum width */
+      height: 44px;
+      font-size: 14px;
   }
   
-  /* Sections (New Arrivals, Best Sellers) */
+  /* Product Section Mobile Adaptation */
   .home-section {
-    /* No horizontal padding here, handled by section-content */
-    margin-top: 64px; /* Figma: 64px top margin */
-    margin-bottom: 64px; /* Figma: 64px bottom margin */
+      margin-top: 32px;
+      margin-bottom: 32px;
   }
   
-  .section-content { /* New wrapper */
-    max-width: 1000px; /* Figma: content width 1000px */
-    margin-left: auto;
-    margin-right: auto;
-    padding: 0 20px; /* Optional: small padding for safety, can be 0 if 1000px is strict */
+  .section-content {
+      max-width: 100%;
+      padding: 0 16px;
   }
-  
   
   .section-title {
-    font-size: 22px;
-    font-weight: 700; /* Bold */
-    color: #121417; /* Figma: #101828 */
-    margin-bottom: 24px; /* Figma: 24px */
+      font-size: 20px;
+      margin-bottom: 16px;
   }
   
+  /* Product List Mobile Adaptation - 2 Column Layout */
   .product-list {
-    display: flex;
-    gap: 16px; /* Figma: 16px between cards */
-    flex-wrap: wrap; /* Allow wrapping */
-    /* justify-content: space-between; /* If you want to ensure full width usage if not exactly 4 items */
+      gap: 12px;
+      flex-wrap: nowrap;
+      overflow-x: auto;
   }
   
   .product-card {
-    background: #fff;
-    border-radius: 8px; /* Figma: 8px */
-    border: 1px solid #E5E8EB; /* Figma: #EAECF0 border */
-    /* box-shadow: 0 2px 8px rgba(0,0,0,0.04); /* Your original shadow, figma seems to use border mostly */
-    width: 238px; /* (1000px content width - 3*16px gap) / 4 cards = (1000 - 48) / 4 = 952 / 4 = 238px */
-    display: flex;
-    flex-direction: column;
-    /* align-items: center; /* Not needed if content inside is full width */
-    padding-bottom: 16px; /* Figma: padding bottom for text */
-    box-sizing: border-box;
-    overflow: hidden; /* Ensure image corners are rounded */
+      min-width: 200px; /* Minimum width for mobile cards */
+      width: 200px; /* Fixed width for mobile */
+      flex-shrink: 0; /* Prevent shrinking */
   }
   
   .product-img {
-    width: 100%;
-    height: 200px; /* Figma: image container height seems ~200px, not 238px */
-    /* border-radius: 8px 8px 0 0; /* Already handled by card overflow or can be explicit */
-    background: #F0F2F5; /* Placeholder/actual image bg */
-    margin-bottom: 16px; /* Figma: 16px from image to text */
-    object-fit: cover; /* If using actual <img>, to cover the area */
+      height: 140px; /* Reduce image height */
+      margin-bottom: 12px;
   }
   
   .product-info {
-    width: 100%;
-    padding: 0 16px; /* Figma: 16px horizontal padding for text */
-    box-sizing: border-box;
+      padding: 0 12px;
   }
   
   .product-name {
-    font-size: 16px;
-    font-weight: 500; /* Medium */
-    color: #121417; /* Figma: #101828 */
-    margin-bottom: 4px; /* Figma: 4px */
-    line-height: 1.5;
+      font-size: 14px;
+      margin-bottom: 2px;
   }
   
   .product-desc {
-    font-size: 14px;
-    font-weight: 400; /* Regular */
-    color: #61758A; /* Figma: #667085 */
-    line-height: 1.43;
+      font-size: 12px;
   }
   
-  /* Subscribe Section */
+  /* Subscribe Section Mobile Adaptation */
   .subscribe-section {
-    background: #F8F9FC; /* Figma: A light grey, this is close to #F9FAFB */
-    padding: 64px 0; /* Figma: 64px top/bottom padding */
-    text-align: center;
-    margin-top: 64px; /* Assuming similar spacing */
+      width: 100%;
+      height: auto;
+      margin: 32px auto 0;
+      padding: 40px 16px;
   }
-  /* .subscribe-section .section-content can be used here too if needed */
   
   .subscribe-title {
-    font-size: 36px;
-    font-weight: 700; /* Bold */
-    color: #121417; /* Figma: #101828 */
-    margin-bottom: 16px; /* Figma: 16px */
+      font-size: 28px;
+      margin-bottom: 12px;
   }
   
   .subscribe-desc {
-    font-size: 18px; /* Figma: 18px */
-    font-weight: 400; /* Regular */
-    margin-bottom: 32px; /* Figma: 32px */
-    color: #344054; /* Figma: #344054 */
-    max-width: 560px; /* Constrain line length for readability */
-    margin-left: auto;
-    margin-right: auto;
+      font-size: 16px;
+      margin-bottom: 24px;
+      max-width: 100%;
   }
   
   .subscribe-btn {
-    background: #0D80F2;
-    color: #fff;
-    border: none;
-    border-radius: 8px;
-    padding: 0 32px; /* Consistent with shop-now-btn */
-    height: 48px;
-    font-size: 16px;
-    font-weight: 700; /* Bold */
-    cursor: pointer;
-    line-height: 48px;
-  }
-  .subscribe-btn:hover {
-    background: #0a68c4;
+      width: 100%;
+      max-width: 280px;
+      height: 44px;
+      font-size: 14px;
   }
   
-  /* Footer */
+  /* Footer Mobile Adaptation */
   .home-footer {
-    background: #fff;
-    border-top: 1px solid #E5E8EB;
-    padding: 48px 24px; /* Figma: 48px top/bottom, 24px sides */
-    text-align: center;
-    color: #61758A; /* Figma: #667085 (for copyright) */
+      max-width: 100%;
+      padding: 32px 16px;
   }
   
   .footer-links {
-    display: flex;
-    justify-content: center;
-    gap: 24px; /* Figma: 24px gap */
-    margin-bottom: 32px; /* Figma: 32px to copyright */
+      flex-direction: column;
+      gap: 16px;
+      margin-bottom: 24px;
   }
   
-  .footer-link-item { /* Class for Link components in footer */
-    font-size: 14px; /* Figma: 14px */
-    font-weight: 500; /* Medium */
-    color: #344054; /* Figma: #344054 */
-    text-decoration: none;
-  }
-  .footer-link-item:hover {
-    color: #0D80F2;
+  .footer-link-item {
+      font-size: 14px;
   }
   
   .footer-copyright {
-    font-size: 14px; /* Figma: 14px */
-    font-weight: 400; /* Regular */
-    color: #61758A; /* Figma: #667085 */
+      font-size: 12px;
   }
   
+  /* Make product list more touch-friendly on mobile */
+  .product-list {
+    padding-bottom: 12px;
+  }
+  
+  .product-list::-webkit-scrollbar {
+    height: 4px;
+  }
+}
+
+/* Extra Small Screen Adaptation - 480px and below */
+@media (max-width: 480px) {
+  /* Product List Single Column Layout */
+  .product-card {
+      width: 100%; /* Single column layout */
+  }
+  
+  .banner-title {
+      font-size: 28px;
+  }
+  
+  .banner-desc {
+      font-size: 14px;
+  }
+  
+  .subscribe-title {
+      font-size: 24px;
+  }
+  
+  .subscribe-desc {
+      font-size: 14px;
+  }
+}
+
+/* Tablet Adaptation - 769px to 1024px */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .section-content {
+      max-width: 90%;
+      padding: 0 20px;
+  }
+  
+  .home-banner {
+      padding: 0 20px;
+  }
+  
+  .banner-image {
+      max-width: 90%;
+  }
+  
+  .subscribe-section {
+      width: 90%;
+  }
+  
+  .home-footer {
+      max-width: 90%;
+  }
+}
+
+/* Optional: Add touch-friendly interactions for mobile */
+@media (max-width: 768px) {
+  /* Increase minimum size for touch targets */
+  .login-btn,
+  .cart-btn,
+  .search-bar {
+      min-height: 44px; /* iOS recommended minimum touch target */
+      min-width: 44px;
+  }
+  
+  /* Change mobile hover effects to tap effects */
+  .sub-title:hover,
+  .login-btn:hover,
+  .cart-btn:hover,
+  .search-bar:hover {
+      background: transparent; /* Remove hover effects */
+  }
+  
+  .sub-title:active,
+  .login-btn:active,
+  .cart-btn:active,
+  .search-bar:active {
+      background: #F0F2F5; /* Add tap effects */
+  }
+}

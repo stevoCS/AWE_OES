@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { SearchIcon, ShoppingCartIcon } from '../components/ui/icons';
+import Layout from '../components/Layout';
 import { useUser } from '../context/UserContext';
 import { useCart } from '../context/CartContext';
-import logoIcon from '../assets/Vector - 0.svg';
+import { useTheme } from '../context/ThemeContext';
+import { getProductImageUrl } from '../utils/imageMap';
 
 // Add fadeIn animation styles
 const fadeInStyles = `
@@ -28,6 +29,7 @@ if (typeof document !== 'undefined') {
 
 const Cart = () => {
   const { user, isLoggedIn } = useUser();
+  const { theme } = useTheme();
   const location = useLocation();
   const [showWelcomeMessage, setShowWelcomeMessage] = useState(false);
   const { 
@@ -36,7 +38,8 @@ const Cart = () => {
     updateQuantity, 
     clearCart, 
     getCartTotal, 
-    getCartItemsCount 
+    getCartItemsCount,
+    isLoading
   } = useCart();
 
   // Check if user was redirected from login/register
@@ -73,174 +76,190 @@ const Cart = () => {
     return calculateSubtotal() + getShippingCost();
   };
 
-  return (
-    <div style={{
-      backgroundColor: '#f8f9fa',
-      minHeight: '100vh',
-      fontFamily: "'Space Grotesk', Arial, sans-serif"
-    }}>
-      {/* Header */}
-      <header style={{
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        padding: '12px 40px',
-        backgroundColor: 'white',
-        borderBottom: '1px solid #e5e8eb',
-        position: 'sticky',
-        top: 0,
-        zIndex: 100
-      }}>
+  // Render cart status message
+  const renderCartStatusMessage = () => {
+    if (!isLoggedIn && cartItems.length === 0) {
+      return (
         <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '32px'
+          backgroundColor: theme.warning + '20', // Add transparency
+          border: `1px solid ${theme.warning}50`,
+          borderRadius: '8px',
+          padding: '16px 24px',
+          marginBottom: '8px'
         }}>
-          <Link to="/" style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '16px',
-            textDecoration: 'none',
-            color: 'inherit'
-          }}>
-            <img src={logoIcon} alt="AWE Electronics Logo" style={{ width: '32px', height: '32px' }} />
-            <span style={{
-              fontWeight: '700',
-              fontSize: '18px',
-              color: '#121417'
-            }}>
-              AWE Electronics
-            </span>
-          </Link>
-
-          <nav style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '36px'
-          }}>
-            <Link to="/new-arrivals" style={{
-              fontWeight: '500',
-              fontSize: '14px',
-              color: '#121417',
-              textDecoration: 'none'
-            }}>
-              New Arrivals
-            </Link>
-            <Link to="/best-sellers" style={{
-              fontWeight: '500',
-              fontSize: '14px',
-              color: '#121417',
-              textDecoration: 'none'
-            }}>
-              Best Sellers
-            </Link>
-          </nav>
-        </div>
-
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '32px',
-          flex: 1,
-          justifyContent: 'flex-end'
-        }}>
-          {/* Search Bar */}
           <div style={{
             display: 'flex',
             alignItems: 'center',
-            backgroundColor: '#f0f2f5',
-            borderRadius: '8px',
-            minWidth: '160px',
-            maxWidth: '256px'
+            gap: '8px'
           }}>
-            <div style={{
-              padding: '0 16px',
-              height: '40px',
-              display: 'flex',
-              alignItems: 'center'
-            }}>
-              <SearchIcon style={{ width: '20px', height: '20px', color: '#607589' }} />
-            </div>
-            <input
-              type="text"
-              placeholder="Search"
-              style={{
-                border: 'none',
-                backgroundColor: 'transparent',
-                outline: 'none',
-                padding: '8px 16px 8px 0',
-                flex: 1,
-                height: '40px',
+            <span style={{ fontSize: '18px' }}>👤</span>
+            <div>
+              <div style={{
                 fontSize: '14px',
-                color: '#607589'
-              }}
-            />
-          </div>
-
-          {/* User Status Display */}
-          {isLoggedIn ? (
-            <Link to="/dashboard" style={{
-              fontSize: '14px',
-              fontWeight: '500',
-              color: '#121417',
-              textDecoration: 'none',
-              padding: '8px 16px',
-              borderRadius: '8px',
-              backgroundColor: '#f0f2f5'
-            }}>
-              Welcome, {user.firstName}
-            </Link>
-          ) : (
-            <Link to="/login" style={{
-              fontSize: '14px',
-              fontWeight: '500',
-              color: '#121417',
-              textDecoration: 'none',
-              padding: '8px 16px',
-              borderRadius: '8px',
-              backgroundColor: '#f0f2f5'
-            }}>
-              Log in
-            </Link>
-          )}
-
-          {/* Cart Icon (Active) */}
-          <div style={{
-            position: 'relative',
-            padding: '8px',
-            backgroundColor: '#0D80F2',
-            borderRadius: '8px'
-          }}>
-            <ShoppingCartIcon style={{ width: '17px', height: '17px', color: 'white' }} />
-            {getCartItemsCount() > 0 && (
-              <span style={{
-                position: 'absolute',
-                top: '-6px',
-                right: '-6px',
-                backgroundColor: '#dc2626',
-                color: 'white',
-                borderRadius: '50%',
-                width: '20px',
-                height: '20px',
-                fontSize: '12px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontWeight: '600'
+                fontWeight: '500',
+                color: theme.warning,
+                marginBottom: '4px'
               }}>
-                {getCartItemsCount()}
-              </span>
-            )}
+                Shopping as Guest
+              </div>
+              <div style={{
+                fontSize: '12px',
+                color: theme.textSecondary
+              }}>
+                Log in to save your cart and access it from any device
+              </div>
+            </div>
           </div>
         </div>
-      </header>
+      );
+    }
+    
+    if (isLoggedIn && cartItems.length > 0) {
+      return (
+        <div style={{
+          backgroundColor: theme.success + '20',
+          border: `1px solid ${theme.success}50`,
+          borderRadius: '8px',
+          padding: '16px 24px',
+          marginBottom: '8px'
+        }}>
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px'
+          }}>
+            <span style={{ fontSize: '18px' }}>✅</span>
+            <div>
+              <div style={{
+                fontSize: '14px',
+                fontWeight: '500',
+                color: theme.success,
+                marginBottom: '4px'
+              }}>
+                Cart Saved to Your Account
+              </div>
+              <div style={{
+                fontSize: '12px',
+                color: theme.textSecondary
+              }}>
+                Your items will be here when you return
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    }
+    
+    return null;
+  };
 
+  // Render empty cart state
+  const renderEmptyCart = () => (
+    <div style={{
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      justifyContent: 'center',
+      padding: '80px 32px',
+      textAlign: 'center'
+    }}>
+      <div style={{
+        width: '80px',
+        height: '80px',
+        borderRadius: '50%',
+        backgroundColor: theme.backgroundTertiary,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginBottom: '24px',
+        fontSize: '32px'
+      }}>
+        🛒
+      </div>
+      <h2 style={{
+        fontSize: '24px',
+        fontWeight: '600',
+        color: theme.textPrimary,
+        margin: '0 0 12px 0'
+      }}>
+        {isLoggedIn ? 'Your cart is empty' : 'Guest cart is empty'}
+      </h2>
+      <p style={{
+        fontSize: '16px',
+        color: theme.textSecondary,
+        margin: '0 0 32px 0',
+        maxWidth: '400px'
+      }}>
+        {isLoggedIn 
+          ? "Start shopping to add items to your cart. Your items will be saved for your next visit."
+          : "Add items to your cart as a guest, or log in to save your cart permanently."
+        }
+      </p>
+      
+      <div style={{
+        display: 'flex',
+        gap: '12px',
+        flexDirection: window.innerWidth < 480 ? 'column' : 'row'
+      }}>
+        <Link
+          to="/product"
+          style={{
+            backgroundColor: theme.primary,
+            color: 'white',
+            textDecoration: 'none',
+            padding: '12px 24px',
+            borderRadius: '8px',
+            fontSize: '16px',
+            fontWeight: '600',
+            display: 'inline-block',
+            transition: 'background-color 0.2s ease'
+          }}
+          onMouseEnter={(e) => e.target.style.backgroundColor = theme.primaryHover}
+          onMouseLeave={(e) => e.target.style.backgroundColor = theme.primary}
+        >
+          Browse Products
+        </Link>
+        
+        {!isLoggedIn && (
+          <Link
+            to="/login"
+            style={{
+              backgroundColor: 'transparent',
+              color: theme.primary,
+              border: `1px solid ${theme.primary}`,
+              textDecoration: 'none',
+              padding: '12px 24px',
+              borderRadius: '8px',
+              fontSize: '16px',
+              fontWeight: '600',
+              display: 'inline-block',
+              transition: 'all 0.2s ease'
+            }}
+            onMouseEnter={(e) => {
+              e.target.style.backgroundColor = theme.primary;
+              e.target.style.color = 'white';
+            }}
+            onMouseLeave={(e) => {
+              e.target.style.backgroundColor = 'transparent';
+              e.target.style.color = theme.primary;
+            }}
+          >
+            Log In
+          </Link>
+        )}
+      </div>
+    </div>
+  );
+
+  return (
+    <Layout>
       {/* Main Content */}
       <main style={{
         display: 'flex',
         justifyContent: 'center',
         padding: '40px 20px',
-        minHeight: 'calc(100vh - 200px)'
+        minHeight: 'calc(100vh - 200px)',
+        backgroundColor: theme.background
       }}>
         <div style={{
           width: '100%',
@@ -248,26 +267,28 @@ const Cart = () => {
         }}>
           {/* Cart Status Header */}
           <div style={{
-            backgroundColor: 'white',
+            backgroundColor: theme.cardBg,
             borderRadius: '8px',
             padding: '16px 24px',
             marginBottom: '8px',
             display: 'flex',
             justifyContent: 'space-between',
-            alignItems: 'center'
+            alignItems: 'center',
+            border: `1px solid ${theme.border}`,
+            boxShadow: theme.shadowLight
           }}>
             <span style={{
               fontSize: '14px',
               fontWeight: '500',
-              color: '#61758A'
+              color: theme.textSecondary
             }}>
-              {isLoggedIn ? 'User Shopping Cart' : 'Guest Shopping Cart'}
+              {isLoggedIn ? `${user?.firstName || 'User'}'s Shopping Cart` : 'Guest Shopping Cart'}
             </span>
             <div style={{
               width: '28px',
               height: '28px',
               borderRadius: '50%',
-              backgroundColor: '#16a34a',
+              backgroundColor: getCartItemsCount() > 0 ? theme.success : theme.textMuted,
               color: 'white',
               display: 'flex',
               alignItems: 'center',
@@ -279,11 +300,14 @@ const Cart = () => {
             </div>
           </div>
 
+          {/* Cart Status Message */}
+          {renderCartStatusMessage()}
+
           {/* Welcome Message (when redirected from login/register) */}
           {showWelcomeMessage && (
             <div style={{
-              backgroundColor: '#e1f5fe',
-              borderLeft: '4px solid #0D80F2',
+              backgroundColor: theme.info + '20',
+              borderLeft: `4px solid ${theme.primary}`,
               borderRadius: '8px',
               padding: '16px 24px',
               marginBottom: '8px',
@@ -302,7 +326,7 @@ const Cart = () => {
                 <span style={{
                   fontSize: '14px',
                   fontWeight: '500',
-                  color: '#0D80F2'
+                  color: theme.primary
                 }}>
                   Welcome{isLoggedIn && user ? `, ${user.firstName}` : ''}! Your cart items are ready for checkout.
                 </span>
@@ -310,426 +334,391 @@ const Cart = () => {
             </div>
           )}
 
-          {/* Main Cart Container */}
-          <div style={{
-            backgroundColor: 'white',
-            borderRadius: '8px',
-            overflow: 'hidden'
-          }}>
-            {/* Cart Title */}
+          {/* Loading State */}
+          {isLoading && (
             <div style={{
-              padding: '32px 32px 24px',
-              borderBottom: cartItems.length > 0 ? '1px solid #e5e8eb' : 'none'
+              backgroundColor: theme.cardBg,
+              borderRadius: '8px',
+              padding: '40px',
+              textAlign: 'center',
+              border: `1px solid ${theme.border}`,
+              boxShadow: theme.shadowLight
             }}>
-              <h1 style={{
-                fontSize: '28px',
-                fontWeight: '700',
-                color: '#121417',
-                margin: 0
-              }}>
-                Shopping cart
-              </h1>
-            </div>
-
-            {/* Cart Items or Empty State */}
-        {cartItems.length === 0 ? (
               <div style={{
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                justifyContent: 'center',
-                padding: '80px 32px',
-                textAlign: 'center'
+                fontSize: '16px',
+                color: theme.textSecondary
               }}>
-                <div style={{
-                  width: '80px',
-                  height: '80px',
-                  borderRadius: '50%',
-                  backgroundColor: '#f0f2f5',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  marginBottom: '24px'
-                }}>
-                  <ShoppingCartIcon style={{ width: '40px', height: '40px', color: '#61758A' }} />
-                </div>
-                <h2 style={{
-                  fontSize: '24px',
-                  fontWeight: '600',
-                  color: '#121417',
-                  margin: '0 0 12px 0'
-                }}>
-                  Your cart is empty
-                </h2>
-                <p style={{
-                  fontSize: '16px',
-                  color: '#61758A',
-                  margin: '0 0 32px 0'
-                }}>
-                  Looks like you haven't added any items to your cart yet.
-                </p>
-                <Link
-                  to="/"
-                  style={{
-                    backgroundColor: '#0D80F2',
-                    color: 'white',
-                    textDecoration: 'none',
-                    padding: '12px 24px',
-                    borderRadius: '8px',
-                    fontSize: '16px',
-                    fontWeight: '600'
-                  }}
-                >
-                  Continue Shopping
-                </Link>
+                Loading cart...
               </div>
-            ) : (
-              <>
-                {/* Cart Items List */}
-                <div style={{ padding: '0 32px' }}>
-                  {cartItems.map((item, index) => (
-                    <div
-                      key={item.id}
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        padding: '24px 0',
-                        borderBottom: index < cartItems.length - 1 ? '1px solid #f3f4f6' : 'none'
-                      }}
-                    >
-                      {/* Product Image */}
-                      <div style={{
-                        width: '64px',
-                        height: '64px',
-                        borderRadius: '8px',
-                        overflow: 'hidden',
-                        marginRight: '20px',
-                        flexShrink: 0,
-                        backgroundColor: '#f8f9fa',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center'
-                      }}>
-                        <img
-                          src={item.image}
-                          alt={item.name}
-                          style={{
-                            width: '100%',
-                            height: '100%',
-                            objectFit: 'contain'
-                          }}
-                        />
-                      </div>
+            </div>
+          )}
 
-                      {/* Product Info */}
-                      <div style={{
-                        flex: 1,
-                        marginRight: '20px'
-                      }}>
-                        <h3 style={{
-                          fontSize: '16px',
-                          fontWeight: '600',
-                          color: '#121417',
-                          margin: '0 0 4px 0'
-                        }}>
-                          {item.name}
-                        </h3>
-                        <div style={{
-                          fontSize: '14px',
-                          color: '#61758A',
-                          marginBottom: '4px'
-                        }}>
-                          Individual Price: {formatPrice(item.price)}
-                        </div>
-                        <div style={{
-                          fontSize: '14px',
-                          color: '#61758A'
-                        }}>
-                          {item.category} - {item.name.includes('32GB') ? '32GB' : 
-                           item.name.includes('256GB') ? '256GB' : 
-                           item.name.includes('2TB') ? '2TB' : 'Standard'} - {
-                           item.name.includes('BLACK') || item.name.includes('Black') ? 'Black' : 
-                           item.name.includes('Grey') ? 'Grey' : 
-                           item.name.includes('White') ? 'White' : 'Default'}
-                        </div>
-                      </div>
+          {/* Main Cart Container */}
+          {!isLoading && (
+            <div style={{
+              backgroundColor: theme.cardBg,
+              borderRadius: '8px',
+              overflow: 'hidden',
+              border: `1px solid ${theme.border}`,
+              boxShadow: theme.shadowLight
+            }}>
+              {/* Cart Title */}
+              <div style={{
+                padding: '32px 32px 24px',
+                borderBottom: cartItems.length > 0 ? `1px solid ${theme.border}` : 'none'
+              }}>
+                <h1 style={{
+                  fontSize: '28px',
+                  fontWeight: '700',
+                  color: theme.textPrimary,
+                  margin: 0
+                }}>
+                  Shopping Cart
+                </h1>
+              </div>
 
-                      {/* Quantity and Remove */}
-                      <div style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '16px'
-                      }}>
-                        {/* Quantity Controls */}
+              {/* Cart Items or Empty State */}
+              {cartItems.length === 0 ? renderEmptyCart() : (
+                <>
+                  {/* Cart Items List */}
+                  <div style={{ padding: '0 32px' }}>
+                    {cartItems.map((item, index) => (
+                      <div
+                        key={item.id}
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          padding: '24px 0',
+                          borderBottom: index < cartItems.length - 1 ? `1px solid ${theme.borderLight}` : 'none'
+                        }}
+                      >
+                        {/* Product Image */}
+                        <div style={{
+                          width: '64px',
+                          height: '64px',
+                          borderRadius: '8px',
+                          overflow: 'hidden',
+                          marginRight: '20px',
+                          flexShrink: 0,
+                          backgroundColor: theme.placeholderBg,
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center'
+                        }}>
+                          {(() => {
+                            const imageUrl = getProductImageUrl(item);
+                            return imageUrl ? (
+                              <img
+                                src={imageUrl}
+                                alt={item.name}
+                                style={{
+                                  width: '100%',
+                                  height: '100%',
+                                  objectFit: 'contain'
+                                }}
+                                onError={(e) => {
+                                  e.target.style.display = 'none';
+                                  e.target.parentNode.innerHTML = `<div style="font-size: 24px; color: ${theme.textMuted};">📦</div>`;
+                                }}
+                              />
+                            ) : (
+                              <div style={{ fontSize: '24px', color: theme.textMuted }}>📦</div>
+                            );
+                          })()}
+                        </div>
+
+                        {/* Product Info */}
+                        <div style={{
+                          flex: 1,
+                          marginRight: '20px'
+                        }}>
+                          <h3 style={{
+                            fontSize: '16px',
+                            fontWeight: '600',
+                            color: theme.textPrimary,
+                            margin: '0 0 4px 0'
+                          }}>
+                            {item.name}
+                          </h3>
+                          <div style={{
+                            fontSize: '14px',
+                            color: theme.textSecondary,
+                            marginBottom: '4px'
+                          }}>
+                            Individual Price: {formatPrice(item.price)}
+                          </div>
+                          <div style={{
+                            fontSize: '14px',
+                            color: theme.textTertiary
+                          }}>
+                            {item.category || 'Electronics'}
+                          </div>
+                        </div>
+
+                        {/* Quantity and Remove */}
                         <div style={{
                           display: 'flex',
                           alignItems: 'center',
-                          gap: '8px'
+                          gap: '16px'
                         }}>
-                          <button
-                            onClick={() => handleQuantityChange(item.id, item.quantity - 1)}
-                            style={{
-                              width: '24px',
-                              height: '24px',
-                              border: '1px solid #DBE0E5',
-                              borderRadius: '4px',
-                              backgroundColor: 'white',
-                              cursor: 'pointer',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              fontSize: '14px',
-                              fontWeight: '600'
-                            }}
-                          >
-                            -
-                          </button>
-                          <span style={{
-                            fontSize: '14px',
-                            fontWeight: '500',
-                            minWidth: '20px',
-                            textAlign: 'center'
+                          {/* Quantity Controls */}
+                          <div style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '8px'
                           }}>
-                            {item.quantity}
-                          </span>
-                          <button
-                            onClick={() => handleQuantityChange(item.id, item.quantity + 1)}
-                            style={{
-                              width: '24px',
-                              height: '24px',
-                              border: '1px solid #DBE0E5',
-                              borderRadius: '4px',
-                              backgroundColor: 'white',
-                              cursor: 'pointer',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
+                            <button
+                              onClick={() => handleQuantityChange(item.id, item.quantity - 1)}
+                              style={{
+                                width: '24px',
+                                height: '24px',
+                                border: `1px solid ${theme.border}`,
+                                borderRadius: '4px',
+                                backgroundColor: theme.buttonBg,
+                                color: theme.textPrimary,
+                                cursor: 'pointer',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                fontSize: '14px',
+                                fontWeight: '600',
+                                transition: 'all 0.2s ease'
+                              }}
+                              onMouseEnter={(e) => e.target.style.backgroundColor = theme.backgroundTertiary}
+                              onMouseLeave={(e) => e.target.style.backgroundColor = theme.buttonBg}
+                            >
+                              -
+                            </button>
+                            <span style={{
                               fontSize: '14px',
-                              fontWeight: '600'
+                              fontWeight: '500',
+                              minWidth: '20px',
+                              textAlign: 'center',
+                              color: theme.textPrimary
+                            }}>
+                              {item.quantity}
+                            </span>
+                            <button
+                              onClick={() => handleQuantityChange(item.id, item.quantity + 1)}
+                              style={{
+                                width: '24px',
+                                height: '24px',
+                                border: `1px solid ${theme.border}`,
+                                borderRadius: '4px',
+                                backgroundColor: theme.buttonBg,
+                                color: theme.textPrimary,
+                                cursor: 'pointer',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                fontSize: '14px',
+                                fontWeight: '600',
+                                transition: 'all 0.2s ease'
+                              }}
+                              onMouseEnter={(e) => e.target.style.backgroundColor = theme.backgroundTertiary}
+                              onMouseLeave={(e) => e.target.style.backgroundColor = theme.buttonBg}
+                            >
+                              +
+                            </button>
+                          </div>
+
+                          {/* Remove Button */}
+                          <button
+                            onClick={() => removeFromCart(item.id)}
+                            style={{
+                              background: 'none',
+                              border: 'none',
+                              color: theme.error,
+                              cursor: 'pointer',
+                              fontSize: '18px',
+                              padding: '4px 8px',
+                              borderRadius: '4px',
+                              transition: 'all 0.2s ease'
+                            }}
+                            onMouseEnter={(e) => {
+                              e.target.style.backgroundColor = theme.error + '20';
+                              e.target.style.transform = 'scale(1.1)';
+                            }}
+                            onMouseLeave={(e) => {
+                              e.target.style.backgroundColor = 'transparent';
+                              e.target.style.transform = 'scale(1)';
                             }}
                           >
-                            +
+                            ✕
                           </button>
                         </div>
+                      </div>
+                    ))}
+                  </div>
 
-                        {/* Remove Button */}
-                        <button
-                          onClick={() => removeFromCart(item.id)}
-                          style={{
-                            background: 'none',
-                            border: 'none',
-                            color: '#dc2626',
-                            cursor: 'pointer',
-                            fontSize: '18px',
-                            padding: '4px 8px',
-                            borderRadius: '4px'
-                          }}
-                        >
-                          ✕
-                        </button>
+                  {/* Order Summary */}
+                  <div style={{
+                    padding: '32px',
+                    borderTop: `1px solid ${theme.border}`,
+                    backgroundColor: theme.backgroundSecondary
+                  }}>
+                    <h2 style={{
+                      fontSize: '20px',
+                      fontWeight: '700',
+                      color: theme.textPrimary,
+                      margin: '0 0 24px 0'
+                    }}>
+                      Order Summary
+                    </h2>
+
+                    <div style={{
+                      marginBottom: '24px'
+                    }}>
+                      <div style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        marginBottom: '12px'
+                      }}>
+                        <span style={{
+                          fontSize: '16px',
+                          color: theme.textPrimary
+                        }}>
+                          Subtotal
+                        </span>
+                        <span style={{
+                          fontSize: '16px',
+                          fontWeight: '600',
+                          color: theme.textPrimary
+                        }}>
+                          {formatPrice(calculateSubtotal())}
+                        </span>
+                      </div>
+
+                      <div style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        marginBottom: '16px'
+                      }}>
+                        <span style={{
+                          fontSize: '16px',
+                          color: theme.textPrimary
+                        }}>
+                          Shipping
+                        </span>
+                        <span style={{
+                          fontSize: '16px',
+                          fontWeight: '600',
+                          color: getShippingCost() === 0 ? theme.success : theme.textPrimary
+                        }}>
+                          {getShippingCost() === 0 ? 'Free' : formatPrice(getShippingCost())}
+                        </span>
+                      </div>
+
+                      <div style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        padding: '16px 0',
+                        borderTop: `1px solid ${theme.border}`,
+                        borderBottom: `1px solid ${theme.border}`
+                      }}>
+                        <span style={{
+                          fontSize: '18px',
+                          fontWeight: '700',
+                          color: theme.textPrimary
+                        }}>
+                          Total
+                        </span>
+                        <span style={{
+                          fontSize: '18px',
+                          fontWeight: '700',
+                          color: theme.textPrimary
+                        }}>
+                          {formatPrice(calculateTotal())}
+                        </span>
                       </div>
                     </div>
-                  ))}
-                </div>
 
-                {/* Order Summary */}
-                <div style={{
-                  padding: '32px',
-                  borderTop: '1px solid #e5e8eb',
-                  backgroundColor: '#f8f9fa'
-                }}>
-                  <h2 style={{
-                    fontSize: '20px',
-                    fontWeight: '700',
-                    color: '#121417',
-                    margin: '0 0 24px 0'
-                  }}>
-                    Order Summary
-                  </h2>
-
-                  <div style={{
-                    marginBottom: '24px'
-                  }}>
+                    {/* Action Buttons */}
                     <div style={{
                       display: 'flex',
-                      justifyContent: 'space-between',
-                      marginBottom: '12px'
+                      flexDirection: 'row',
+                      gap: '12px'
                     }}>
-                      <span style={{
-                        fontSize: '16px',
-                        color: '#121417'
-                      }}>
-                        Subtotal
-                      </span>
-                      <span style={{
-                        fontSize: '16px',
-                        fontWeight: '600',
-                        color: '#121417'
-                      }}>
-                        {formatPrice(calculateSubtotal())}
-                      </span>
-                    </div>
-
-                    <div style={{
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      marginBottom: '16px'
-                    }}>
-                      <span style={{
-                        fontSize: '16px',
-                        color: '#121417'
-                      }}>
-                        Shipping
-                      </span>
-                      <span style={{
-                        fontSize: '16px',
-                        fontWeight: '600',
-                        color: getShippingCost() === 0 ? '#16a34a' : '#121417'
-                      }}>
-                        {getShippingCost() === 0 ? 'Free' : formatPrice(getShippingCost())}
-                      </span>
-                    </div>
-
-                    <div style={{
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      padding: '16px 0',
-                      borderTop: '1px solid #e5e8eb',
-                      borderBottom: '1px solid #e5e8eb'
-                    }}>
-                      <span style={{
-                        fontSize: '18px',
-                        fontWeight: '700',
-                        color: '#121417'
-                      }}>
-                        Total
-                      </span>
-                      <span style={{
-                        fontSize: '18px',
-                        fontWeight: '700',
-                        color: '#121417'
-                      }}>
-                        {formatPrice(calculateTotal())}
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Action Buttons */}
-                  <div style={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: '12px'
-                  }}>
-                    <Link
-                      to="/"
-                      style={{
-                        backgroundColor: 'transparent',
-                        color: '#0D80F2',
-                        border: '1px solid #0D80F2',
-                        textDecoration: 'none',
-                        padding: '12px 24px',
-                        borderRadius: '8px',
-                        fontSize: '16px',
-                        fontWeight: '600',
-                        textAlign: 'center',
-                        display: 'block'
-                      }}
-                    >
-                      Continue Shopping
-                    </Link>
-
-                    {isLoggedIn ? (
                       <Link
-                        to="/order-confirmation"
+                        to="/product"
                         style={{
-                          backgroundColor: '#0D80F2',
-                          color: 'white',
+                          backgroundColor: 'transparent',
+                          color: theme.primary,
+                          border: `1px solid ${theme.primary}`,
                           textDecoration: 'none',
                           padding: '12px 24px',
                           borderRadius: '8px',
                           fontSize: '16px',
                           fontWeight: '600',
                           textAlign: 'center',
-                          display: 'block'
+                          display: 'block',
+                          flex: 1,
+                          transition: 'all 0.2s ease'
+                        }}
+                        onMouseEnter={(e) => {
+                          e.target.style.backgroundColor = theme.primary;
+                          e.target.style.color = 'white';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.target.style.backgroundColor = 'transparent';
+                          e.target.style.color = theme.primary;
                         }}
                       >
-                        Proceed to Checkout
+                        Continue Shopping
                       </Link>
-                    ) : (
-                      <Link
-                        to="/login"
-                        style={{
-                          backgroundColor: '#0D80F2',
-                          color: 'white',
-                          textDecoration: 'none',
-                          padding: '12px 24px',
-                          borderRadius: '8px',
-                          fontSize: '16px',
-                          fontWeight: '600',
-                          textAlign: 'center',
-                          display: 'block'
-                        }}
-                      >
-                        Log in/Sign Up to Checkout
-                      </Link>
-                    )}
+
+                      {isLoggedIn ? (
+                        <Link
+                          to="/order-confirmation"
+                          style={{
+                            backgroundColor: theme.primary,
+                            color: 'white',
+                            textDecoration: 'none',
+                            padding: '12px 24px',
+                            borderRadius: '8px',
+                            fontSize: '16px',
+                            fontWeight: '600',
+                            textAlign: 'center',
+                            display: 'block',
+                            flex: 1,
+                            transition: 'background-color 0.2s ease'
+                          }}
+                          onMouseEnter={(e) => e.target.style.backgroundColor = theme.primaryHover}
+                          onMouseLeave={(e) => e.target.style.backgroundColor = theme.primary}
+                        >
+                          Proceed to Checkout
+                        </Link>
+                      ) : (
+                        <Link
+                          to="/login"
+                          style={{
+                            backgroundColor: theme.primary,
+                            color: 'white',
+                            textDecoration: 'none',
+                            padding: '12px 24px',
+                            borderRadius: '8px',
+                            fontSize: '16px',
+                            fontWeight: '600',
+                            textAlign: 'center',
+                            display: 'block',
+                            flex: 1,
+                            transition: 'background-color 0.2s ease'
+                          }}
+                          onMouseEnter={(e) => e.target.style.backgroundColor = theme.primaryHover}
+                          onMouseLeave={(e) => e.target.style.backgroundColor = theme.primary}
+                        >
+                          Log In to Checkout
+                        </Link>
+                      )}
+                    </div>
                   </div>
-                </div>
-              </>
-            )}
-          </div>
+                </>
+              )}
+            </div>
+          )}
         </div>
       </main>
-
-      {/* Footer */}
-      <footer style={{
-        backgroundColor: 'white',
-        borderTop: '1px solid #e5e8eb',
-        padding: '40px 20px',
-        textAlign: 'center',
-        marginTop: '40px'
-      }}>
-        <div style={{
-          maxWidth: '800px',
-          margin: '0 auto'
-        }}>
-          <div style={{
-            display: 'flex',
-            justifyContent: 'center',
-            gap: '60px',
-            marginBottom: '20px'
-          }}>
-            <Link to="/about-us" style={{
-              color: '#61758A',
-              textDecoration: 'none',
-              fontSize: '16px'
-            }}>
-              About Us
-            </Link>
-            <Link to="/customer-support" style={{
-              color: '#61758A',
-              textDecoration: 'none',
-              fontSize: '16px'
-            }}>
-              Customer Support
-            </Link>
-            <Link to="/terms-of-service" style={{
-              color: '#61758A',
-              textDecoration: 'none',
-              fontSize: '16px'
-            }}>
-              Terms of Service
-            </Link>
-          </div>
-          <div style={{
-            color: '#61758A',
-            fontSize: '16px'
-          }}>
-            © 2025 AWE Electronics. All rights reserved.
-          </div>
-        </div>
-      </footer>
-    </div>
+    </Layout>
   );
 };
 

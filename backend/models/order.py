@@ -117,9 +117,12 @@ class Order(OrderBase):
     @classmethod
     def generate_order_number(cls) -> str:
         """Generate order number"""
-        timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
-        unique_id = str(uuid.uuid4())[:8].upper()
-        return f"AWE{timestamp}{unique_id}"
+        date = datetime.now()
+        year = str(date.year)[-2:]  # Get last 2 digits of year 
+        month = f"{date.month:02d}"  # Month, zero-padded
+        day = f"{date.day:02d}"      # Day, zero-padded
+        random_num = f"{int(str(uuid.uuid4().int)[:4]) % 10000:04d}"  # 4-digit random number
+        return f"AWE{year}{month}{day}{random_num}"
 
 class OrderResponse(OrderBase):
     """Order response model"""
