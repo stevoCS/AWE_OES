@@ -170,25 +170,25 @@ const Payment = () => {
     return cleanNumber.length >= 13 && cleanNumber.length <= 19;
   };
 
-  // Luhn算法验证银行卡号
+  // Luhn algorithm to validate card number
   const luhnValidate = (cardNumber) => {
     const cleanNumber = cardNumber.replace(/\s/g, '');
     
-    // 检查是否只包含数字
+    // Check if only contains digits
     if (!/^\d+$/.test(cleanNumber)) {
       return false;
     }
     
-    // 检查长度（13-19位）
+    // Check length (13-19 digits)
     if (cleanNumber.length < 13 || cleanNumber.length > 19) {
       return false;
     }
     
-    // Luhn算法验证
+    // Luhn algorithm validation
     let sum = 0;
     let shouldDouble = false;
     
-    // 从右到左遍历
+    // Traverse from right to left
     for (let i = cleanNumber.length - 1; i >= 0; i--) {
       let digit = parseInt(cleanNumber.charAt(i));
       
@@ -206,11 +206,11 @@ const Payment = () => {
     return (sum % 10) === 0;
   };
 
-  // 获取卡片类型和相关规则
+  // Get card type and related rules
   const getCardInfo = (cardNumber) => {
     const cleanNumber = cardNumber.replace(/\s/g, '');
     
-    // 卡片类型识别规则
+      // Card type recognition rules
     const cardTypes = {
       visa: {
         pattern: /^4/,
@@ -272,7 +272,7 @@ const Payment = () => {
     // Simulate payment processing time
     await new Promise(resolve => setTimeout(resolve, 2000));
     
-    // 基于银行卡算法的验证逻辑
+    // Validation logic based on card algorithm
     if (method === 'card') {
       const cleanCardNumber = paymentData.cardNumber.replace(/\s/g, '');
       const cvv = paymentData.cvv;
@@ -281,7 +281,7 @@ const Payment = () => {
       
       console.log('Payment - Validating card details...');
       
-      // 1. 验证卡号是否符合Luhn算法
+      // 1. Validate card number against Luhn algorithm
       const isLuhnValid = luhnValidate(cleanCardNumber);
       console.log('Payment - Luhn validation:', isLuhnValid);
       
@@ -290,7 +290,7 @@ const Payment = () => {
         return false;
       }
       
-      // 2. 验证卡片类型
+      // 2. Validate card type
       const cardInfo = getCardInfo(cleanCardNumber);
       console.log('Payment - Card type:', cardInfo);
       
@@ -299,50 +299,50 @@ const Payment = () => {
         return false;
       }
       
-      // 3. 验证有效期
+      // 3. Validate expiry date
       if (!validateExpiry(expiryDate)) {
         console.log('Payment - Invalid expiry date');
         return false;
       }
       
-      // 4. 验证CVV长度（美国运通15位卡号需要4位CVV，其他3位）
+      // 4. Validate CVV length (American Express 15-digit cards need 4-digit CVV, others 3-digit)
       const expectedCvvLength = cardInfo.type === 'amex' ? 4 : 3;
       if (cvv.length !== expectedCvvLength) {
         console.log('Payment - Invalid CVV length for card type');
         return false;
       }
       
-      // 5. 验证持卡人姓名
+      // 5. Validate cardholder name
       if (!cardholderName || cardholderName.length < 2) {
         console.log('Payment - Invalid cardholder name');
         return false;
       }
       
-      // 6. 特殊测试场景（保留一些测试功能）
-      // CVV特殊值触发失败
+      // 6. Special test scenarios (keep some test functionality)
+      // CVV special values trigger failure
       const failureCVVs = ['000', '999'];
       if (failureCVVs.includes(cvv)) {
         console.log('Payment - Test failure CVV detected:', cvv);
         return false;
       }
       
-      // 持卡人姓名包含特定关键词触发失败
+      // Cardholder name containing specific keywords triggers failure
       if (cardholderName.toLowerCase().includes('fail') || 
           cardholderName.toLowerCase().includes('decline')) {
         console.log('Payment - Test failure name detected:', cardholderName);
         return false;
       }
       
-      // 7. 基于卡号末位数字的逻辑
+      // 7. Logic based on last digit of card number
       const lastDigit = parseInt(cleanCardNumber.slice(-1));
       
-      // 如果卡号末位是0或5，模拟余额不足
+      // If last digit is 0 or 5, simulate insufficient funds
       if (lastDigit === 0 || lastDigit === 5) {
         console.log('Payment - Simulated insufficient funds (last digit:', lastDigit, ')');
         return false;
       }
       
-      // 如果卡号末位是1或6，模拟银行拒绝
+      // If last digit is 1 or 6, simulate bank rejection
       if (lastDigit === 1 || lastDigit === 6) {
         console.log('Payment - Simulated bank decline (last digit:', lastDigit, ')');
         return false;
@@ -352,7 +352,7 @@ const Payment = () => {
       return true;
     }
     
-    // 对于非卡片支付方式，90%成功率
+    // For non-card payment methods, 90% success rate
     const success = Math.random() > 0.1;
     console.log('Payment - Non-card payment result:', success ? 'success' : 'failure');
     
@@ -675,7 +675,7 @@ const Payment = () => {
                           handleInputChange('cvv', value);
                         }
                       }}
-                      placeholder="123"
+                      placeholder="CVV"
                       maxLength="4"
                       style={getInputStyle()}
                     />
@@ -831,13 +831,6 @@ const Payment = () => {
                     }}>
                       {item.name}
                     </div>
-                    <div style={{
-                      fontSize: '14px',
-                      color: '#607589'
-                    }}>
-                      Qty: {item.quantity} × {formatPrice(item.price)}
-                    </div>
-
                     <div style={{
                       fontSize: '14px',
                       color: theme?.textSecondary || '#607589'
