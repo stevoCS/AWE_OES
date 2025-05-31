@@ -90,6 +90,24 @@ export const authAPI = {
     });
     return response;
   },
+
+  updateProfile: async (userData) => {
+    const response = await apiRequest('/api/auth/profile/', {
+      method: 'PUT',
+      body: JSON.stringify({
+        full_name: `${userData.firstName} ${userData.lastName}`,
+        phone: userData.phone,
+        bio: userData.bio,
+        avatar: userData.avatar,
+      }),
+    });
+    return response;
+  },
+
+  getProfile: async () => {
+    const response = await apiRequest('/api/auth/profile/');
+    return response;
+  },
 };
 
 // Product API
@@ -143,6 +161,43 @@ export const cartAPI = {
   clearCart: async () => {
     return await apiRequest('/api/cart/', {
       method: 'DELETE',
+    });
+  },
+};
+
+// Orders API
+export const ordersAPI = {
+  createOrder: async (orderData) => {
+    return await apiRequest('/api/orders/', {
+      method: 'POST',
+      body: JSON.stringify(orderData),
+    });
+  },
+
+  getOrders: async (params = {}) => {
+    const queryString = new URLSearchParams(params).toString();
+    const endpoint = `/api/orders/${queryString ? `?${queryString}` : ''}`;
+    return await apiRequest(endpoint);
+  },
+
+  getOrder: async (orderId) => {
+    return await apiRequest(`/api/orders/${orderId}`);
+  },
+
+  getOrderByNumber: async (orderNumber) => {
+    return await apiRequest(`/api/orders/number/${orderNumber}`);
+  },
+
+  updateOrderStatus: async (orderId, statusData) => {
+    return await apiRequest(`/api/orders/${orderId}/status`, {
+      method: 'PUT',
+      body: JSON.stringify(statusData),
+    });
+  },
+
+  cancelOrder: async (orderId) => {
+    return await apiRequest(`/api/orders/${orderId}/cancel`, {
+      method: 'POST',
     });
   },
 };

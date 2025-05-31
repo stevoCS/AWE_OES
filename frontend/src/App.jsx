@@ -7,15 +7,18 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import Account from './pages/Account';
 import UserDashboard from './pages/UserDashboard';
+import UserProfile from './pages/UserProfile';
 import Cart from './pages/Cart';
 import OrderConfirmation from './pages/OrderConfirmation';
+import OrderTracking from './pages/OrderTracking';
+import OrderDetail from './pages/OrderDetail';
 import Payment from './pages/Payment';
 import PaymentSuccess from './pages/PaymentSuccess';
 import PaymentFailed from './pages/PaymentFailed';
-import TestNavigation from './pages/TestNavigation';
 import { CartProvider } from './context/CartContext';
 import { UserProvider } from './context/UserContext';
 import { OrderProvider } from './context/OrderContext';
+import { ThemeProvider } from './context/ThemeContext';
 import './App.css';
 
 // Simple placeholder components for missing pages
@@ -86,6 +89,7 @@ const AppRoutes = () => {
       <Route path="/login" element={<Login key={`login-${location.pathname}`} />} />
       <Route path="/register" element={<Register key={`register-${location.pathname}`} />} />
       <Route path="/dashboard" element={<UserDashboard key={`dashboard-${location.pathname}`} />} />
+      <Route path="/profile" element={<UserProfile key={`profile-${location.pathname}`} />} />
       <Route path="/account" element={<Account key={`account-${location.pathname}`} />} />
       <Route path="/cart" element={<Cart key={`cart-${location.pathname}`} />} />
       <Route path="/about-us" element={<AboutUs key={`about-us-${location.pathname}`} />} />
@@ -93,10 +97,12 @@ const AppRoutes = () => {
       <Route path="/terms-of-service" element={<TermsOfService key={`terms-of-service-${location.pathname}`} />} />
       <Route path="/warranty" element={<Warranty key={`warranty-${location.pathname}`} />} />
       <Route path="/order-confirmation" element={<OrderConfirmation key={`order-confirmation-${location.pathname}`} />} />
+      <Route path="/order-tracking" element={<OrderTracking key={`order-tracking-${location.pathname}`} />} />
+      <Route path="/order-detail/:orderId" element={<OrderDetail key={`order-detail-${location.pathname}`} />} />
+      <Route path="/order/:orderNumber" element={<OrderTracking key={`order-tracking-${location.pathname}`} />} />
       <Route path="/payment" element={<Payment key={`payment-${location.pathname}`} />} />
       <Route path="/payment-success" element={<PaymentSuccess key={`payment-success-${location.pathname}`} />} />
       <Route path="/payment-failed" element={<PaymentFailed key={`payment-failed-${location.pathname}`} />} />
-      <Route path="/test-navigation" element={<TestNavigation key={`test-navigation-${location.pathname}`} />} />
       {/* Catch-all route for undefined paths */}
       <Route path="*" element={
         <div style={{ padding: '40px', textAlign: 'center', fontFamily: "'Space Grotesk', Arial, sans-serif" }}>
@@ -111,22 +117,24 @@ const AppRoutes = () => {
 
 function App() {
   return (
-    <UserProvider>
-      <CartProvider>
-        <OrderProvider>
-          <Router
-            future={{
-              v7_startTransition: true,
-              v7_relativeSplatPath: true
-            }}
-          >
-            <div id="app-container">
-              <AppRoutes />
-            </div>
-          </Router>
-        </OrderProvider>
-      </CartProvider>
-    </UserProvider>
+    <ThemeProvider>
+      <UserProvider>
+        <CartProvider>
+          <OrderProvider>
+            <Router
+              future={{
+                v7_startTransition: true,
+                v7_relativeSplatPath: true
+              }}
+            >
+              <div id="app-container">
+                <AppRoutes />
+              </div>
+            </Router>
+          </OrderProvider>
+        </CartProvider>
+      </UserProvider>
+    </ThemeProvider>
   );
 }
 

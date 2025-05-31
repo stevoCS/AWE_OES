@@ -6,8 +6,10 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "lint": "eslint .",
+    "lint": "eslint . --ext js,jsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview",
+    "build:prod": "VITE_API_BASE_URL=https://awe-oes.onrender.com npm run build",
+    "test:api": "node -e \"console.log('API Base URL:', process.env.VITE_API_BASE_URL || 'http://localhost:8000')\"",
     "start": "vite preview --port 4173"
   },
   "dependencies": {

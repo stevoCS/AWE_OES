@@ -19,17 +19,67 @@ export const CartProvider = ({ children }) => {
       const response = await cartAPI.getCartSummary();
       console.log('Cart API response:', response);
       
-      if (response.success) {
-        const serverCartItems = response.data.items.map(item => ({
-          id: item.product_id,
-          name: item.product_name,
-          price: item.product_price,
-          quantity: item.quantity,
-          image: '/api/placeholder/150/150', // Default placeholder
-          // Add other fields as needed
-        }));
+      if (response.success && response.data && response.data.items) {
+        // 需要获取每个产品的完整信息，包括图片
+        const { productsAPI } = await import('../api/config');
+        
+        const serverCartItems = await Promise.all(
+          response.data.items.map(async (item) => {
+            try {
+              // 获取产品的完整信息
+              const productResponse = await productsAPI.getProduct(item.product_id);
+              if (productResponse.success && productResponse.data) {
+                const productData = productResponse.data;
+                return {
+                  id: item.product_id,
+                  name: item.product_name,
+                  price: item.product_price,
+                  quantity: item.quantity,
+                  // 保留完整的产品信息，特别是图片数据
+                  images: productData.images || [],
+                  image: productData.image || productData.images?.[0] || '/api/placeholder/150/150',
+                  category: productData.category || 'Electronics',
+                  description: productData.description || '',
+                  // 保留其他产品属性
+                  ...productData
+                };
+              } else {
+                // 如果无法获取产品详情，使用基本信息
+                console.warn('Could not fetch product details for:', item.product_id);
+                return {
+                  id: item.product_id,
+                  name: item.product_name,
+                  price: item.product_price,
+                  quantity: item.quantity,
+                  images: [], // 空数组，getProductImageUrl会处理
+                  image: '/api/placeholder/150/150',
+                  category: 'Electronics'
+                };
+              }
+            } catch (error) {
+              console.error('Error fetching product details for', item.product_id, ':', error);
+              // 降级处理：使用基本信息
+              return {
+                id: item.product_id,
+                name: item.product_name,
+                price: item.product_price,
+                quantity: item.quantity,
+                images: [],
+                image: '/api/placeholder/150/150',
+                category: 'Electronics'
+              };
+            }
+          })
+        );
+        
         setUserCart(serverCartItems);
-        console.log('Successfully loaded cart:', serverCartItems.length, 'items');
+        console.log('Successfully loaded cart with product details:', serverCartItems.length, 'items');
+        console.log('Cart items with image data:', serverCartItems.map(item => ({ 
+          id: item.id, 
+          name: item.name, 
+          images: item.images,
+          image: item.image 
+        })));
       } else {
         console.warn('Cart API response format is incorrect:', response);
       }
@@ -98,12 +148,13 @@ export const CartProvider = ({ children }) => {
     }
   }, [isLoggedIn, user?.id, loadUserCartFromServer]);
 
-  // Simplified version: register callbacks directly, without useEffect
-  React.useLayoutEffect(() => {
+  // Register callbacks with UserContext when component mounts
+  useEffect(() => {
     if (registerCartCallbacks && typeof registerCartCallbacks === 'function') {
+      console.log('Registering cart callbacks...');
       registerCartCallbacks(mergeGuestCartWithUserCart, handleLogout);
     }
-  }, []);
+  }, [registerCartCallbacks, mergeGuestCartWithUserCart, handleLogout]);
 
   // Save guest cart to localStorage whenever it changes
   useEffect(() => {

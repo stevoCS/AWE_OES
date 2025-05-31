@@ -1,10 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
-import { SearchIcon, ShoppingCartIcon } from '../components/ui/icons';
 import { useUser } from '../context/UserContext';
 import { useCart } from '../context/CartContext';
 import { useOrders } from '../context/OrderContext';
-import logoIcon from '../assets/Vector - 0.svg';
+import Layout from '../components/Layout';
 
 const PaymentSuccess = () => {
   const { user, isLoggedIn } = useUser();
@@ -20,8 +19,8 @@ const PaymentSuccess = () => {
   
   // If no order found, create fallback data
   const displayOrderData = orderData || {
-    orderNumber: 'AWE00000000',
-    orderDate: new Date().toLocaleDateString(),
+    orderNumber: orderNumber || 'AWE00000000',
+    date: new Date().toLocaleDateString(),
     estimatedDelivery: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toLocaleDateString(),
     total: 0
   };
@@ -31,411 +30,236 @@ const PaymentSuccess = () => {
   console.log('PaymentSuccess - Display order data:', displayOrderData);
 
   return (
-    <div style={{
-      backgroundColor: '#f8f9fa',
-      minHeight: '100vh',
-      fontFamily: "'Space Grotesk', Arial, sans-serif"
-    }}>
-      {/* Header */}
-      <header style={{
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        padding: '12px 40px',
-        backgroundColor: 'white',
-        borderBottom: '1px solid #e5e8eb',
-        position: 'sticky',
-        top: 0,
-        zIndex: 100
+    <Layout>
+      <div style={{
+        backgroundColor: '#f8f9fa',
+        minHeight: 'calc(100vh - 140px)',
+        fontFamily: "'Space Grotesk', Arial, sans-serif",
+        paddingBottom: '40px'
       }}>
-        <div style={{
+        {/* Main Content */}
+        <main style={{
           display: 'flex',
-          alignItems: 'center',
-          gap: '32px'
-        }}>
-          <Link to="/" style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '16px',
-            textDecoration: 'none',
-            color: 'inherit'
-          }}>
-            <img src={logoIcon} alt="AWE Electronics Logo" style={{ width: '32px', height: '32px' }} />
-            <span style={{
-              fontWeight: '700',
-              fontSize: '18px',
-              color: '#121417'
-            }}>
-              AWE Electronics
-            </span>
-          </Link>
-
-          <nav style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '36px'
-          }}>
-            <Link to="/new-arrivals" style={{
-              fontWeight: '500',
-              fontSize: '14px',
-              color: '#121417',
-              textDecoration: 'none'
-            }}>
-              New Arrivals
-            </Link>
-            <Link to="/best-sellers" style={{
-              fontWeight: '500',
-              fontSize: '14px',
-              color: '#121417',
-              textDecoration: 'none'
-            }}>
-              Best Sellers
-            </Link>
-          </nav>
-        </div>
-
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '32px',
-          flex: 1,
-          justifyContent: 'flex-end'
-        }}>
-          {/* Search Bar */}
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            backgroundColor: '#f0f2f5',
-            borderRadius: '8px',
-            minWidth: '160px',
-            maxWidth: '256px'
-          }}>
-            <div style={{
-              padding: '0 16px',
-              height: '40px',
-              display: 'flex',
-              alignItems: 'center'
-            }}>
-              <SearchIcon style={{ width: '20px', height: '20px', color: '#607589' }} />
-            </div>
-            <input
-              type="text"
-              placeholder="Search"
-              style={{
-                border: 'none',
-                backgroundColor: 'transparent',
-                outline: 'none',
-                padding: '8px 16px 8px 0',
-                flex: 1,
-                height: '40px',
-                fontSize: '14px',
-                color: '#607589'
-              }}
-            />
-          </div>
-
-          {/* User Status Display */}
-          {isLoggedIn ? (
-            <Link to="/dashboard" style={{
-              fontSize: '14px',
-              fontWeight: '500',
-              color: '#121417',
-              textDecoration: 'none',
-              padding: '8px 16px',
-              borderRadius: '8px',
-              backgroundColor: '#f0f2f5'
-            }}>
-              Welcome, {user.firstName}
-            </Link>
-          ) : (
-            <Link to="/login" style={{
-              fontSize: '14px',
-              fontWeight: '500',
-              color: '#121417',
-              textDecoration: 'none',
-              padding: '8px 16px',
-              borderRadius: '8px',
-              backgroundColor: '#f0f2f5'
-            }}>
-              Log in
-            </Link>
-          )}
-
-          {/* Cart Icon */}
-          <Link to="/cart" style={{
-            position: 'relative',
-            padding: '8px',
-            backgroundColor: '#f0f2f5',
-            borderRadius: '8px',
-            textDecoration: 'none'
-          }}>
-            <ShoppingCartIcon style={{ width: '17px', height: '17px', color: '#121417' }} />
-            {getCartItemsCount() > 0 && (
-              <span style={{
-                position: 'absolute',
-                top: '-6px',
-                right: '-6px',
-                backgroundColor: '#dc2626',
-                color: 'white',
-                borderRadius: '50%',
-                width: '20px',
-                height: '20px',
-                fontSize: '12px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontWeight: '600'
-              }}>
-                {getCartItemsCount()}
-              </span>
-            )}
-          </Link>
-        </div>
-      </header>
-
-      {/* Main Content */}
-      <main style={{
-        display: 'flex',
-        justifyContent: 'center',
-        padding: '40px 20px',
-        minHeight: 'calc(100vh - 200px)'
-      }}>
-        <div style={{
-          width: '100%',
-          maxWidth: '600px',
-          backgroundColor: 'white',
-          borderRadius: '8px',
-          padding: '48px',
-          textAlign: 'center',
-          boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
-        }}>
-          {/* Success Icon */}
-          <div style={{
-            width: '80px',
-            height: '80px',
-            borderRadius: '50%',
-            backgroundColor: '#16a34a',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            margin: '0 auto 24px auto'
-          }}>
-            <span style={{
-              fontSize: '40px',
-              color: 'white'
-            }}>
-              ✓
-            </span>
-          </div>
-
-          {/* Success Message */}
-          <h1 style={{
-            fontSize: '32px',
-            fontWeight: '700',
-            color: '#121417',
-            margin: '0 0 16px 0'
-          }}>
-            Payment Successful!
-          </h1>
-
-          <p style={{
-            fontSize: '18px',
-            color: '#61758A',
-            margin: '0 0 32px 0',
-            lineHeight: 1.5
-          }}>
-            Your order has been successfully processed. You will receive a confirmation email shortly.
-          </p>
-
-          {/* Order Summary */}
-          <div style={{
-            backgroundColor: '#f8f9fa',
-            borderRadius: '8px',
-            padding: '24px',
-            marginBottom: '32px',
-            textAlign: 'left'
-          }}>
-            <h2 style={{
-              fontSize: '20px',
-              fontWeight: '600',
-              color: '#121417',
-              margin: '0 0 16px 0',
-              textAlign: 'center'
-            }}>
-              Order Summary
-            </h2>
-
-            <div style={{
-              display: 'grid',
-              gridTemplateColumns: '1fr 1fr',
-              gap: '16px',
-              marginBottom: '16px'
-            }}>
-              <div>
-                <div style={{
-                  fontSize: '14px',
-                  color: '#61758A',
-                  fontWeight: '500'
-                }}>
-                  Order Number
-                </div>
-                <div style={{
-                  fontSize: '16px',
-                  color: '#121417',
-                  fontWeight: '600'
-                }}>
-                  {displayOrderData.orderNumber}
-                </div>
-              </div>
-
-              <div>
-                <div style={{
-                  fontSize: '14px',
-                  color: '#61758A',
-                  fontWeight: '500'
-                }}>
-                  Order Date
-                </div>
-                <div style={{
-                  fontSize: '16px',
-                  color: '#121417',
-                  fontWeight: '600'
-                }}>
-                  {displayOrderData.orderDate}
-                </div>
-              </div>
-            </div>
-
-            <div style={{
-              display: 'grid',
-              gridTemplateColumns: '1fr 1fr',
-              gap: '16px'
-            }}>
-              <div>
-                <div style={{
-                  fontSize: '14px',
-                  color: '#61758A',
-                  fontWeight: '500'
-                }}>
-                  Total Amount
-                </div>
-                <div style={{
-                  fontSize: '16px',
-                  color: '#121417',
-                  fontWeight: '600'
-                }}>
-                  ${displayOrderData.total.toFixed(2)}
-                </div>
-              </div>
-
-              <div>
-                <div style={{
-                  fontSize: '14px',
-                  color: '#61758A',
-                  fontWeight: '500'
-                }}>
-                  Estimated Delivery
-                </div>
-                <div style={{
-                  fontSize: '16px',
-                  color: '#121417',
-                  fontWeight: '600'
-                }}>
-                  {displayOrderData.estimatedDelivery}
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Action Buttons */}
-          <div style={{
-            display: 'flex',
-            gap: '16px',
-            justifyContent: 'center'
-          }}>
-            <Link
-              to="/dashboard"
-              style={{
-                backgroundColor: '#0D80F2',
-                color: 'white',
-                textDecoration: 'none',
-                padding: '12px 24px',
-                borderRadius: '8px',
-                fontSize: '16px',
-                fontWeight: '600'
-              }}
-            >
-              View Order Status
-            </Link>
-
-            <Link
-              to="/"
-              style={{
-                backgroundColor: 'transparent',
-                color: '#0D80F2',
-                border: '1px solid #0D80F2',
-                textDecoration: 'none',
-                padding: '12px 24px',
-                borderRadius: '8px',
-                fontSize: '16px',
-                fontWeight: '600'
-              }}
-            >
-              Continue Shopping
-            </Link>
-          </div>
-        </div>
-      </main>
-
-      {/* Footer */}
-      <footer style={{
-        backgroundColor: 'white',
-        borderTop: '1px solid #e5e8eb',
-        padding: '40px 20px',
-        textAlign: 'center',
-        marginTop: '40px'
-      }}>
-        <div style={{
-          maxWidth: '800px',
+          justifyContent: 'center',
+          padding: '40px 20px 20px',
+          maxWidth: '1200px',
           margin: '0 auto'
         }}>
           <div style={{
-            display: 'flex',
-            justifyContent: 'center',
-            gap: '60px',
-            marginBottom: '20px'
+            backgroundColor: 'white',
+            borderRadius: '12px',
+            padding: '48px',
+            maxWidth: '600px',
+            width: '100%',
+            textAlign: 'center',
+            border: '1px solid #e5e8eb',
+            boxShadow: '0 4px 6px rgba(0, 0, 0, 0.05)'
           }}>
-            <Link to="/about-us" style={{
-              color: '#61758A',
-              textDecoration: 'none',
-              fontSize: '16px'
+            {/* Success Icon */}
+            <div style={{
+              width: '80px',
+              height: '80px',
+              backgroundColor: '#10b981',
+              borderRadius: '50%',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              margin: '0 auto 32px',
+              fontSize: '40px'
             }}>
-              About Us
-            </Link>
-            <Link to="/customer-support" style={{
-              color: '#61758A',
-              textDecoration: 'none',
-              fontSize: '16px'
+              ✓
+            </div>
+
+            {/* Success Message */}
+            <h1 style={{
+              fontSize: '32px',
+              fontWeight: '700',
+              color: '#121417',
+              marginBottom: '16px'
             }}>
-              Customer Support
-            </Link>
-            <Link to="/terms-of-service" style={{
-              color: '#61758A',
-              textDecoration: 'none',
-              fontSize: '16px'
+              Payment Successful!
+            </h1>
+
+            <p style={{
+              fontSize: '18px',
+              color: '#607589',
+              marginBottom: '32px',
+              lineHeight: '1.5'
             }}>
-              Terms of Service
-            </Link>
+              Thank you for your purchase.
+            </p>
+
+            {/* Order Details */}
+            <div style={{
+              backgroundColor: '#f8f9fa',
+              borderRadius: '8px',
+              padding: '24px',
+              marginBottom: '24px',
+              textAlign: 'left'
+            }}>
+              <h3 style={{
+                fontSize: '18px',
+                fontWeight: '600',
+                color: '#121417',
+                marginBottom: '16px'
+              }}>
+                Order Details
+              </h3>
+
+              <div style={{
+                display: 'grid',
+                gridTemplateColumns: '1fr 1fr',
+                gap: '16px',
+                fontSize: '14px'
+              }}>
+                <div>
+                  <span style={{ color: '#607589' }}>Order Number:</span>
+                  <div style={{ fontWeight: '600', color: '#121417' }}>
+                    {displayOrderData.orderNumber}
+                  </div>
+                </div>
+                <div>
+                  <span style={{ color: '#607589' }}>Order Date:</span>
+                  <div style={{ fontWeight: '600', color: '#121417' }}>
+                    {displayOrderData.date || 'N/A'}
+                  </div>
+                </div>
+                <div>
+                  <span style={{ color: '#607589' }}>Total Amount:</span>
+                  <div style={{ fontWeight: '600', color: '#121417' }}>
+                    ${displayOrderData.total?.toFixed(2) || '0.00'}
+                  </div>
+                </div>
+                <div>
+                  <span style={{ color: '#607589' }}>Estimated Delivery:</span>
+                  <div style={{ fontWeight: '600', color: '#121417' }}>
+                    {displayOrderData.estimatedDelivery}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Next Steps Info */}
+            <div style={{
+              backgroundColor: '#f0f7ff',
+              borderRadius: '8px',
+              padding: '20px',
+              marginBottom: '32px',
+              border: '1px solid #0D80F2'
+            }}>
+              <ul style={{
+                textAlign: 'left',
+                fontSize: '14px',
+                color: '#607589',
+                lineHeight: '1.6',
+                paddingLeft: '20px',
+                margin: 0
+              }}>
+                <li>You'll receive an order confirmation email shortly</li>
+                <li>We'll send you tracking information once your order ships</li>
+                <li>Track your order status anytime in your dashboard</li>
+                <li>Your order will be delivered within 5-7 business days</li>
+              </ul>
+            </div>
+            <p style={{
+                fontSize: '14px',
+                color: '#607589',
+                marginTop: '16px',
+                fontStyle: 'italic'
+              }}>
+                You can also track your order anytime in your dashboard
+              </p>
+            {/* Action Buttons */}
+            <div style={{
+              marginBottom: '24px'
+            }}>
+              <h3 style={{
+                fontSize: '20px',
+                fontWeight: '600',
+                color: '#121417',
+                marginBottom: '20px'
+              }}>
+                What would you like to do next?
+              </h3>
+              
+              <div style={{
+                display: 'flex',
+                gap: '16px',
+                justifyContent: 'center',
+                flexWrap: 'wrap'
+              }}>
+                <Link
+                  to="/dashboard"
+                  style={{
+                    backgroundColor: '#0D80F2',
+                    color: 'white',
+                    textDecoration: 'none',
+                    padding: '16px 32px',
+                    borderRadius: '8px',
+                    fontSize: '16px',
+                    fontWeight: '600',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    transition: 'background-color 0.2s',
+                    minWidth: '200px',
+                    justifyContent: 'center'
+                  }}
+                >
+                  <span></span>
+                  View My Dashboard
+                </Link>
+                <Link
+                  to="/product"
+                  style={{
+                    backgroundColor: 'white',
+                    color: '#0D80F2',
+                    textDecoration: 'none',
+                    padding: '16px 32px',
+                    borderRadius: '8px',
+                    fontSize: '16px',
+                    fontWeight: '600',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    border: '2px solid #0D80F2',
+                    transition: 'all 0.2s',
+                    minWidth: '200px',
+                    justifyContent: 'center'
+                  }}
+                >
+                  <span></span>
+                  Continue Shopping
+                </Link>
+              </div>
+              
+              
+            </div>
+            {/* Support Info */}
+            <div style={{
+              paddingTop: '16px',
+              borderTop: '1px solid #e5e8eb',
+              fontSize: '14px',
+              color: '#607589'
+            }}>
+              <p style={{ margin: '0' }}>
+                Need help? Contact our{' '}
+                <Link
+                  to="/customer-support"
+                  style={{
+                    color: '#0D80F2',
+                    textDecoration: 'none',
+                    fontWeight: '500'
+                  }}
+                >
+                  customer support team
+                </Link>
+              </p>
+            </div>
           </div>
-          <div style={{
-            color: '#61758A',
-            fontSize: '16px'
-          }}>
-            © 2025 AWE Electronics. All rights reserved.
-          </div>
-        </div>
-      </footer>
-    </div>
+        </main>
+      </div>
+    </Layout>
   );
 };
 
