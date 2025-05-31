@@ -354,19 +354,67 @@ export const UserProvider = ({ children }) => {
         
         // First, try to update user data on the backend
         try {
-          const response = await authAPI.updateProfile(updates);
+          // Transform frontend format to backend format
+          const backendData = {};
+          
+          // Handle name fields
+          if (updates.firstName || updates.lastName) {
+            const firstName = updates.firstName || user.firstName || '';
+            const lastName = updates.lastName || user.lastName || '';
+            backendData.full_name = `${firstName} ${lastName}`.trim();
+          }
+          
+          // Map other fields directly
+          if (updates.phone !== undefined) backendData.phone = updates.phone;
+          if (updates.bio !== undefined) backendData.bio = updates.bio;
+          if (updates.avatar !== undefined) backendData.avatar = updates.avatar;
+          if (updates.address !== undefined) backendData.address = updates.address;
+          
+          console.log('UserContext - Sending to backend:', backendData);
+          
+          const response = await authAPI.updateProfile(backendData);
           if (response.success) {
             console.log('UserContext - Backend update successful:', response.data);
+            
+            // Use the returned data from backend and merge with frontend format
+            const backendUser = response.data;
+            const updatedUser = {
+              ...user,
+              id: backendUser.id,
+              email: backendUser.email,
+              username: backendUser.username,
+              fullName: backendUser.full_name,
+              phone: backendUser.phone,
+              bio: backendUser.bio,
+              avatar: backendUser.avatar,
+              address: backendUser.address,
+              // Split full_name back to firstName and lastName
+              firstName: backendUser.full_name?.split(' ')[0] || '',
+              lastName: backendUser.full_name?.split(' ').slice(1).join(' ') || '',
+              ...updates // Include any frontend-specific updates
+            };
+            
+            setUser(updatedUser);
+            
+            // Save to email-specific localStorage key
+            if (user.email) {
+              const emailKey = user.email.replace(/[@\.]/g, '_');
+              const userDataKey = `userData_${emailKey}`;
+              localStorage.setItem(userDataKey, JSON.stringify(updatedUser));
+              console.log('UserContext - User updated from backend and saved to', userDataKey, ':', updatedUser);
+            }
+            
+            return { success: true, user: updatedUser };
           } else {
             console.warn('UserContext - Backend update failed:', response.message);
-            // Continue with frontend update even if backend fails
+            // Fall back to frontend-only update
           }
         } catch (apiError) {
           console.warn('UserContext - Backend API error:', apiError.message);
-          // Continue with frontend update even if API call fails
+          // Fall back to frontend-only update
         }
         
-        // Update frontend state regardless of backend result
+        // Frontend-only update as fallback
         const updatedUser = { ...user, ...updates };
         setUser(updatedUser);
         
@@ -375,7 +423,7 @@ export const UserProvider = ({ children }) => {
           const emailKey = user.email.replace(/[@\.]/g, '_');
           const userDataKey = `userData_${emailKey}`;
           localStorage.setItem(userDataKey, JSON.stringify(updatedUser));
-          console.log('UserContext - User updated and saved to', userDataKey, ':', updatedUser);
+          console.log('UserContext - User updated (frontend only) and saved to', userDataKey, ':', updatedUser);
         } else {
           // Fallback to generic key if no email
           localStorage.setItem('user', JSON.stringify(updatedUser));

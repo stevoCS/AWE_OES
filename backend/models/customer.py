@@ -26,6 +26,8 @@ class CustomerBase(BaseModel):
     full_name: str
     phone: Optional[str] = None
     address: Optional[str] = None
+    avatar: Optional[str] = None
+    bio: Optional[str] = None
 
     @validator('username')
     def validate_username(cls, v):
@@ -54,6 +56,8 @@ class CustomerUpdate(BaseModel):
     full_name: Optional[str] = None
     phone: Optional[str] = None
     address: Optional[str] = None
+    avatar: Optional[str] = None
+    bio: Optional[str] = None
 
 class CustomerLogin(BaseModel):
     """Customer login model"""

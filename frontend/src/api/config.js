@@ -94,12 +94,7 @@ export const authAPI = {
   updateProfile: async (userData) => {
     const response = await apiRequest('/api/auth/profile/', {
       method: 'PUT',
-      body: JSON.stringify({
-        full_name: `${userData.firstName} ${userData.lastName}`,
-        phone: userData.phone,
-        bio: userData.bio,
-        avatar: userData.avatar,
-      }),
+      body: JSON.stringify(userData),
     });
     return response;
   },
