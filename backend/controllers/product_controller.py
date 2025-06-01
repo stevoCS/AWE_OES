@@ -46,15 +46,27 @@ class ProductController:
         """Get single product details"""
         collection = await get_collection("products")
         
-        product_doc = await collection.find_one({"_id": ObjectId(product_id)})
-        if not product_doc:
-            raise APIException("Product not found", status.HTTP_404_NOT_FOUND)
+        # Validate ObjectId format
+        if not ObjectId.is_valid(product_id):
+            raise APIException("Invalid product ID format", status.HTTP_400_BAD_REQUEST)
         
-        # Increment view count
-        await collection.update_one(
-            {"_id": ObjectId(product_id)},
-            {"$inc": {"views_count": 1}}
-        )
+        try:
+            product_doc = await collection.find_one({"_id": ObjectId(product_id)})
+            if not product_doc:
+                raise APIException("Product not found", status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            if "invalid ObjectId" in str(e):
+                raise APIException("Invalid product ID format", status.HTTP_400_BAD_REQUEST)
+            raise APIException("Database error", status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+        # Increment view count (optional operation, don't fail if it doesn't work)
+        try:
+            await collection.update_one(
+                {"_id": ObjectId(product_id)},
+                {"$inc": {"views_count": 1}}
+            )
+        except:
+            pass  # Don't fail the request if view count update fails
         
         # Convert data structure to match ProductResponse
         converted_doc = {
@@ -68,6 +80,7 @@ class ProductController:
             "specifications": product_doc.get("specifications", {}),
             "images": product_doc.get("images", []),
             "stock_quantity": product_doc.get("stock_quantity", 0),
+            "stock": product_doc.get("stock_quantity", product_doc.get("stock", 0)),
             "is_available": product_doc.get("is_available", True),
             "created_at": product_doc.get("created_at", datetime.now()),
             "updated_at": product_doc.get("updated_at", datetime.now()),
@@ -176,6 +189,7 @@ class ProductController:
                 "specifications": product_doc.get("specifications", {}),
                 "images": product_doc.get("images", []),
                 "stock_quantity": product_doc.get("stock_quantity", 0),
+                "stock": product_doc.get("stock_quantity", product_doc.get("stock", 0)),
                 "is_available": product_doc.get("is_available", True),
                 "created_at": product_doc.get("created_at", datetime.now()),
                 "updated_at": product_doc.get("updated_at", datetime.now()),

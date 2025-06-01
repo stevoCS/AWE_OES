@@ -10,8 +10,12 @@ from dotenv import load_dotenv
 
 def main():
     """Start FastAPI application"""
-    # Load environment variables
-    load_dotenv()
+    # Load environment variables from config.env
+    load_dotenv("config.env")
+    
+    # Debug: Display loaded MongoDB URL
+    mongodb_url = os.getenv("MONGODB_URL", "NOT_FOUND")
+    print(f"🔧 Loaded MongoDB URL: {mongodb_url}")
     
     # Get configuration
     host = os.getenv("HOST", "0.0.0.0")

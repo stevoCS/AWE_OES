@@ -6,7 +6,7 @@ from fastapi import status
 from database.connection import get_collection
 from models.tracking import (
     OrderTracking, OrderTrackingResponse, TrackingUpdate, TrackingSearch,
-    TrackingEventType, TrackingEvent, TrackingSummary, DeliveryEstimate
+    TrackingStatus, TrackingEvent, TrackingSummary, DeliveryEstimate
 )
 from utils.response import APIException
 
@@ -20,7 +20,7 @@ class TrackingController:
         
         # Create initial tracking event
         initial_event = TrackingEvent(
-            event_type=TrackingEventType.ORDER_CREATED,
+            status=TrackingStatus.ORDER_CREATED,
             timestamp=datetime.now(),
             description="Order has been created",
             location="Online Store"
@@ -30,7 +30,7 @@ class TrackingController:
             order_id=tracking_data["order_id"],
             order_number=tracking_data["order_number"],
             customer_id=tracking_data["customer_id"],
-            current_status=TrackingEventType.ORDER_CREATED,
+            current_status=TrackingStatus.ORDER_CREATED,
             events=[initial_event],
             created_at=datetime.now(),
             updated_at=datetime.now()
@@ -105,7 +105,7 @@ class TrackingController:
     @staticmethod
     async def update_tracking_by_order_id(
         order_id: str, 
-        event_type: TrackingEventType, 
+        status: TrackingStatus, 
         description: str,
         location: Optional[str] = None,
         operator: Optional[str] = None,
@@ -116,18 +116,17 @@ class TrackingController:
         
         # Create new tracking event
         new_event = TrackingEvent(
-            event_type=event_type,
+            status=status,
             timestamp=datetime.now(),
             description=description,
-            location=location,
-            operator=operator
+            location=location or "AWE Warehouse"
         )
         
         # Update fields
         update_data = {
             "$push": {"events": new_event.dict()},
             "$set": {
-                "current_status": event_type,
+                "current_status": status,
                 "updated_at": datetime.now()
             }
         }
@@ -230,42 +229,42 @@ class TrackingController:
         return summaries
     
     @staticmethod
-    def _calculate_delivery_estimate(status: TrackingEventType, created_at: datetime) -> Optional[datetime]:
+    def _calculate_delivery_estimate(status: TrackingStatus, created_at: datetime) -> Optional[datetime]:
         """Calculate estimated delivery time"""
         # Calculate estimated delivery time based on order status
         status_days = {
-            TrackingEventType.ORDER_CREATED: 7,
-            TrackingEventType.PAYMENT_RECEIVED: 6,
-            TrackingEventType.ORDER_CONFIRMED: 5,
-            TrackingEventType.PROCESSING: 4,
-            TrackingEventType.PACKED: 3,
-            TrackingEventType.SHIPPED: 2,
-            TrackingEventType.IN_TRANSIT: 1,
-            TrackingEventType.OUT_FOR_DELIVERY: 0.5,
+            TrackingStatus.ORDER_CREATED: 7,
+            TrackingStatus.PAYMENT_RECEIVED: 6,
+            TrackingStatus.ORDER_CONFIRMED: 5,
+            TrackingStatus.PROCESSING: 4,
+            TrackingStatus.PACKED: 3,
+            TrackingStatus.SHIPPED: 2,
+            TrackingStatus.IN_TRANSIT: 1,
+            TrackingStatus.OUT_FOR_DELIVERY: 0.5,
         }
         
         if status in status_days:
             return created_at + timedelta(days=status_days[status])
-        elif status in [TrackingEventType.DELIVERED, TrackingEventType.CANCELLED, TrackingEventType.REFUNDED]:
+        elif status in [TrackingStatus.DELIVERED, TrackingStatus.CANCELLED, TrackingStatus.REFUNDED]:
             return None
         else:
             return created_at + timedelta(days=7)  # Default 7 days
     
     @staticmethod
-    def _calculate_progress_percentage(status: TrackingEventType) -> int:
+    def _calculate_progress_percentage(status: TrackingStatus) -> int:
         """Calculate delivery progress percentage"""
         progress_map = {
-            TrackingEventType.ORDER_CREATED: 10,
-            TrackingEventType.PAYMENT_RECEIVED: 20,
-            TrackingEventType.ORDER_CONFIRMED: 30,
-            TrackingEventType.PROCESSING: 40,
-            TrackingEventType.PACKED: 50,
-            TrackingEventType.SHIPPED: 60,
-            TrackingEventType.IN_TRANSIT: 80,
-            TrackingEventType.OUT_FOR_DELIVERY: 90,
-            TrackingEventType.DELIVERED: 100,
-            TrackingEventType.CANCELLED: 0,
-            TrackingEventType.REFUNDED: 0,
+            TrackingStatus.ORDER_CREATED: 10,
+            TrackingStatus.PAYMENT_RECEIVED: 20,
+            TrackingStatus.ORDER_CONFIRMED: 30,
+            TrackingStatus.PROCESSING: 40,
+            TrackingStatus.PACKED: 50,
+            TrackingStatus.SHIPPED: 60,
+            TrackingStatus.IN_TRANSIT: 80,
+            TrackingStatus.OUT_FOR_DELIVERY: 90,
+            TrackingStatus.DELIVERED: 100,
+            TrackingStatus.CANCELLED: 0,
+            TrackingStatus.REFUNDED: 0,
         }
         
         return progress_map.get(status, 0)
@@ -277,14 +276,14 @@ class TrackingController:
         
         # Calculate estimated delivery based on current status
         status_days = {
-            TrackingEventType.ORDER_CREATED: 7,
-            TrackingEventType.PAYMENT_RECEIVED: 6,
-            TrackingEventType.ORDER_CONFIRMED: 5,
-            TrackingEventType.PROCESSING: 4,
-            TrackingEventType.PACKED: 3,
-            TrackingEventType.SHIPPED: 2,
-            TrackingEventType.IN_TRANSIT: 1,
-            TrackingEventType.OUT_FOR_DELIVERY: 0.5,
+            TrackingStatus.ORDER_CREATED: 7,
+            TrackingStatus.PAYMENT_RECEIVED: 6,
+            TrackingStatus.ORDER_CONFIRMED: 5,
+            TrackingStatus.PROCESSING: 4,
+            TrackingStatus.PACKED: 3,
+            TrackingStatus.SHIPPED: 2,
+            TrackingStatus.IN_TRANSIT: 1,
+            TrackingStatus.OUT_FOR_DELIVERY: 0.5,
         }
         
         estimated_days = status_days.get(tracking.current_status, 7)

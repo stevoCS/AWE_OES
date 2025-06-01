@@ -22,13 +22,20 @@ class PyObjectId(ObjectId):
 
 class TrackingStatus(str, Enum):
     """Tracking status enumeration"""
+    ORDER_CREATED = "order_created"         # Order created
     ORDER_RECEIVED = "order_received"       # Order received
+    PAYMENT_RECEIVED = "payment_received"   # Payment received
+    ORDER_CONFIRMED = "order_confirmed"     # Order confirmed
+    PROCESSING = "processing"               # Processing
     PREPARING = "preparing"                 # Preparing
+    PACKED = "packed"                       # Packed
     SHIPPED = "shipped"                     # Shipped
     IN_TRANSIT = "in_transit"              # In transit
     OUT_FOR_DELIVERY = "out_for_delivery"  # Out for delivery
     DELIVERED = "delivered"                 # Delivered
     DELIVERY_FAILED = "delivery_failed"     # Delivery failed
+    CANCELLED = "cancelled"                 # Cancelled
+    REFUNDED = "refunded"                   # Refunded
     RETURNED = "returned"                   # Returned
 
 class TrackingEventBase(BaseModel):
@@ -103,14 +110,19 @@ class TrackingCreate(BaseModel):
 
 class TrackingUpdate(BaseModel):
     """Update tracking model"""
-    current_status: Optional[TrackingStatus] = None
+    status: Optional[TrackingStatus] = None
+    description: Optional[str] = None
+    location: Optional[str] = None
+    operator: Optional[str] = None
+    tracking_number: Optional[str] = None
     estimated_delivery: Optional[datetime] = None
-    add_event: Optional[TrackingEventBase] = None
 
 class TrackingSearch(BaseModel):
     """Tracking search model"""
     tracking_number: Optional[str] = None
     order_number: Optional[str] = None
+    customer_id: Optional[str] = None
+    status: Optional[TrackingStatus] = None
 
 class DeliveryEstimate(BaseModel):
     """Delivery estimate model"""
@@ -124,4 +136,4 @@ class TrackingSummary(BaseModel):
     current_status: TrackingStatus
     last_update: datetime
     estimated_delivery: Optional[datetime] = None
-    progress_percentage: int  # Delivery progress percentage 
+    progress_percentage: int 

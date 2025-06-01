@@ -59,9 +59,20 @@ class CustomerUpdate(BaseModel):
     avatar: Optional[str] = None
     bio: Optional[str] = None
 
+class CustomerSearch(BaseModel):
+    """Customer search model"""
+    username: Optional[str] = None
+    email: Optional[str] = None
+    full_name: Optional[str] = None
+    phone: Optional[str] = None
+    is_active: Optional[bool] = None
+    keyword: Optional[str] = None
+    sort_by: Optional[str] = "created_at"
+    sort_order: Optional[str] = "desc"
+
 class CustomerLogin(BaseModel):
-    """Customer login model"""
-    username: str
+    """Customer login model - supports both username and email"""
+    username: str  # Can be username or email
     password: str
 
 class Customer(CustomerBase):
@@ -69,6 +80,7 @@ class Customer(CustomerBase):
     id: Optional[PyObjectId] = Field(alias="_id", default=None)
     hashed_password: str
     is_active: bool = True
+    is_admin: bool = False
     created_at: datetime = Field(default_factory=datetime.now)
     updated_at: datetime = Field(default_factory=datetime.now)
 
@@ -82,6 +94,7 @@ class CustomerResponse(CustomerBase):
     """Customer response model (without sensitive information)"""
     id: str
     is_active: bool
+    is_admin: Optional[bool] = False
     created_at: datetime
     updated_at: datetime
 

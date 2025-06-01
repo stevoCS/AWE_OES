@@ -5,6 +5,9 @@ import jwt
 from passlib.context import CryptContext
 from fastapi import HTTPException, status, Depends
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from bson import ObjectId
+
+from database.connection import get_collection
 
 # Password encryption context
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -60,6 +63,44 @@ async def get_current_user_id(credentials: HTTPAuthorizationCredentials = Depend
             detail="Invalid authentication token",
             headers={"WWW-Authenticate": "Bearer"},
         )
+    return user_id
+
+async def get_current_admin_user_id(credentials: HTTPAuthorizationCredentials = Depends(security)) -> str:
+    """Get current admin user ID - verifies admin privileges"""
+    token = credentials.credentials
+    payload = verify_token(token)
+    user_id: str = payload.get("sub")
+    
+    if user_id is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid authentication token",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    
+    # Verify user is admin
+    collection = await get_collection("customers")
+    
+    if not ObjectId.is_valid(user_id):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid user ID",
+        )
+    
+    user_data = await collection.find_one({"_id": ObjectId(user_id)})
+    
+    if not user_data:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="User not found",
+        )
+    
+    if not user_data.get("is_admin", False):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Admin privileges required",
+        )
+    
     return user_id
 
 def create_refresh_token(data: dict) -> str:

@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, Query
 from typing import Optional
 
 from controllers.tracking_controller import TrackingController
-from models.tracking import TrackingUpdate, TrackingSearch, TrackingEventType
+from models.tracking import TrackingUpdate, TrackingSearch, TrackingStatus
 from utils.auth import get_current_user_id
 from utils.response import success_response, paginate_response, APIResponse
 
@@ -40,7 +40,7 @@ async def get_tracking_summary(current_user_id: str = Depends(get_current_user_i
 async def search_tracking(
     order_number: Optional[str] = Query(None, description="Order number"),
     tracking_number: Optional[str] = Query(None, description="Tracking number"),
-    status: Optional[TrackingEventType] = Query(None, description="Tracking status"),
+    status: Optional[TrackingStatus] = Query(None, description="Tracking status"),
     page: int = Query(1, ge=1, description="Page number"),
     size: int = Query(20, ge=1, le=100, description="Items per page"),
     current_user_id: str = Depends(get_current_user_id)
@@ -74,10 +74,9 @@ async def update_tracking_status(
     """Update order tracking status (admin function)"""
     tracking = await TrackingController.update_tracking_by_order_id(
         order_id=order_id,
-        event_type=update_data.event_type,
-        description=update_data.description,
+        status=update_data.status,
+        description=update_data.description or "Status updated",
         location=update_data.location,
-        operator=update_data.operator,
         tracking_number=update_data.tracking_number
     )
     return success_response(data=tracking.dict(), message="Tracking status updated successfully")
@@ -87,7 +86,7 @@ async def admin_search_tracking(
     order_number: Optional[str] = Query(None, description="Order number"),
     tracking_number: Optional[str] = Query(None, description="Tracking number"),
     customer_id: Optional[str] = Query(None, description="Customer ID"),
-    status: Optional[TrackingEventType] = Query(None, description="Tracking status"),
+    status: Optional[TrackingStatus] = Query(None, description="Tracking status"),
     page: int = Query(1, ge=1, description="Page number"),
     size: int = Query(20, ge=1, le=100, description="Items per page"),
     current_user_id: str = Depends(get_current_user_id)

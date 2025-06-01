@@ -61,11 +61,17 @@ class AuthController:
     
     @staticmethod
     async def login_customer(login_data: CustomerLogin) -> dict:
-        """User login"""
+        """User login - supports both username and email"""
         collection = await get_collection("customers")
         
-        # Find user
-        user_doc = await collection.find_one({"username": login_data.username})
+        # Find user by username or email
+        user_doc = await collection.find_one({
+            "$or": [
+                {"username": login_data.username},
+                {"email": login_data.username}
+            ]
+        })
+        
         if not user_doc:
             raise APIException("Incorrect username or password", status.HTTP_401_UNAUTHORIZED)
         

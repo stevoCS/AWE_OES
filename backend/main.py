@@ -8,8 +8,9 @@ from routes.auth import router as auth_router
 from routes.products import router as products_router
 from routes.cart import router as cart_router
 from routes.admin import router as admin_router
-# from routes.orders import router as orders_router
-# from routes.tracking import router as tracking_router
+from routes.orders import router as orders_router
+from routes.tracking import router as tracking_router
+from routes.customers import router as customers_router
 
 # Load environment variables from config.env
 load_dotenv("config.env")
@@ -41,11 +42,10 @@ allowed_origins = [
 # CORS middleware configuration
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Temporarily allow all origins for immediate fix
-    allow_credentials=False,  # Must be False when using "*"
-    allow_methods=["*"],  # Allow all HTTP methods
-    allow_headers=["*"],  # Allow all request headers
-    expose_headers=["*"]  # Expose all response headers
+    allow_origins=["*"],  # Allow all origins
+    allow_credentials=False,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 # Register routes
@@ -53,8 +53,9 @@ app.include_router(auth_router, prefix="/api/auth", tags=["Authentication"])
 app.include_router(products_router, prefix="/api/products", tags=["Product Management"])
 app.include_router(cart_router, prefix="/api/cart", tags=["Shopping Cart"])
 app.include_router(admin_router, prefix="/api/admin", tags=["Admin Management"])
-# app.include_router(orders_router, prefix="/api/orders", tags=["Order Management"])
-# app.include_router(tracking_router, prefix="/api/tracking", tags=["Order Tracking"])
+app.include_router(orders_router, prefix="/api/orders", tags=["Order Management"])
+app.include_router(tracking_router, prefix="/api/tracking", tags=["Order Tracking"])
+app.include_router(customers_router, prefix="/api/customers", tags=["Customer Management"])
 
 @app.on_event("startup")
 async def startup_db_client():
@@ -123,4 +124,4 @@ if __name__ == "__main__":
         port=port,
         reload=debug,
         log_level="info"
-    ) 
+    )

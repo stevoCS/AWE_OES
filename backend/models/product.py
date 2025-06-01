@@ -90,6 +90,7 @@ class Product(ProductBase):
 class ProductResponse(ProductBase):
     """Product response model"""
     id: str
+    stock: Optional[int] = None
     created_at: datetime
     updated_at: datetime
     views_count: int

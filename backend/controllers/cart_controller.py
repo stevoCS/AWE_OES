@@ -15,6 +15,12 @@ class CartController:
     @staticmethod
     async def add_item_to_cart(customer_id: str, add_item: CartItemCreate) -> CartSummary:
         """Add item to shopping cart"""
+        # Validate ObjectIds
+        if not ObjectId.is_valid(customer_id):
+            raise APIException("Invalid customer ID", status.HTTP_400_BAD_REQUEST)
+        if not ObjectId.is_valid(add_item.product_id):
+            raise APIException("Invalid product ID", status.HTTP_400_BAD_REQUEST)
+        
         # Get product information
         product = await ProductController.get_product(add_item.product_id)
         
@@ -29,8 +35,8 @@ class CartController:
         
         # Check if item already exists in cart
         existing_item = await collection.find_one({
-            "customer_id": customer_id,
-            "product_id": add_item.product_id
+            "customer_id": ObjectId(customer_id),
+            "product_id": ObjectId(add_item.product_id)
         })
         
         if existing_item:
@@ -41,8 +47,8 @@ class CartController:
             
             await collection.update_one(
                 {
-                    "customer_id": customer_id,
-                    "product_id": add_item.product_id
+                    "customer_id": ObjectId(customer_id),
+                    "product_id": ObjectId(add_item.product_id)
                 },
                 {
                     "$set": {
@@ -53,17 +59,17 @@ class CartController:
             )
         else:
             # Add new item
-            cart_item = CartItem(
-                customer_id=customer_id,
-                product_id=add_item.product_id,
-                product_name=product.name,
-                product_price=product.price,
-                quantity=add_item.quantity,
-                created_at=datetime.now(),
-                updated_at=datetime.now()
-            )
+            cart_item_doc = {
+                "customer_id": ObjectId(customer_id),
+                "product_id": ObjectId(add_item.product_id),
+                "product_name": product.name,
+                "product_price": product.price,
+                "quantity": add_item.quantity,
+                "created_at": datetime.now(),
+                "updated_at": datetime.now()
+            }
             
-            await collection.insert_one(cart_item.dict(by_alias=True, exclude={"id"}))
+            await collection.insert_one(cart_item_doc)
         
         return await CartController.get_cart_summary(customer_id)
     
@@ -72,14 +78,22 @@ class CartController:
         """Get shopping cart summary"""
         collection = await get_collection("cart_items")
         
+        # Validate customer_id
+        if not ObjectId.is_valid(customer_id):
+            raise APIException("Invalid customer ID", status.HTTP_400_BAD_REQUEST)
+        
         # Get all cart items
-        cart_items = await collection.find({"customer_id": customer_id}).to_list(length=None)
+        cart_items = await collection.find({"customer_id": ObjectId(customer_id)}).to_list(length=None)
         
         # Convert to response model
         item_responses = []
         for item_doc in cart_items:
             item_doc["id"] = str(item_doc["_id"])
             del item_doc["_id"]
+            
+            # Convert ObjectIds to strings
+            item_doc["customer_id"] = str(item_doc["customer_id"])
+            item_doc["product_id"] = str(item_doc["product_id"])
             
             # Calculate subtotal
             subtotal = item_doc["product_price"] * item_doc["quantity"]
@@ -112,6 +126,12 @@ class CartController:
         """Update cart item"""
         collection = await get_collection("cart_items")
         
+        # Validate ObjectIds
+        if not ObjectId.is_valid(customer_id):
+            raise APIException("Invalid customer ID", status.HTTP_400_BAD_REQUEST)
+        if not ObjectId.is_valid(product_id):
+            raise APIException("Invalid product ID", status.HTTP_400_BAD_REQUEST)
+        
         # Check stock
         product = await ProductController.get_product(product_id)
         if update_data.quantity > product.stock_quantity:
@@ -120,8 +140,8 @@ class CartController:
         # Update cart item
         result = await collection.update_one(
             {
-                "customer_id": customer_id,
-                "product_id": product_id
+                "customer_id": ObjectId(customer_id),
+                "product_id": ObjectId(product_id)
             },
             {
                 "$set": {
@@ -141,9 +161,15 @@ class CartController:
         """Remove item from cart"""
         collection = await get_collection("cart_items")
         
+        # Validate ObjectIds
+        if not ObjectId.is_valid(customer_id):
+            raise APIException("Invalid customer ID", status.HTTP_400_BAD_REQUEST)
+        if not ObjectId.is_valid(product_id):
+            raise APIException("Invalid product ID", status.HTTP_400_BAD_REQUEST)
+        
         result = await collection.delete_one({
-            "customer_id": customer_id,
-            "product_id": product_id
+            "customer_id": ObjectId(customer_id),
+            "product_id": ObjectId(product_id)
         })
         
         if result.deleted_count == 0:
@@ -156,7 +182,11 @@ class CartController:
         """Clear shopping cart"""
         collection = await get_collection("cart_items")
         
-        result = await collection.delete_many({"customer_id": customer_id})
+        # Validate customer_id
+        if not ObjectId.is_valid(customer_id):
+            raise APIException("Invalid customer ID", status.HTTP_400_BAD_REQUEST)
+        
+        result = await collection.delete_many({"customer_id": ObjectId(customer_id)})
         
         return result.deleted_count >= 0
     
@@ -165,8 +195,12 @@ class CartController:
         """Get cart items count"""
         collection = await get_collection("cart_items")
         
+        # Validate customer_id
+        if not ObjectId.is_valid(customer_id):
+            raise APIException("Invalid customer ID", status.HTTP_400_BAD_REQUEST)
+        
         pipeline = [
-            {"$match": {"customer_id": customer_id}},
+            {"$match": {"customer_id": ObjectId(customer_id)}},
             {"$group": {"_id": None, "total": {"$sum": "$quantity"}}}
         ]
         

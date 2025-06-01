@@ -5,7 +5,7 @@ from fastapi import status
 
 from database.connection import get_collection
 from models.order import Order, OrderCreate, OrderUpdate, OrderResponse, OrderSearch, OrderItem, OrderStatus
-from models.tracking import OrderTracking, TrackingEventType
+from models.tracking import OrderTracking, TrackingStatus
 from controllers.cart_controller import CartController
 from controllers.product_controller import ProductController
 from utils.response import APIException
@@ -96,6 +96,13 @@ class OrderController:
         order_doc["id"] = str(order_doc["_id"])
         del order_doc["_id"]
         
+        # Ensure all required fields have default values
+        order_doc.setdefault("tracking_number", None)
+        order_doc.setdefault("paid_at", None)
+        order_doc.setdefault("shipped_at", None)
+        order_doc.setdefault("delivered_at", None)
+        order_doc.setdefault("notes", None)
+        
         return OrderResponse(**order_doc)
     
     @staticmethod
@@ -113,6 +120,13 @@ class OrderController:
         
         order_doc["id"] = str(order_doc["_id"])
         del order_doc["_id"]
+        
+        # Ensure all required fields have default values
+        order_doc.setdefault("tracking_number", None)
+        order_doc.setdefault("paid_at", None)
+        order_doc.setdefault("shipped_at", None)
+        order_doc.setdefault("delivered_at", None)
+        order_doc.setdefault("notes", None)
         
         return OrderResponse(**order_doc)
     
@@ -215,6 +229,14 @@ class OrderController:
         for order_doc in orders:
             order_doc["id"] = str(order_doc["_id"])
             del order_doc["_id"]
+            
+            # Ensure all required fields have default values
+            order_doc.setdefault("tracking_number", None)
+            order_doc.setdefault("paid_at", None)
+            order_doc.setdefault("shipped_at", None)
+            order_doc.setdefault("delivered_at", None)
+            order_doc.setdefault("notes", None)
+            
             order_responses.append(OrderResponse(**order_doc))
         
         return order_responses, total
@@ -248,7 +270,7 @@ class OrderController:
             "order_id": order_id,
             "order_number": order_number,
             "customer_id": customer_id,
-            "current_status": TrackingEventType.ORDER_CREATED
+            "current_status": TrackingStatus.ORDER_CREATED
         }
         
         await TrackingController.create_tracking(tracking_data)
@@ -260,12 +282,12 @@ class OrderController:
         
         # Status mapping
         status_mapping = {
-            OrderStatus.PAID: TrackingEventType.PAYMENT_RECEIVED,
-            OrderStatus.PROCESSING: TrackingEventType.PROCESSING,
-            OrderStatus.SHIPPED: TrackingEventType.SHIPPED,
-            OrderStatus.DELIVERED: TrackingEventType.DELIVERED,
-            OrderStatus.CANCELLED: TrackingEventType.CANCELLED,
-            OrderStatus.REFUNDED: TrackingEventType.REFUNDED
+            OrderStatus.PAID: TrackingStatus.PAYMENT_RECEIVED,
+            OrderStatus.PROCESSING: TrackingStatus.PROCESSING,
+            OrderStatus.SHIPPED: TrackingStatus.SHIPPED,
+            OrderStatus.DELIVERED: TrackingStatus.DELIVERED,
+            OrderStatus.CANCELLED: TrackingStatus.CANCELLED,
+            OrderStatus.REFUNDED: TrackingStatus.REFUNDED
         }
         
         if status in status_mapping:

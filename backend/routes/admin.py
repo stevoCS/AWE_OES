@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException
-from database.connection import get_database
+from database.connection import get_collection
 
 router = APIRouter()
 
@@ -8,8 +8,7 @@ async def fix_image_paths():
     """Fix image paths in products collection"""
     
     try:
-        db = await get_database()
-        collection = db["products"]
+        collection = await get_collection("products")
         
         # Find all products with /src/assets/ paths
         cursor = collection.find({"images": {"$regex": "^/src/assets/"}})
@@ -50,8 +49,7 @@ async def check_image_paths():
     """Check current image paths in products"""
     
     try:
-        db = await get_database()
-        collection = db["products"]
+        collection = await get_collection("products")
         
         # Get all products
         cursor = collection.find({})
