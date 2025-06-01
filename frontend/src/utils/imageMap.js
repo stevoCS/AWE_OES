@@ -171,6 +171,7 @@ const isDynamicImagePath = (imagePath) => {
   return imagePath && (
     imagePath.includes('/assets/products/') ||
     imagePath.startsWith('/src/assets/products/') ||
+    imagePath.startsWith('/src/assets/') ||
     imagePath.startsWith('http') ||
     dynamicImageCache.has(imagePath)
   );
@@ -207,11 +208,18 @@ export const getProductImageUrl = (item) => {
         return imagePath;
       }
       
-      // If it's a relative path, try to construct the full URL
-      if (imagePath.startsWith('/src/assets/products/') || imagePath.includes('/assets/products/')) {
-        const fullUrl = imagePath.startsWith('/src') ? imagePath : `/src${imagePath}`;
-        console.log('Returning constructed URL for uploaded image:', fullUrl);
-        return fullUrl;
+      // Fix the path: Convert /src/assets/ to /assets/products/
+      if (imagePath.startsWith('/src/assets/')) {
+        const filename = imagePath.split('/').pop();
+        const correctedPath = `/assets/products/${filename}`;
+        console.log('Corrected image path:', correctedPath);
+        return correctedPath;
+      }
+      
+      // If it already starts with /assets/products/, return as is
+      if (imagePath.startsWith('/assets/products/')) {
+        console.log('Returning correct public path:', imagePath);
+        return imagePath;
       }
       
       // Check dynamic cache
@@ -240,9 +248,16 @@ export const getProductImageUrl = (item) => {
         return item.image;
       }
       
-      if (item.image.includes('/assets/products/')) {
-        const fullUrl = item.image.startsWith('/src') ? item.image : `/src${item.image}`;
-        return fullUrl;
+      // Fix the path: Convert /src/assets/ to /assets/products/
+      if (item.image.startsWith('/src/assets/')) {
+        const filename = item.image.split('/').pop();
+        const correctedPath = `/assets/products/${filename}`;
+        console.log('Corrected item.image path:', correctedPath);
+        return correctedPath;
+      }
+      
+      if (item.image.startsWith('/assets/products/')) {
+        return item.image;
       }
       
       if (dynamicImageCache.has(item.image)) {

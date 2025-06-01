@@ -59,9 +59,13 @@ const AdminProductManagement = () => {
   const [formErrors, setFormErrors] = useState({});
   const [submitMessage, setSubmitMessage] = useState({ type: '', text: '' });
 
-  // Drag and Drop sensors
+  // Drag and Drop sensors with proper configuration
   const sensors = useSensors(
-    useSensor(PointerSensor),
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8,
+      },
+    }),
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
     })
@@ -322,28 +326,58 @@ const AdminProductManagement = () => {
     const newArrivals = homepageProducts.new || [];
     const bestSellers = homepageProducts.best || [];
     
-    // For each section, show up to 4 products
-    const newArrivalsDisplay = [...newArrivals].slice(0, 4);
-    const bestSellersDisplay = [...bestSellers].slice(0, 4);
+    console.log('Generating homepage preview:', {
+      newArrivals: newArrivals.length,
+      bestSellers: bestSellers.length,
+      editingProduct: editingProduct?.id
+    });
     
-    // Add placeholders if needed
-    while (newArrivalsDisplay.length < 4) {
-      newArrivalsDisplay.push({ 
-        id: `placeholder-new-${newArrivalsDisplay.length}`, 
-        name: 'Empty Slot', 
-        isPlaceholder: true 
-      });
+    // Mark current editing product if in a section
+    const newArrivalsDisplay = newArrivals.map(product => ({
+      ...product,
+      isCurrentProduct: editingProduct && editingProduct.id === product.id,
+      isPlaceholder: false
+    }));
+    
+    const bestSellersDisplay = bestSellers.map(product => ({
+      ...product,
+      isCurrentProduct: editingProduct && editingProduct.id === product.id,
+      isPlaceholder: false
+    }));
+    
+    // Add the editing product to the appropriate section if it has a homepage_section
+    if (editingProduct && formData.homepage_section) {
+      const editingProductData = {
+        ...editingProduct,
+        homepage_section: formData.homepage_section,
+        isCurrentProduct: true,
+        isPlaceholder: false
+      };
+      
+      // Remove from other sections first
+      const filteredNew = newArrivalsDisplay.filter(p => p.id !== editingProduct.id);
+      const filteredBest = bestSellersDisplay.filter(p => p.id !== editingProduct.id);
+      
+      if (formData.homepage_section === 'new') {
+        filteredNew.push(editingProductData);
+        return {
+          newArrivals: filteredNew.slice(0, 4),
+          bestSellers: filteredBest.slice(0, 4)
+        };
+      } else if (formData.homepage_section === 'best') {
+        filteredBest.push(editingProductData);
+        return {
+          newArrivals: filteredNew.slice(0, 4),
+          bestSellers: filteredBest.slice(0, 4)
+        };
+      }
     }
     
-    while (bestSellersDisplay.length < 4) {
-      bestSellersDisplay.push({ 
-        id: `placeholder-best-${bestSellersDisplay.length}`, 
-        name: 'Empty Slot', 
-        isPlaceholder: true 
-      });
-    }
-    
-    return { newArrivals: newArrivalsDisplay, bestSellers: bestSellersDisplay };
+    // Return up to 4 products from each section
+    return {
+      newArrivals: newArrivalsDisplay.slice(0, 4),
+      bestSellers: bestSellersDisplay.slice(0, 4)
+    };
   };
 
   // Handle drag end event
@@ -355,39 +389,93 @@ const AdminProductManagement = () => {
     const draggedProductId = active.id;
     const targetSection = over.id;
     
-    // Find the dragged product
-    const allProducts = [...homepageProducts.new, ...homepageProducts.best];
-    const draggedProduct = allProducts.find(p => p.id === draggedProductId);
+    console.log('Drag ended:', { draggedProductId, targetSection });
     
-    if (!draggedProduct || draggedProduct.homepage_section === targetSection) {
+    // Find the dragged product from all products
+    const draggedProduct = products.find(p => p.id === draggedProductId);
+    
+    if (!draggedProduct) {
+      console.warn('Dragged product not found:', draggedProductId);
+      return;
+    }
+    
+    // Check if the section actually changed
+    const currentSection = draggedProduct.homepage_section || '';
+    const newSection = targetSection === 'none' ? '' : targetSection;
+    
+    if (currentSection === newSection) {
+      console.log('No section change needed');
       return; // No change needed
     }
     
+    console.log('Updating product section:', {
+      productId: draggedProductId,
+      productName: draggedProduct.name,
+      from: currentSection || 'Not Displayed',
+      to: newSection || 'Not Displayed'
+    });
+    
     try {
       // Update product in database
-      const response = await productsApi.update(draggedProductId, {
-        homepage_section: targetSection === 'none' ? null : targetSection
-      });
+      const updateData = {
+        homepage_section: newSection || null
+      };
+      
+      const response = await productsApi.update(draggedProductId, updateData);
       
       if (response.success) {
-        // Refresh the data
-        loadProducts();
+        console.log('Product section updated successfully');
         
-        // Show success message temporarily
+        // Update local state immediately
+        setProducts(prevProducts => 
+          prevProducts.map(product => 
+            product.id === draggedProductId 
+              ? { ...product, homepage_section: newSection }
+              : product
+          )
+        );
+        
+        // Update homepage products state
+        const updatedProduct = { ...draggedProduct, homepage_section: newSection };
+        
+        setHomepageProducts(prev => {
+          const newState = {
+            new: prev.new.filter(p => p.id !== draggedProductId),
+            best: prev.best.filter(p => p.id !== draggedProductId)
+          };
+          
+          if (newSection === 'new') {
+            newState.new.push(updatedProduct);
+          } else if (newSection === 'best') {
+            newState.best.push(updatedProduct);
+          }
+          
+          return newState;
+        });
+        
+        // Show success message
+        const sectionNames = {
+          '': 'Not Displayed',
+          'new': 'New Arrivals',
+          'best': 'Best Sellers'
+        };
+        
         setSubmitMessage({
           type: 'success',
-          text: `Product moved to ${targetSection === 'none' ? 'Not Displayed' : targetSection === 'new' ? 'New Arrivals' : 'Best Sellers'} section`
+          text: `"${draggedProduct.name}" moved to ${sectionNames[newSection]} section`
         });
         
         setTimeout(() => {
           setSubmitMessage({ type: '', text: '' });
         }, 3000);
+      } else {
+        throw new Error(response.message || 'Failed to update product section');
       }
     } catch (error) {
       console.error('Failed to update product section:', error);
       setSubmitMessage({
         type: 'error',
-        text: 'Failed to move product. Please try again.'
+        text: `Failed to move "${draggedProduct.name}". Please try again.`
       });
       
       setTimeout(() => {
@@ -780,19 +868,24 @@ const AdminProductManagement = () => {
                         collisionDetection={closestCenter}
                         onDragEnd={handleDragEnd}
                       >
-                        {(() => {
-                          const previewData = generateHomepagePreview();
-                          
-                          return (
-                            <>
-                              <DropZone sectionId="new" title="New Arrivals" products={previewData.newArrivals} />
-                              <DropZone sectionId="best" title="Best Sellers" products={previewData.bestSellers} />
-                              
-                              {/* Not Displayed Zone */}
-                              <NotDisplayedDropZone />
-                            </>
-                          );
-                        })()}
+                        <SortableContext 
+                          items={[...homepageProducts.new, ...homepageProducts.best].map(p => p.id)}
+                          strategy={verticalListSortingStrategy}
+                        >
+                          {(() => {
+                            const previewData = generateHomepagePreview();
+                            
+                            return (
+                              <>
+                                <DropZone sectionId="new" title="New Arrivals" products={previewData.newArrivals} />
+                                <DropZone sectionId="best" title="Best Sellers" products={previewData.bestSellers} />
+                                
+                                {/* Not Displayed Zone */}
+                                <NotDisplayedDropZone />
+                              </>
+                            );
+                          })()}
+                        </SortableContext>
                       </DndContext>
                     </div>
                   </div>
@@ -853,4 +946,4 @@ const AdminProductManagement = () => {
   );
 };
 
-export default AdminProductManagement; 
+export default AdminProductManagement;
