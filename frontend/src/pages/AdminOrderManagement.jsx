@@ -60,8 +60,8 @@ const AdminOrderManagement = () => {
     try {
       console.log('Updating order status:', orderId, 'to', newStatus);
       
-      // Pass status string, adminApi will automatically wrap as { status: newStatus }
-      const response = await ordersApi.update(orderId, { status: newStatus });
+      // Call the correct updateStatus method
+      const response = await ordersApi.updateStatus(orderId, newStatus);
       
       if (response.success) {
         console.log('Order status updated successfully');
