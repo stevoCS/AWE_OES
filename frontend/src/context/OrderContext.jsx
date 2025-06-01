@@ -70,21 +70,70 @@ export const OrderProvider = ({ children }) => {
       });
       
       if (response.success && response.data && response.data.items) {
-        const backendOrders = response.data.items.map(order => ({
-          id: order.order_number,
-          orderNumber: order.order_number,
-          date: new Date(order.created_at).toLocaleDateString(),
-          total: order.total_amount,
-          status: order.status,
-          estimatedDelivery: order.expected_delivery_date ? 
-            new Date(order.expected_delivery_date).toLocaleDateString() : 
-            new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toLocaleDateString(),
-          items: order.items || [],
-          createdAt: order.created_at,
-          userId: user?.id || user?.email // Associate with current user
-        }));
+        const backendOrders = response.data.items.map(order => {
+          // Map backend item structure to frontend structure
+          const mappedItems = (order.items || []).map((item, index) => {
+            console.log(`OrderContext - Mapping backend item ${index}:`, item);
+            
+            // Create proper frontend item structure
+            const mappedItem = {
+              id: item.product_id || `item-${index}`,
+              name: item.product_name || 'Unknown Product',
+              price: Number(item.product_price) || 0,
+              quantity: Number(item.quantity) || 1,
+              // Add additional properties for compatibility
+              productId: item.product_id,
+              product_name: item.product_name, // Keep original for image mapping
+              product_price: item.product_price // Keep original for reference
+            };
+            
+            console.log(`OrderContext - Mapped frontend item ${index}:`, mappedItem);
+            return mappedItem;
+          });
+
+          // Map status to frontend format
+          const statusMapping = {
+            'pending': 'Processing',
+            'paid': 'Processing', 
+            'processing': 'Processing',
+            'shipped': 'Shipped',
+            'delivered': 'Delivered',
+            'cancelled': 'Cancelled',
+            'refunded': 'Cancelled'
+          };
+
+          return {
+            id: order.order_number,
+            orderNumber: order.order_number,
+            date: new Date(order.created_at).toLocaleDateString(),
+            total: Number(order.total_amount) || 0,
+            status: statusMapping[order.status] || 'Processing',
+            estimatedDelivery: order.expected_delivery_date ? 
+              new Date(order.expected_delivery_date).toLocaleDateString() : 
+              new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toLocaleDateString(),
+            items: mappedItems,
+            createdAt: order.created_at,
+            userId: user?.id || user?.email, // Associate with current user
+            // Add additional order fields for OrderDetail.jsx compatibility
+            shippingAddress: {
+              fullName: order.shipping_address?.recipient_name || 'Customer',
+              phone: order.shipping_address?.phone || '',
+              street: order.shipping_address?.address_line1 || '',
+              city: order.shipping_address?.city || '',
+              state: order.shipping_address?.state || '',
+              postalCode: order.shipping_address?.postal_code || '',
+              country: order.shipping_address?.country || 'Australia'
+            },
+            paymentMethod: order.payment_method === 'credit_card' ? 'card' : 
+                          order.payment_method === 'paypal' ? 'paypal' : 
+                          order.payment_method === 'digital_wallet' ? 'apple_pay' : 'card',
+            subtotal: Number(order.subtotal) || mappedItems.reduce((sum, item) => sum + (item.price * item.quantity), 0),
+            tax: Number(order.tax_amount) || 0,
+            shipping: Number(order.shipping_fee) || 0
+          };
+        });
         
-        console.log('OrderContext - Loaded orders from backend:', backendOrders);
+        console.log('OrderContext - Loaded and mapped orders from backend:', backendOrders);
         setOrders(backendOrders);
         
         // Save to user-specific localStorage
@@ -193,18 +242,53 @@ export const OrderProvider = ({ children }) => {
       userId: user?.id || user?.email // Associate with current user
     };
 
-    // If user is logged in, save to backend
+    // If user is logged in, try to save to backend
     if (isLoggedIn && user) {
       try {
-        console.log('OrderContext - Saving order to backend for user:', user?.id || user?.email);
+        console.log('OrderContext - Attempting to save order to backend for user:', user?.id || user?.email);
         
-        // Convert order data to backend format
+        // First, try to add items to cart if not already there
+        if (orderData.items && orderData.items.length > 0) {
+          console.log('OrderContext - Adding order items to cart before creating order');
+          try {
+            // Import CartContext functions
+            const { addToCart } = await import('./CartContext');
+            
+            // Add each item to cart
+            for (const item of orderData.items) {
+              const productData = {
+                id: item.id,
+                name: item.name,
+                price: item.price,
+                images: item.image ? [item.image] : []
+              };
+              
+              // This will add to cart if user is logged in
+              // We don't await this to avoid blocking the order creation
+              addToCart?.(productData, item.quantity).catch(err => {
+                console.warn('OrderContext - Failed to add item to cart:', err);
+              });
+            }
+            
+            // Give a brief moment for cart operations to complete
+            await new Promise(resolve => setTimeout(resolve, 500));
+          } catch (cartError) {
+            console.warn('OrderContext - Could not add items to cart:', cartError);
+          }
+        }
+        
+        // Convert order data to backend format for direct order creation
         const backendOrderData = {
-          payment_method: orderData.paymentMethod === 'card' ? 'credit_card' : 
-                          orderData.paymentMethod === 'paypal' ? 'paypal' : 'credit_card',
+          items: orderData.items.map(item => ({
+            product_id: item.id,
+            product_name: item.name,
+            product_price: item.price,
+            quantity: item.quantity,
+            subtotal: item.price * item.quantity
+          })),
           shipping_address: {
-            recipient_name: orderData.shippingAddress?.fullName || 'Customer',
-            phone: orderData.shippingAddress?.phone || '',
+            recipient_name: orderData.shippingAddress?.fullName || user?.firstName || 'Customer',
+            phone: orderData.shippingAddress?.phone || user?.phone || '',
             address_line1: orderData.shippingAddress?.street || '',
             address_line2: '',
             city: orderData.shippingAddress?.city || '',
@@ -212,31 +296,55 @@ export const OrderProvider = ({ children }) => {
             postal_code: orderData.shippingAddress?.postalCode || '',
             country: orderData.shippingAddress?.country || 'Australia'
           },
-          notes: `Order created via frontend payment - Payment Method: ${orderData.paymentMethod || 'card'}`
+          payment_method: orderData.paymentMethod === 'card' ? 'credit_card' : 
+                          orderData.paymentMethod === 'paypal' ? 'paypal' : 
+                          orderData.paymentMethod === 'apple_pay' ? 'digital_wallet' : 'credit_card',
+          subtotal: orderData.subtotal || 0,
+          tax_amount: orderData.tax || 0,
+          shipping_fee: orderData.shipping || 0,
+          total_amount: orderData.total || 0,
+          notes: `Direct order creation - Payment: ${orderData.paymentMethod || 'card'} - Total: $${orderData.total}`
         };
         
-        console.log('OrderContext - Backend order data:', backendOrderData);
+        console.log('OrderContext - Backend direct order data:', backendOrderData);
         
-        const response = await ordersAPI.createOrder(backendOrderData);
+        // Use direct order creation API
+        const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'}/api/orders/direct`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('access_token')}`
+          },
+          body: JSON.stringify(backendOrderData)
+        });
         
-        if (response.success && response.data) {
-          console.log('OrderContext - Order saved to backend successfully:', response.data);
+        const result = await response.json();
+        
+        if (result.success && result.data) {
+          console.log('OrderContext - Order saved to backend successfully:', result.data);
           
           // Update the order with backend data
-          newOrder.id = response.data.order_number;
-          newOrder.orderNumber = response.data.order_number;
-          newOrder.status = response.data.status;
-          newOrder.createdAt = response.data.created_at;
-          newOrder.total = response.data.total_amount;
+          newOrder.id = result.data.order_number || result.data.id;
+          newOrder.orderNumber = result.data.order_number || result.data.id;
+          newOrder.status = result.data.status || 'paid';
+          newOrder.createdAt = result.data.created_at || new Date().toISOString();
+          newOrder.total = result.data.total_amount || orderData.total;
+          
+          console.log('OrderContext - Order successfully synced with backend');
+        } else {
+          console.warn('OrderContext - Backend order creation failed, continuing with local storage');
         }
       } catch (error) {
         console.error('OrderContext - Failed to save order to backend:', error);
         console.error('OrderContext - Error details:', error.message);
-        // Continue with local storage as fallback
+        
+        // Set status to indicate backend sync failed but order is valid locally
+        newOrder.status = 'pending_sync';
+        console.log('OrderContext - Order marked as pending sync, will try again later');
       }
     }
 
-    // Update local state
+    // Update local state (always do this regardless of backend success)
     setOrders(prevOrders => {
       const updatedOrders = [newOrder, ...prevOrders];
       console.log('OrderContext - Updated orders array for user:', user?.id || user?.email, updatedOrders);

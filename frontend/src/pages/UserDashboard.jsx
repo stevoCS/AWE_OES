@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { SearchIcon, ShoppingCartIcon } from '../components/ui/icons';
-import { Button } from '../components/ui/button';
+
 import { useUser } from '../context/UserContext';
 import { useOrders } from '../context/OrderContext';
 import { useCart } from '../context/CartContext';
@@ -103,7 +103,12 @@ export const UserDashboard = () => {
     const totalOrders = orders.length;
     const totalSpent = orders.reduce((sum, order) => sum + (order.total || 0), 0);
     const recentOrders = orders.slice(0, 3);
-    const pendingOrders = orders.filter(order => order.status === 'confirmed' || order.status === 'processing').length;
+    const pendingOrders = orders.filter(order => 
+      order.status === 'Processing' || 
+      order.status === 'Prepared' || 
+      order.status === 'Shipped' || 
+      order.status === 'Out for Delivery'
+    ).length;
     
     return {
       totalOrders,
@@ -118,6 +123,12 @@ export const UserDashboard = () => {
   // Render order status badge
   const renderStatusBadge = (status) => {
     const statusConfig = {
+      'Processing': { bg: theme.warning + '20', color: theme.warning, text: 'Processing' },
+      'Prepared': { bg: theme.primary + '20', color: theme.primary, text: 'Prepared' },
+      'Shipped': { bg: theme.primary + '20', color: theme.primary, text: 'Shipped' },
+      'Out for Delivery': { bg: theme.info + '20', color: theme.info, text: 'Out for Delivery' },
+      'Delivered': { bg: theme.success + '20', color: theme.success, text: 'Delivered' },
+      'Cancelled': { bg: theme.error + '20', color: theme.error, text: 'Cancelled' },
       'confirmed': { bg: theme.success + '20', color: theme.success, text: 'Confirmed' },
       'processing': { bg: theme.warning + '20', color: theme.warning, text: 'Processing' },
       'shipped': { bg: theme.primary + '20', color: theme.primary, text: 'Shipped' },
@@ -125,7 +136,7 @@ export const UserDashboard = () => {
       'cancelled': { bg: theme.error + '20', color: theme.error, text: 'Cancelled' }
     };
 
-    const config = statusConfig[status] || statusConfig['confirmed'];
+    const config = statusConfig[status] || statusConfig['Processing'];
     
     return (
       <span style={{

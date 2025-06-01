@@ -26,14 +26,14 @@ export const UserProvider = ({ children }) => {
     const accessToken = localStorage.getItem('access_token');
     
     if (accessToken) {
-      // 尝试从旧的通用键恢复数据（向后兼容）
+      // Try to recover data from legacy generic key (backward compatibility)
       const savedUser = localStorage.getItem('user');
       
       if (savedUser) {
         try {
           const userData = JSON.parse(savedUser);
           if (userData.email) {
-            // 迁移到新的email特定键
+            // Migrate to new email-specific key
             const emailKey = userData.email.replace(/[@\.]/g, '_');
             const userDataKey = `userData_${emailKey}`;
             localStorage.setItem(userDataKey, savedUser);
@@ -43,6 +43,36 @@ export const UserProvider = ({ children }) => {
         } catch (error) {
           console.error('Error parsing user data:', error);
           localStorage.removeItem('user');
+          localStorage.removeItem('access_token');
+          localStorage.removeItem('refresh_token');
+        }
+      } else {
+        // If no generic user data, try to find email-specific data
+        // Since we don't know which email to look for, check all userData_ keys
+        let foundUserData = null;
+        
+        for (let i = 0; i < localStorage.length; i++) {
+          const key = localStorage.key(i);
+          if (key && key.startsWith('userData_')) {
+            try {
+              const userData = JSON.parse(localStorage.getItem(key));
+              if (userData && userData.email) {
+                foundUserData = userData;
+                console.log('Found user data in email-specific key:', key, userData);
+                break;
+              }
+            } catch (error) {
+              console.warn('Could not parse data from key:', key);
+            }
+          }
+        }
+        
+        if (foundUserData) {
+          setUser(foundUserData);
+          console.log('Restored user data from email-specific storage:', foundUserData);
+        } else {
+          // No valid user data found, clear invalid token
+          console.log('No valid user data found, clearing token');
           localStorage.removeItem('access_token');
           localStorage.removeItem('refresh_token');
         }
@@ -97,7 +127,6 @@ export const UserProvider = ({ children }) => {
         localStorage.setItem('access_token', accessToken);
         localStorage.setItem('refresh_token', refreshToken);
         
-      
         const emailKey = email.replace(/[@\.]/g, '_');
         const userDataKey = `userData_${emailKey}`;
         const customDataKey = `userCustomData_${emailKey}`;
@@ -126,6 +155,7 @@ export const UserProvider = ({ children }) => {
               avatar: parsedData.avatar,
               bio: parsedData.bio,
               phone: parsedData.phone,
+              address: parsedData.address,
               // Preserve any other custom fields the user might have modified
               ...Object.fromEntries(
                 Object.entries(parsedData).filter(([key]) => 
@@ -148,7 +178,7 @@ export const UserProvider = ({ children }) => {
           fullName: userData.full_name,
           username: userData.username,
           loginTime: new Date().toISOString(),
-          // Merge preserved custom data
+          // Merge preserved custom data with priority
           ...savedCustomData
         };
         
@@ -160,9 +190,13 @@ export const UserProvider = ({ children }) => {
             console.log('Login - Retrieved updated profile from backend:', backendProfile);
             
             // Merge backend profile data with formatted user data
+            // Backend data takes precedence over saved data, but saved data takes precedence over null/undefined
             formattedUser.phone = backendProfile.phone || savedCustomData.phone || '';
             formattedUser.bio = backendProfile.bio || savedCustomData.bio || '';
             formattedUser.avatar = backendProfile.avatar || savedCustomData.avatar || null;
+            formattedUser.address = backendProfile.address || savedCustomData.address || '';
+            
+            console.log('Login - Final user data after merging backend profile:', formattedUser);
           }
         } catch (profileError) {
           console.warn('Login - Could not fetch updated profile:', profileError.message);

@@ -99,16 +99,24 @@ const Payment = () => {
 
   const getShippingCost = () => {
     const subtotal = calculateSubtotal();
-    return subtotal >= 100 ? 0 : 15; // Free shipping over $100
+    return subtotal >= 100 ? 0 : 15; // Free shipping over $100 AUD
+  };
+
+  // Australian GST calculation (10%)
+  const calculateGST = () => {
+    const subtotal = calculateSubtotal();
+    return subtotal * 0.10; // 10% GST
   };
 
   const getTaxAmount = () => {
-    const subtotal = calculateSubtotal();
-    return subtotal * 0.08; // 8% tax rate
+    return calculateGST(); // Use GST calculation
   };
 
   const calculateTotal = () => {
-    return calculateSubtotal() + getShippingCost() + getTaxAmount();
+    const subtotal = calculateSubtotal();
+    const shipping = getShippingCost();
+    const gst = calculateGST();
+    return subtotal + shipping + gst;
   };
 
   const formatPrice = (price) => {
@@ -470,9 +478,9 @@ const Payment = () => {
         navigate('/payment-failed');
       }
     } catch (error) {
-      console.error('Payment error:', error);
-      alert('支付处理失败，请重试。');
-      navigate('/payment-failed');
+      console.error('Payment processing failed:', error);
+      alert('Payment processing failed, please try again.');
+      setPaymentStatus({ status: 'failed', message: 'Payment failed, please try again' });
     } finally {
       // Only reset isProcessing if payment was not successful
       if (!paymentSuccessful) {
@@ -711,14 +719,6 @@ const Payment = () => {
                 textAlign: 'center',
                 marginBottom: '32px'
               }}>
-                <div style={{ fontSize: '48px', marginBottom: '16px' }}></div>
-                <p style={{ fontSize: '16px', color: '#607589', marginBottom: '16px' }}>
-                  Use Touch ID or Face ID to pay with Apple Pay
-                </p>
-                <div style={{ fontSize: '14px', color: '#607589' }}>
-                  Secure payment with Apple Pay
-                </div>
-
                 <p style={{ fontSize: '16px', color: theme?.textSecondary || '#607589', marginBottom: '16px' }}>
                   Use Touch ID or Face ID to pay with Apple Pay
                 </p>
@@ -874,7 +874,7 @@ const Payment = () => {
                 justifyContent: 'space-between',
                 marginBottom: '16px'
               }}>
-                <span style={{ fontSize: '14px', color: theme?.textSecondary || '#607589' }}>Tax:</span>
+                <span style={{ fontSize: '14px', color: theme?.textSecondary || '#607589' }}>GST (10%):</span>
                 <span style={{ fontSize: '14px', color: theme?.textPrimary || '#121417' }}>{formatPrice(getTaxAmount())}</span>
               </div>
               <div style={{

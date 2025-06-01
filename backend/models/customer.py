@@ -53,11 +53,12 @@ class CustomerCreate(CustomerBase):
 
 class CustomerUpdate(BaseModel):
     """Customer update model"""
+    username: Optional[str] = None
+    email: Optional[str] = None
     full_name: Optional[str] = None
     phone: Optional[str] = None
     address: Optional[str] = None
-    avatar: Optional[str] = None
-    bio: Optional[str] = None
+    is_active: Optional[bool] = None
 
 class CustomerSearch(BaseModel):
     """Customer search model"""
@@ -97,9 +98,21 @@ class CustomerResponse(CustomerBase):
     is_admin: Optional[bool] = False
     created_at: datetime
     updated_at: datetime
+    total_orders: Optional[int] = 0
+    total_spent: Optional[float] = 0.0
 
     model_config = ConfigDict(
         populate_by_name=True,
         arbitrary_types_allowed=True,
         json_encoders={ObjectId: str}
-    ) 
+    )
+
+class ChangePasswordRequest(BaseModel):
+    current_password: str
+    new_password: str
+    
+    @validator('new_password')
+    def validate_new_password(cls, v):
+        if len(v) < 6:
+            raise ValueError('New password must be at least 6 characters long')
+        return v 

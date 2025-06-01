@@ -1,0 +1,336 @@
+/* Admin Layout - 根据 Figma 设计 */
+.admin-layout {
+  font-family: 'Space Grotesk', Arial, sans-serif;
+  background: #FFFFFF;
+  color: #121417;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ==================== Header ==================== */
+.admin-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 40px;
+  background: #FFFFFF;
+  border-bottom: 1px solid #E5E8EB;
+  height: 65px;
+  box-sizing: border-box;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.admin-header-left {
+  display: flex;
+  align-items: center;
+}
+
+.admin-brand {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.admin-logo-icon {
+  width: 16px;
+  height: 16px;
+}
+
+.admin-brand-text {
+  font-weight: 700;
+  font-size: 18px;
+  line-height: 1.2777777777777777em;
+  color: #121417;
+}
+
+.admin-header-right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.admin-token-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  background: #F8F9FA;
+  border-radius: 8px;
+  border: 1px solid #E5E8EB;
+}
+
+.admin-token-indicator {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+.admin-token-time {
+  font-family: 'Space Grotesk', Arial, monospace;
+  font-weight: 500;
+  font-size: 13px;
+  color: #6B7582;
+  min-width: 45px;
+  text-align: right;
+}
+
+.admin-logout-btn {
+  background: #EF4444;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-weight: 500;
+  font-size: 13px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.admin-logout-btn:hover {
+  background: #DC2626;
+}
+
+.admin-header-title {
+  font-weight: 500;
+  font-size: 14px;
+  line-height: 1.5em;
+  color: #121417;
+}
+
+/* ==================== Main Container ==================== */
+.admin-main-container {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+/* ==================== Sidebar ==================== */
+.admin-sidebar {
+  width: 320px;
+  background: #FFFFFF;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 16px;
+  box-sizing: border-box;
+  border-right: 4px solid transparent; /* 为了保持布局稳定 */
+}
+
+.admin-sidebar-header {
+  margin-bottom: 16px;
+}
+
+.admin-sidebar-title {
+  font-weight: 500;
+  font-size: 16px;
+  line-height: 1.5em;
+  color: #121417;
+  margin: 0;
+  margin-bottom: 16px;
+}
+
+.admin-sidebar-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1;
+}
+
+.admin-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 12px;
+  border-radius: 12px;
+  text-decoration: none;
+  color: #121417;
+  transition: background-color 0.2s ease;
+  font-weight: 500;
+  font-size: 14px;
+  line-height: 1.5em;
+}
+
+.admin-nav-item:hover {
+  background-color: #F2F2F5;
+}
+
+.admin-nav-item.active {
+  background-color: #F2F2F5;
+}
+
+.admin-nav-icon {
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+}
+
+.admin-nav-icon-svg {
+  width: 20px;
+  height: 20px;
+  filter: brightness(0) saturate(100%) invert(7%) sepia(8%) saturate(5469%) hue-rotate(190deg) brightness(95%) contrast(86%);
+  transition: filter 0.2s ease;
+}
+
+.admin-nav-item:hover .admin-nav-icon-svg,
+.admin-nav-item.active .admin-nav-icon-svg {
+  filter: brightness(0) saturate(100%) invert(31%) sepia(93%) saturate(2779%) hue-rotate(207deg) brightness(99%) contrast(95%);
+}
+
+.admin-nav-text {
+  font-weight: 500;
+  font-size: 14px;
+  line-height: 1.5em;
+  color: #121417;
+}
+
+.admin-sidebar-footer {
+  margin-top: auto;
+  padding-top: 16px;
+}
+
+.admin-nav-item.view-store {
+  border-top: 4px solid transparent;
+  margin-top: 4px;
+  padding-top: 12px;
+}
+
+/* ==================== Main Content ==================== */
+.admin-content {
+  flex: 1;
+  background: #FFFFFF;
+  overflow-y: auto;
+  padding: 20px 24px;
+}
+
+/* ==================== Footer ==================== */
+.admin-footer {
+  background: #FFFFFF;
+  border-top: 1px solid #E5E8EB;
+  padding: 40px 20px;
+  margin-top: auto;
+}
+
+.admin-footer-content {
+  max-width: 1280px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+}
+
+.admin-footer-links {
+  display: flex;
+  justify-content: center;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+
+.admin-footer-link {
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 1.5em;
+  color: #61758A;
+  text-decoration: none;
+  text-align: center;
+  transition: color 0.2s ease;
+}
+
+.admin-footer-link:hover {
+  color: #121417;
+}
+
+.admin-footer-copyright {
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 1.5em;
+  color: #61758A;
+  text-align: center;
+}
+
+/* ==================== Responsive Design ==================== */
+@media (max-width: 1024px) {
+  .admin-sidebar {
+    width: 280px;
+  }
+  
+  .admin-content {
+    padding: 16px 20px;
+  }
+}
+
+@media (max-width: 768px) {
+  .admin-header {
+    padding: 12px 16px;
+  }
+  
+  .admin-sidebar {
+    width: 260px;
+  }
+  
+  .admin-brand-text {
+    font-size: 16px;
+  }
+  
+  .admin-content {
+    padding: 12px 16px;
+  }
+  
+  .admin-footer {
+    padding: 24px 16px;
+  }
+  
+  .admin-footer-links {
+    flex-direction: column;
+    gap: 16px;
+  }
+}
+
+@media (max-width: 640px) {
+  .admin-main-container {
+    flex-direction: column;
+  }
+  
+  .admin-sidebar {
+    width: 100%;
+    flex-direction: row;
+    padding: 8px 16px;
+    overflow-x: auto;
+  }
+  
+  .admin-sidebar-nav {
+    flex-direction: row;
+    gap: 8px;
+    flex: 1;
+  }
+  
+  .admin-nav-item {
+    white-space: nowrap;
+    min-width: fit-content;
+  }
+  
+  .admin-sidebar-footer {
+    margin-top: 0;
+    padding-top: 0;
+    padding-left: 16px;
+  }
+} 

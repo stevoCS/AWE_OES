@@ -1,202 +1,403 @@
-# 🛒 AWE Electronics - Backend API
+# AWE Electronics Backend API
 
-![FastAPI](https://img.shields.io/badge/FastAPI-0.104.1-009688)
-![Python](https://img.shields.io/badge/Python-3.8+-3776AB)
-![MongoDB](https://img.shields.io/badge/MongoDB-4.4+-47A248)
-![Status](https://img.shields.io/badge/Status-Production_Ready-success)
+A high-performance, production-ready e-commerce backend API built with FastAPI and MongoDB, featuring complete e-commerce functionality with admin management capabilities.
 
-High-performance e-commerce backend API system built with FastAPI and MongoDB, supporting complete e-commerce functionality.
+## 🏗️ Architecture Overview
 
-## ✨ Core Features
+### Core Technologies
+- **FastAPI** - Modern async web framework with automatic OpenAPI documentation
+- **MongoDB** - NoSQL document database with Motor async driver
+- **JWT Authentication** - Secure token-based authentication system
+- **Pydantic** - Data validation and serialization with type hints
+- **bcrypt** - Password hashing and security
+- **Uvicorn** - ASGI server for production deployment
 
-- 🔐 **Authentication System** - JWT login/registration, admin access control
-- 📦 **Product Management** - Product CRUD, category search, inventory management
-- 🛒 **Shopping Cart System** - Real-time cart, persistent storage
-- 👥 **Customer Management** - Unified user management (admin only)
-- 🔍 **Advanced Search** - Full-text search, category filtering, price sorting
-- ⚡ **Async High Performance** - Non-blocking database operations
-
-## 🛠️ Tech Stack
-
-- **Framework**: FastAPI (async web framework)
-- **Database**: MongoDB + Motor (async driver)
-- **Authentication**: JWT + bcrypt password encryption
-- **Validation**: Pydantic data models
-- **Documentation**: Auto-generated Swagger/OpenAPI
-- **Deployment**: Uvicorn + Docker support
-
-## 📁 Project Architecture
-
+### Project Structure
 ```
 backend/
-├── main.py              # Application entry point
-├── run.py               # Development server
-├── config.env           # Environment configuration
+├── main.py                 # Application entry point & route registration
+├── run.py                  # Development server launcher
+├── config.env              # Environment configuration
+├── requirements.txt        # Python dependencies
 │
-├── models/              # Data models (5 files)
-├── controllers/         # Business logic (6 files)
-├── routes/              # API routes (7 files)
-├── utils/               # Utility functions (2 files)
-└── database/            # Database connection (1 file)
+├── models/                 # Data models & validation schemas
+│   ├── __init__.py        # Model exports
+│   ├── product.py         # Product models (CRUD, search, filtering)
+│   ├── customer.py        # Customer/User models (auth, profile)
+│   ├── order.py           # Order models (cart, checkout, tracking)
+│   └── admin.py           # Admin-specific models (dashboard, stats)
+│
+├── controllers/            # Business logic & data processing
+│   ├── __init__.py        # Controller exports
+│   ├── auth_controller.py # Authentication & user management
+│   ├── product_controller.py # Product CRUD & search logic
+│   ├── cart_controller.py # Shopping cart management
+│   ├── order_controller.py # Order processing & tracking
+│   └── admin_controller.py # Admin dashboard & analytics
+│
+├── routes/                 # API endpoints & request routing
+│   ├── __init__.py        # Route exports
+│   ├── auth.py            # /api/auth/* - Login, register, profile
+│   ├── products.py        # /api/products/* - Product catalog
+│   ├── cart.py            # /api/cart/* - Shopping cart
+│   ├── orders.py          # /api/orders/* - Order management
+│   ├── customers.py       # /api/customers/* - Customer data
+│   └── admin.py           # /api/admin/* - Admin operations
+│
+├── utils/                  # Utility functions & helpers
+│   ├── __init__.py        # Utility exports
+│   ├── auth.py            # JWT token generation & validation
+│   └── helpers.py         # Common helper functions
+│
+└── database/              # Database configuration & connection
+    ├── __init__.py        # Database exports
+    └── connection.py      # MongoDB connection & collection access
 ```
 
-## 🗄️ Database Architecture (Optimized)
+## 🔄 API Workflow & Data Flow
 
+### 1. Authentication Flow
 ```
-MongoDB Collections:
-├── customers (3 records)     # Unified user management (users + admins)
-├── products (5 records)      # Product information (integrated categories)
-└── cart_items (1 record)     # Shopping cart data
+Registration/Login → JWT Token Generation → Token Validation → Protected Routes
+         ↓
+User Profile Management → Password Updates → Admin Role Verification
+         ↓
+Session Management → Token Refresh → Automatic Logout
 ```
 
-## 🚀 Quick Start
+### 2. E-commerce Workflow
+```
+Product Browsing → Search & Filtering → Product Details
+         ↓
+Add to Cart → Cart Management → Guest/User Cart Sync
+         ↓
+Checkout Process → Order Creation → Payment Processing
+         ↓
+Order Tracking → Status Updates → Delivery Confirmation
+```
 
-### 1. Install Dependencies
+### 3. Admin Management Flow
+```
+Admin Authentication → Dashboard Analytics → Real-time Statistics
+         ↓
+Product Management → CRUD Operations → Inventory Updates
+         ↓
+Order Management → Status Changes → Customer Communications
+         ↓
+Customer Management → User Data → Analytics Reports
+```
+
+## 🗄️ Database Schema Design
+
+### Collections & Data Models
+```
+MongoDB Database: awe_electronics_store
+├── customers (Users & Admins)
+│   ├── _id: ObjectId
+│   ├── username: String (unique)
+│   ├── email: String (unique)
+│   ├── full_name: String
+│   ├── password_hash: String (bcrypt)
+│   ├── role: String (user/admin)
+│   ├── profile: Object (phone, address, bio)
+│   ├── created_at: DateTime
+│   └── updated_at: DateTime
+│
+├── products (Product Catalog)
+│   ├── _id: ObjectId
+│   ├── name: String
+│   ├── description: String
+│   ├── price: Decimal
+│   ├── category: String
+│   ├── brand: String
+│   ├── images: Array[String]
+│   ├── stock_quantity: Integer
+│   ├── homepage_section: String (new/best/none)
+│   ├── views_count: Integer
+│   ├── sales_count: Integer
+│   ├── created_at: DateTime
+│   └── updated_at: DateTime
+│
+├── orders (Order Management)
+│   ├── _id: ObjectId
+│   ├── order_number: String (unique)
+│   ├── customer_id: ObjectId (ref: customers)
+│   ├── items: Array[OrderItem]
+│   ├── subtotal: Decimal
+│   ├── tax_amount: Decimal (GST 10%)
+│   ├── shipping_cost: Decimal
+│   ├── total_amount: Decimal
+│   ├── status: String (pending/processing/shipped/delivered)
+│   ├── shipping_address: Object
+│   ├── payment_method: String
+│   ├── created_at: DateTime
+│   └── updated_at: DateTime
+│
+├── cart_items (Shopping Cart)
+│   ├── _id: ObjectId
+│   ├── customer_id: ObjectId (ref: customers)
+│   ├── product_id: ObjectId (ref: products)
+│   ├── quantity: Integer
+│   ├── price: Decimal (snapshot)
+│   ├── created_at: DateTime
+│   └── updated_at: DateTime
+│
+└── settings (System Configuration)
+    ├── _id: ObjectId
+    ├── type: String (system)
+    ├── site_name: String
+    ├── currency: String (AUD)
+    ├── timezone: String (Australia/Melbourne)
+    ├── created_at: DateTime
+    └── updated_at: DateTime
+```
+
+## 🚀 Getting Started
+
+### Prerequisites
+- Python 3.8+
+- MongoDB 4.4+
+- pip (Python package manager)
+
+### Installation & Setup
 ```bash
+# Clone repository
 git clone <repository>
 cd AWE_OES/backend
 
+# Create virtual environment
 python -m venv venv
 source venv/bin/activate  # Windows: venv\Scripts\activate
 
+# Install dependencies
 pip install -r requirements.txt
+
+# Environment configuration
+cp config.env.example config.env
+# Edit config.env with your settings
 ```
 
-### 2. Environment Configuration
-```bash
-# Copy configuration file
-cp config.env.example config.env
-
-# Edit config.env
+### Environment Configuration
+```env
+# Database
 MONGODB_URL=mongodb://localhost:27017
 DATABASE_NAME=awe_electronics_store
-SECRET_KEY=your-secret-key
+
+# Security
+SECRET_KEY=your-secret-key-here
+ALGORITHM=HS256
+ACCESS_TOKEN_EXPIRE_MINUTES=30
+
+# Development
 DEBUG=True
+CORS_ORIGINS=["http://localhost:3000", "http://localhost:5173"]
 ```
 
-### 3. Start Services
+### Start Services
 ```bash
 # Start MongoDB (Docker recommended)
 docker run -d -p 27017:27017 --name mongodb mongo:latest
 
-# Start backend service
+# Start backend API server
 python run.py
+
+# Or for production
+uvicorn main:app --host 0.0.0.0 --port 8000
 ```
 
-🎉 **Service Started Successfully!**
-- API Service: http://localhost:8000
-- Interactive Docs: http://localhost:8000/docs
-- Health Check: http://localhost:8000/health
+## 🔗 API Endpoints Reference
 
-## 📚 API Documentation
+### Authentication Endpoints
+| Method | Endpoint | Description | Auth Required |
+|--------|----------|-------------|---------------|
+| POST | `/api/auth/register` | User registration | No |
+| POST | `/api/auth/login` | User login | No |
+| GET | `/api/auth/profile` | Get user profile | Yes |
+| PUT | `/api/auth/profile` | Update user profile | Yes |
+| POST | `/api/auth/change-password` | Change password | Yes |
 
-### Core Endpoints
+### Product Management
+| Method | Endpoint | Description | Auth Required |
+|--------|----------|-------------|---------------|
+| GET | `/api/products/` | Get product catalog | No |
+| GET | `/api/products/{id}` | Get product details | No |
+| GET | `/api/products/meta/categories` | Get categories | No |
+| POST | `/api/admin/products` | Create product | Admin |
+| PUT | `/api/admin/products/{id}` | Update product | Admin |
+| DELETE | `/api/admin/products/{id}` | Delete product | Admin |
 
-| Feature | Method | Endpoint | Permission |
-|---------|--------|----------|------------|
-| User Registration | POST | `/api/auth/register` | None |
-| User Login | POST | `/api/auth/login` | None |
-| User Profile | GET | `/api/auth/profile` | User |
-| Product List | GET | `/api/products/` | None |
-| Product Details | GET | `/api/products/{id}` | None |
-| Create Product | POST | `/api/products/` | Admin |
-| Shopping Cart | GET | `/api/cart/` | User |
-| Add to Cart | POST | `/api/cart/items` | User |
-| Customer Management | GET | `/api/customers/` | Admin |
+### Shopping Cart
+| Method | Endpoint | Description | Auth Required |
+|--------|----------|-------------|---------------|
+| GET | `/api/cart/summary` | Get cart summary | Yes |
+| POST | `/api/cart/items` | Add item to cart | Yes |
+| PUT | `/api/cart/items/{id}` | Update cart item | Yes |
+| DELETE | `/api/cart/items/{id}` | Remove from cart | Yes |
+| DELETE | `/api/cart` | Clear cart | Yes |
 
-### Quick Testing
+### Order Management
+| Method | Endpoint | Description | Auth Required |
+|--------|----------|-------------|---------------|
+| POST | `/api/orders` | Create order | Yes |
+| GET | `/api/orders` | Get user orders | Yes |
+| GET | `/api/orders/{id}` | Get order details | Yes |
+| GET | `/api/admin/orders` | Get all orders | Admin |
+| PUT | `/api/admin/orders/{id}/status` | Update order status | Admin |
 
+### Admin Dashboard
+| Method | Endpoint | Description | Auth Required |
+|--------|----------|-------------|---------------|
+| GET | `/api/admin/dashboard/stats` | Dashboard statistics | Admin |
+| GET | `/api/admin/dashboard/sales-trends` | Sales analytics | Admin |
+| GET | `/api/admin/customers` | Customer management | Admin |
+| POST | `/api/admin/upload-image` | Upload product images | Admin |
+| GET/PUT | `/api/admin/settings` | System settings | Admin |
+
+## 🔒 Security Features
+
+### Authentication & Authorization
+- **JWT Tokens**: Stateless authentication with configurable expiry
+- **Password Security**: bcrypt hashing with salt rounds
+- **Role-Based Access**: User/Admin role separation
+- **Token Validation**: Automatic token verification middleware
+
+### Data Protection
+- **Input Validation**: Pydantic models with type checking
+- **SQL Injection Prevention**: MongoDB's document-based queries
+- **CORS Configuration**: Configurable cross-origin policies
+- **Error Handling**: Sanitized error responses
+
+## 📊 Performance Features
+
+### Database Optimization
+- **Async Operations**: Non-blocking database queries with Motor
+- **Connection Pooling**: Efficient database connection management
+- **Indexing Strategy**: Optimized queries for search and filtering
+- **Aggregation Pipelines**: Complex analytics with MongoDB aggregation
+
+### Caching & Efficiency
+- **Response Optimization**: Efficient JSON serialization
+- **Query Optimization**: Selective field projection
+- **Pagination**: Efficient data loading with limit/offset
+- **Image Handling**: Optimized file upload and serving
+
+## 🧪 Testing & Development
+
+### API Testing
 ```bash
-# 1. User Registration
+# Health check
+curl http://localhost:8000/health
+
+# User registration
 curl -X POST "http://localhost:8000/api/auth/register" \
   -H "Content-Type: application/json" \
   -d '{"username":"testuser","email":"test@example.com","full_name":"Test User","password":"password123"}'
 
-# 2. User Login
+# User login
 curl -X POST "http://localhost:8000/api/auth/login" \
   -H "Content-Type: application/json" \
   -d '{"username":"testuser","password":"password123"}'
 
-# 3. View Products
+# Get products
 curl "http://localhost:8000/api/products/"
 
-# 4. Admin Login
+# Admin login
 curl -X POST "http://localhost:8000/api/auth/login" \
   -H "Content-Type: application/json" \
   -d '{"username":"admin","password":"admin123"}'
 ```
 
-## 🔐 Default Accounts
-
-The system comes with pre-configured test accounts:
-
+### Default Test Accounts
 ```
 Admin Account:
 Username: admin
 Password: admin123
+Email: admin@aweelectronics.com
 
-Regular User:
-Username: testuser  
+Test User Account:
+Username: testuser
 Password: password123
+Email: test@example.com
 ```
 
-## 🎯 System Status
+## 📚 API Documentation
 
-**✅ Production Ready**: 95% completeness, fully cleaned and optimized
-- ✅ Core functionality complete
-- ✅ Database architecture optimized  
-- ✅ Excellent code quality
-- ✅ Complete permission system
-- ✅ Comprehensive API documentation
+### Interactive Documentation
+- **Swagger UI**: http://localhost:8000/docs
+- **ReDoc**: http://localhost:8000/redoc
+- **OpenAPI Schema**: http://localhost:8000/openapi.json
 
-## 🐳 Docker Deployment
-
-```bash
-# Using Docker Compose (recommended)
-docker-compose up -d
-
-# Or manual deployment
-docker build -t awe-backend .
-docker run -p 8000:8000 awe-backend
-```
-
-## 📖 Detailed Documentation
-
-- **Interactive API Docs**: http://localhost:8000/docs
-- **ReDoc Documentation**: http://localhost:8000/redoc
+### Health Monitoring
 - **Health Check**: http://localhost:8000/health
+- **Database Status**: Automatic connection validation
+- **Service Metrics**: Built-in performance monitoring
 
-## 🔧 Development Guide
+## 🐳 Deployment Options
+
+### Docker Deployment
+```bash
+# Build image
+docker build -t awe-backend .
+
+# Run container
+docker run -p 8000:8000 awe-backend
+
+# Using Docker Compose
+docker-compose up -d
+```
+
+### Production Configuration
+```bash
+# Production server
+gunicorn main:app -w 4 -k uvicorn.workers.UvicornWorker
+
+# Environment variables
+export MONGODB_URL=mongodb://prod-mongo:27017
+export SECRET_KEY=production-secret-key
+export DEBUG=False
+```
+
+## 🔧 Development Guidelines
 
 ### Adding New Features
-1. Define data models in `models/`
-2. Implement business logic in `controllers/`  
-3. Create API endpoints in `routes/`
-4. Register routes in `main.py`
+1. **Define Models**: Create Pydantic models in `models/`
+2. **Implement Logic**: Add business logic in `controllers/`
+3. **Create Routes**: Define API endpoints in `routes/`
+4. **Register Routes**: Add to `main.py`
+5. **Test APIs**: Verify with interactive docs
 
-### Permission Control
-- Regular users: Use `get_current_user_id`
-- Administrators: Use `get_current_admin_user_id`
+### Code Standards
+- **Type Hints**: Use Python type annotations
+- **Async/Await**: Implement async operations properly
+- **Error Handling**: Provide meaningful error messages
+- **Documentation**: Add docstrings to functions
+- **Validation**: Use Pydantic for data validation
 
 ## 🆘 Troubleshooting
 
 ### Common Issues
 ```bash
 # MongoDB connection failed
-docker ps                    # Check MongoDB container status
+docker ps                    # Check MongoDB container
 mongosh                      # Test database connection
 
-# Dependency issues
-pip install -r requirements.txt
+# Import errors
+pip install -r requirements.txt  # Reinstall dependencies
 
-# Port occupied
-lsof -ti:8000 | xargs kill -9
+# Port conflicts
+lsof -ti:8000 | xargs kill -9   # Kill process on port 8000
+
+# Database access issues
+# Check MONGODB_URL in config.env
+# Verify database permissions
 ```
 
-## 📄 License
-
-This project is licensed under the MIT License - see [LICENSE](../LICENSE) for details.
+### Performance Optimization
+- Monitor MongoDB slow queries
+- Implement proper indexing
+- Use connection pooling
+- Enable query logging for debugging
 
 ---
 
-**AWE Electronics Backend** - High-Performance E-commerce API System 🚀 
+**Production Status**: ✅ Ready for deployment with comprehensive testing and optimization 

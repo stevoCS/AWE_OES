@@ -5,33 +5,12 @@ import { useCart } from '../context/CartContext';
 import { useTheme } from '../context/ThemeContext';
 import { productsAPI } from '../api/config';
 import Layout from '../components/Layout';
+import { getProductImageUrl } from '../utils/imageMap';
 import './Home.css';
 import bannerImg from '../assets/home page image.png'; 
 import logoIcon from '../assets/Vector - 0.svg';
 import searchIcon from '../assets/Vector - search.svg';
 import cartIcon from '../assets/Vector - cart.svg';
-
-// Import all product images
-import laptopImg from '../assets/laptop.png';
-import phoneImg from '../assets/Phone.png';
-import speakerImg from '../assets/Speaker.png';
-import smartwatchImg from '../assets/smartwatch.png';
-import mouseImg from '../assets/Wireless mouse.png';
-import chargerImg from '../assets/Well charger.png';
-import vrImg from '../assets/VR Headset.png';
-import keyboardImg from '../assets/Keyboard.png';
-
-// Create image mapping
-const imageMap = {
-  '/src/assets/laptop.png': laptopImg,
-  '/src/assets/Phone.png': phoneImg,
-  '/src/assets/Speaker.png': speakerImg,
-  '/src/assets/smartwatch.png': smartwatchImg,
-  '/src/assets/Wireless mouse.png': mouseImg,
-  '/src/assets/Well charger.png': chargerImg,
-  '/src/assets/VR Headset.png': vrImg,
-  '/src/assets/Keyboard.png': keyboardImg,
-};
 
 const Home = () => {
   const { user, isLoggedIn } = useUser();
@@ -59,12 +38,17 @@ const Home = () => {
       if (response.success && response.data.items) {
         const products = response.data.items;
         console.log('Successfully loaded products:', products.length, 'items');
+        console.log('Products with homepage_section:', products.map(p => ({ name: p.name, homepage_section: p.homepage_section })));
         
-        // Simulate new arrivals (take first 4 products)
-        setNewArrivals(products.slice(0, 4));
+        // Filter products based on homepage_section
+        const newArrivalsProducts = products.filter(product => product.homepage_section === 'new');
+        const bestSellersProducts = products.filter(product => product.homepage_section === 'best');
         
-        // Simulate best sellers (take next 4 products)
-        setBestSellers(products.slice(4, 8));
+        console.log('New Arrivals products:', newArrivalsProducts.length, newArrivalsProducts.map(p => p.name));
+        console.log('Best Sellers products:', bestSellersProducts.length, bestSellersProducts.map(p => p.name));
+        
+        setNewArrivals(newArrivalsProducts);
+        setBestSellers(bestSellersProducts);
       } else {
         console.warn('Product API response format incorrect:', response);
         setNewArrivals([]);
@@ -127,16 +111,8 @@ const Home = () => {
             ))
           ) : products.length > 0 ? (
             products.map(product => {
-              // Handle image URL - use image mapping
-              let imageUrl = '';
-              if (product.images && product.images.length > 0) {
-                const imagePath = product.images[0];
-                // Get correct image URL from image mapping
-                imageUrl = imageMap[imagePath];
-                if (!imageUrl) {
-                  console.log('Image mapping not found:', imagePath, 'Available mappings:', Object.keys(imageMap));
-                }
-              }
+              // Use shared imageMap utility function
+              const imageUrl = getProductImageUrl(product);
               
               return (
                 <Link
@@ -182,51 +158,36 @@ const Home = () => {
                             height: '100%',
                             objectFit: 'cover'
                           }}
-                          onError={(e) => {
-                            console.log('Image loading failed:', imageUrl);
-                            e.target.style.display = 'none';
-                            e.target.parentNode.innerHTML = 'No Image';
-                          }}
                         />
                       ) : (
-                        'No Image'
+                        <span>No Image</span>
                       )}
                     </div>
-                    <div className="product-info">
-                      <div 
-                        className="product-name"
-                        style={{ color: theme.textPrimary }}
-                      >
+                    <div className="product-details" style={{ backgroundColor: theme.cardBg }}>
+                      <h3 className="product-name" style={{ color: theme.textPrimary }}>
                         {product.name}
-                      </div>
-                      <div 
-                        className="product-desc"
-                        style={{ color: theme.textTertiary }}
-                      >
-                        {product.description}
-                      </div>
-                      <div style={{
-                        marginTop: '8px',
-                        fontSize: '16px',
-                        fontWeight: '600',
-                        color: theme.textPrimary
-                      }}>
+                      </h3>
+                      <p className="product-price" style={{ color: theme.primary }}>
                         ${product.price.toFixed(2)}
-                      </div>
+                      </p>
                     </div>
                   </div>
                 </Link>
               );
             })
           ) : (
-            // No products state
             <div style={{
-              gridColumn: '1 / -1',
-              textAlign: 'center',
-              padding: '40px',
-              color: theme.textMuted
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              minHeight: '200px',
+              color: theme.textSecondary,
+              fontSize: '16px'
             }}>
-              No products available
+              {title === "New Arrivals" 
+                ? "No new arrivals yet. Check back soon for exciting new products!" 
+                : "No best sellers yet. Stay tuned for popular items!"
+              }
             </div>
           )}
         </div>

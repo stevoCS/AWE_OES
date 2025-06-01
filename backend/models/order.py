@@ -91,6 +91,17 @@ class OrderCreate(BaseModel):
     payment_method: PaymentMethod
     notes: Optional[str] = None
 
+class DirectOrderCreate(BaseModel):
+    """Direct order creation model with items"""
+    items: List[OrderItem]
+    shipping_address: ShippingAddress
+    payment_method: PaymentMethod
+    subtotal: float
+    tax_amount: float
+    shipping_fee: float
+    total_amount: float
+    notes: Optional[str] = None
+
 class OrderUpdate(BaseModel):
     """Order update model"""
     status: Optional[OrderStatus] = None

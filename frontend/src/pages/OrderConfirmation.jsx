@@ -34,15 +34,24 @@ const OrderConfirmation = () => {
 
   const getShippingCost = () => {
     const subtotal = calculateSubtotal();
-    return subtotal >= 100 ? 0 : 10; // Free shipping over $100
+    return subtotal >= 100 ? 0 : 10; // Free shipping over $100 AUD
+  };
+
+  // Australian GST calculation (10%)
+  const calculateGST = () => {
+    const subtotal = calculateSubtotal();
+    return subtotal * 0.10; // 10% GST
   };
 
   const getTaxAmount = () => {
-    return 0; // Tax calculation can be implemented based on location
+    return calculateGST(); // Use GST calculation
   };
 
   const calculateTotal = () => {
-    return calculateSubtotal() + getShippingCost() + getTaxAmount();
+    const subtotal = calculateSubtotal();
+    const shipping = getShippingCost();
+    const gst = calculateGST();
+    return subtotal + shipping + gst;
   };
 
   const formatPrice = (price) => {
@@ -575,7 +584,7 @@ const OrderConfirmation = () => {
                 justifyContent: 'space-between',
                 marginBottom: '16px'
               }}>
-                <span style={{ fontSize: '14px', color: '#607589' }}>Tax:</span>
+                <span style={{ fontSize: '14px', color: '#607589' }}>GST (10%):</span>
                 <span style={{ fontSize: '14px', color: '#121417' }}>{formatPrice(getTaxAmount())}</span>
               </div>
               <div style={{

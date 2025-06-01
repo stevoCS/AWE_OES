@@ -1,6 +1,6 @@
 import React, { createContext, useState, useContext, useEffect, useCallback } from 'react';
 import { useUser } from './UserContext';
-import { cartAPI } from '../api/config';
+import { cartAPI, productsAPI } from '../api/config';
 
 export const CartContext = createContext();
 
@@ -21,7 +21,6 @@ export const CartProvider = ({ children }) => {
       
       if (response.success && response.data && response.data.items) {
         // 需要获取每个产品的完整信息，包括图片
-        const { productsAPI } = await import('../api/config');
         
         const serverCartItems = await Promise.all(
           response.data.items.map(async (item) => {

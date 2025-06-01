@@ -350,9 +350,9 @@ const OrderDetail = () => {
     <Layout>
       <div style={{
         backgroundColor: theme.background,
-        minHeight: 'calc(100vh - 140px)',
+        minHeight: '100vh',
         fontFamily: "'Space Grotesk', Arial, sans-serif",
-        paddingBottom: '40px'
+        paddingBottom: '60px'
       }}>
         {/* Breadcrumb */}
         <div style={{
@@ -378,7 +378,8 @@ const OrderDetail = () => {
         <div style={{
           maxWidth: '1200px',
           margin: '0 auto',
-          padding: '40px 40px 0 40px'
+          padding: '40px',
+          paddingBottom: '80px'
         }}>
           {/* Order Header */}
           <div style={{

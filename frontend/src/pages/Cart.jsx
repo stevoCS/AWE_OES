@@ -69,11 +69,20 @@ const Cart = () => {
 
   const getShippingCost = () => {
     const subtotal = calculateSubtotal();
-    return subtotal >= 100 ? 0 : 10; // Free shipping over $100
+    return subtotal >= 100 ? 0 : 10; // Free shipping over $100 AUD
+  };
+
+  // Australian GST calculation (10%)
+  const calculateGST = () => {
+    const subtotal = calculateSubtotal();
+    return subtotal * 0.10; // 10% GST
   };
 
   const calculateTotal = () => {
-    return calculateSubtotal() + getShippingCost();
+    const subtotal = calculateSubtotal();
+    const shipping = getShippingCost();
+    const gst = calculateGST();
+    return subtotal + shipping + gst;
   };
 
   // Render cart status message
@@ -612,25 +621,45 @@ const Cart = () => {
                       <div style={{
                         display: 'flex',
                         justifyContent: 'space-between',
-                        padding: '16px 0',
-                        borderTop: `1px solid ${theme.border}`,
-                        borderBottom: `1px solid ${theme.border}`
+                        marginBottom: '16px'
                       }}>
                         <span style={{
-                          fontSize: '18px',
-                          fontWeight: '700',
+                          fontSize: '16px',
                           color: theme.textPrimary
                         }}>
-                          Total
+                          GST (10%)
                         </span>
                         <span style={{
-                          fontSize: '18px',
-                          fontWeight: '700',
+                          fontSize: '16px',
+                          fontWeight: '600',
                           color: theme.textPrimary
                         }}>
-                          {formatPrice(calculateTotal())}
+                          {formatPrice(calculateGST())}
                         </span>
                       </div>
+                    </div>
+
+                    <div style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      padding: '16px 0',
+                      borderTop: `1px solid ${theme.border}`,
+                      borderBottom: `1px solid ${theme.border}`
+                    }}>
+                      <span style={{
+                        fontSize: '18px',
+                        fontWeight: '700',
+                        color: theme.textPrimary
+                      }}>
+                        Total
+                      </span>
+                      <span style={{
+                        fontSize: '18px',
+                        fontWeight: '700',
+                        color: theme.textPrimary
+                      }}>
+                        {formatPrice(calculateTotal())}
+                      </span>
                     </div>
 
                     {/* Action Buttons */}

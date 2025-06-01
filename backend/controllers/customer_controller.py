@@ -15,7 +15,8 @@ class CustomerController:
         size: int = 20
     ) -> Tuple[List[CustomerResponse], int]:
         """Search customers with pagination"""
-        collection = await get_collection("customers")
+        customers_collection = await get_collection("customers")
+        orders_collection = await get_collection("orders")
         
         # Build search query
         query = {}
@@ -28,7 +29,7 @@ class CustomerController:
             ]
         
         # Get total count
-        total = await collection.count_documents(query)
+        total = await customers_collection.count_documents(query)
         
         # Calculate skip value
         skip = (page - 1) * size
@@ -38,16 +39,37 @@ class CustomerController:
         sort_direction = -1 if search_params.sort_order == "desc" else 1
         
         # Execute query with pagination
-        cursor = collection.find(query).sort(sort_field, sort_direction).skip(skip).limit(size)
+        cursor = customers_collection.find(query).sort(sort_field, sort_direction).skip(skip).limit(size)
         customers_data = await cursor.to_list(length=size)
         
-        # Convert to CustomerResponse objects (excluding sensitive data)
+        # Convert to CustomerResponse objects and calculate statistics
         customers = []
         for data in customers_data:
+            customer_id = data["_id"]
+            
+            # Calculate order statistics for this customer
+            order_stats_pipeline = [
+                {"$match": {"customer_id": customer_id}},
+                {"$group": {
+                    "_id": None,
+                    "total_orders": {"$sum": 1},
+                    "total_spent": {"$sum": "$total_amount"}
+                }}
+            ]
+            
+            stats_result = await orders_collection.aggregate(order_stats_pipeline).to_list(1)
+            order_stats = stats_result[0] if stats_result else {"total_orders": 0, "total_spent": 0}
+            
+            # Prepare customer data
             data["id"] = str(data["_id"])
             del data["_id"]
             # Remove sensitive data
             data.pop("hashed_password", None)
+            
+            # Add calculated statistics
+            data["total_orders"] = order_stats["total_orders"]
+            data["total_spent"] = float(order_stats["total_spent"] or 0)
+            
             customers.append(CustomerResponse(**data))
         
         return customers, total

@@ -1,35 +1,14 @@
 // Product.jsx (Product page component)
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { SearchIcon, ShoppingCartIcon } from '../components/ui/icons';
 import Layout from '../components/Layout';
 import { useUser } from '../context/UserContext';
 import { useCart } from '../context/CartContext';
 import { useTheme } from '../context/ThemeContext';
 import { productsAPI } from '../api/config';
+import { getProductImageUrl } from '../utils/imageMap';
 import logoIcon from '../assets/Vector - 0.svg';
-
-// Import product images
-import laptopImg from '../assets/laptop.png';
-import phoneImg from '../assets/Phone.png';
-import speakerImg from '../assets/Speaker.png';
-import watchImg from '../assets/smartwatch.png';
-import mouseImg from '../assets/Wireless mouse.png';
-import chargerImg from '../assets/Well charger.png';
-import vrImg from '../assets/VR Headset.png';
-import keyboardImg from '../assets/Keyboard.png';
-
-// Create image mapping
-const imageMap = {
-  '/src/assets/laptop.png': laptopImg,
-  '/src/assets/Phone.png': phoneImg,
-  '/src/assets/Speaker.png': speakerImg,
-  '/src/assets/smartwatch.png': watchImg,
-  '/src/assets/Wireless mouse.png': mouseImg,
-  '/src/assets/Well charger.png': chargerImg,
-  '/src/assets/VR Headset.png': vrImg,
-  '/src/assets/Keyboard.png': keyboardImg,
-};
 
 const ProductPage = () => {
   const { user, isLoggedIn } = useUser();
@@ -38,10 +17,14 @@ const ProductPage = () => {
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState('All');
-  const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState('name');
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+  const location = useLocation();
+
+  // Get search term from URL parameters
+  const searchParams = new URLSearchParams(location.search);
+  const urlSearchTerm = searchParams.get('search') || '';
 
   // Load product data
   useEffect(() => {
@@ -96,8 +79,13 @@ const ProductPage = () => {
   const filteredProducts = products
     .filter(product => {
       const matchesCategory = selectedCategory === 'All' || product.category === selectedCategory;
-      const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          product.description.toLowerCase().includes(searchTerm.toLowerCase());
+      
+      // Apply search filter if there's a search term from URL
+      const matchesSearch = !urlSearchTerm || 
+        product.name.toLowerCase().includes(urlSearchTerm.toLowerCase()) ||
+        product.description.toLowerCase().includes(urlSearchTerm.toLowerCase()) ||
+        product.brand?.toLowerCase().includes(urlSearchTerm.toLowerCase());
+      
       return matchesCategory && matchesSearch;
     })
     .sort((a, b) => {
@@ -153,7 +141,7 @@ const ProductPage = () => {
           <span style={{ color: theme.textPrimary }}>Products</span>
         </div>
 
-        {/* Header Section with Search */}
+        {/* Header Section */}
         <div style={{
           padding: '20px 40px',
           maxWidth: '1200px',
@@ -165,50 +153,24 @@ const ProductPage = () => {
             alignItems: 'center',
             marginBottom: '24px'
           }}>
-            <h1 style={{
-              fontSize: '32px',
-              fontWeight: '700',
-              color: theme.textPrimary,
-              margin: 0
-            }}>
-              Products
-            </h1>
-            
-            {/* Search Bar */}
-            <div style={{
-              position: 'relative',
-              width: '300px'
-            }}>
-              <input
-                type="text"
-                placeholder="Search products..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                style={{
-                  width: '100%',
-                  padding: '12px 16px 12px 40px',
-                  border: `1px solid ${theme.border}`,
-                  borderRadius: '8px',
-                  fontSize: '14px',
-                  backgroundColor: theme.inputBg,
-                  color: theme.textPrimary,
-                  outline: 'none',
-                  transition: 'border-color 0.2s ease'
-                }}
-                onFocus={(e) => e.target.style.borderColor = theme.primary}
-                onBlur={(e) => e.target.style.borderColor = theme.border}
-              />
-              <div style={{
-                position: 'absolute',
-                left: '12px',
-                top: '50%',
-                transform: 'translateY(-50%)',
-                width: '16px',
-                height: '16px',
-                color: theme.textMuted
+            <div>
+              <h1 style={{
+                fontSize: '32px',
+                fontWeight: '700',
+                color: theme.textPrimary,
+                margin: 0
               }}>
-                🔍
-              </div>
+                Products
+              </h1>
+              {urlSearchTerm && (
+                <p style={{
+                  fontSize: '16px',
+                  color: theme.textSecondary,
+                  margin: '8px 0 0 0'
+                }}>
+                  Search results for "{urlSearchTerm}"
+                </p>
+              )}
             </div>
           </div>
         </div>
@@ -390,37 +352,27 @@ const ProductPage = () => {
                         justifyContent: 'center',
                         overflow: 'hidden'
                       }}>
-                        {product.images && product.images.length > 0 ? (
-                          (() => {
-                            const imagePath = product.images[0];
-                            const imageUrl = imageMap[imagePath];
-                            return imageUrl ? (
-                              <img 
-                                src={imageUrl}
-                                alt={product.name}
-                                style={{
-                                  width: '100%',
-                                  height: '100%',
-                                  objectFit: 'cover'
-                                }}
-                              />
-                            ) : (
-                              <div style={{ 
-                                fontSize: '14px', 
-                                color: theme.textMuted 
-                              }}>
-                                No Image
-                              </div>
-                            );
-                          })()
-                        ) : (
-                          <div style={{ 
-                            fontSize: '14px', 
-                            color: theme.textMuted 
-                          }}>
-                            No Image
-                          </div>
-                        )}
+                        {(() => {
+                          const imageUrl = getProductImageUrl(product);
+                          return imageUrl ? (
+                            <img 
+                              src={imageUrl}
+                              alt={product.name}
+                              style={{
+                                width: '100%',
+                                height: '100%',
+                                objectFit: 'cover'
+                              }}
+                            />
+                          ) : (
+                            <div style={{ 
+                              fontSize: '14px', 
+                              color: theme.textMuted 
+                            }}>
+                              No Image
+                            </div>
+                          );
+                        })()}
                       </div>
                       <div style={{ padding: '16px' }}>
                         <h3 style={{

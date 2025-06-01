@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Link, useLocation } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
 import Home from './pages/Home';
 import Product from './pages/Product';
 import ProductDetail from './pages/ProductDetail';
@@ -15,10 +15,16 @@ import OrderDetail from './pages/OrderDetail';
 import Payment from './pages/Payment';
 import PaymentSuccess from './pages/PaymentSuccess';
 import PaymentFailed from './pages/PaymentFailed';
+import AdminDashboard from './pages/AdminDashboard';
+import AdminProductManagement from './pages/AdminProductManagement';
+import AdminOrderManagement from './pages/AdminOrderManagement';
+import AdminCustomerManagement from './pages/AdminCustomerManagement';
+import AdminSettings from './pages/AdminSettings';
 import { CartProvider } from './context/CartContext';
 import { UserProvider } from './context/UserContext';
 import { OrderProvider } from './context/OrderContext';
 import { ThemeProvider } from './context/ThemeContext';
+import { AuthProvider } from './context/AuthContext';
 import './App.css';
 
 // Simple placeholder components for missing pages
@@ -70,70 +76,68 @@ const Warranty = () => (
   </div>
 );
 
-// Component to track location changes and force re-renders
-const AppRoutes = () => {
-  const location = useLocation();
-  
-  // Force re-render: use location.pathname + timestamp as key
-  const routeKey = `${location.pathname}-${location.search}-${Date.now()}`;
-  
-  console.log('Route change:', location.pathname, '- Key:', routeKey);
-  
-  return (
-    <Routes key={routeKey}>
-      <Route path="/" element={<Home key={`home-${location.pathname}`} />} />
-      <Route path="/product" element={<Product key={`product-${location.pathname}`} />} />
-      <Route path="/product/:id" element={<ProductDetail key={`product-detail-${location.pathname}`} />} />
-      <Route path="/new-arrivals" element={<NewArrivals key={`new-arrivals-${location.pathname}`} />} />
-      <Route path="/best-sellers" element={<BestSellers key={`best-sellers-${location.pathname}`} />} />
-      <Route path="/login" element={<Login key={`login-${location.pathname}`} />} />
-      <Route path="/register" element={<Register key={`register-${location.pathname}`} />} />
-      <Route path="/dashboard" element={<UserDashboard key={`dashboard-${location.pathname}`} />} />
-      <Route path="/profile" element={<UserProfile key={`profile-${location.pathname}`} />} />
-      <Route path="/account" element={<Account key={`account-${location.pathname}`} />} />
-      <Route path="/cart" element={<Cart key={`cart-${location.pathname}`} />} />
-      <Route path="/about-us" element={<AboutUs key={`about-us-${location.pathname}`} />} />
-      <Route path="/customer-support" element={<CustomerSupport key={`customer-support-${location.pathname}`} />} />
-      <Route path="/terms-of-service" element={<TermsOfService key={`terms-of-service-${location.pathname}`} />} />
-      <Route path="/warranty" element={<Warranty key={`warranty-${location.pathname}`} />} />
-      <Route path="/order-confirmation" element={<OrderConfirmation key={`order-confirmation-${location.pathname}`} />} />
-      <Route path="/order-tracking" element={<OrderTracking key={`order-tracking-${location.pathname}`} />} />
-      <Route path="/order-detail/:orderId" element={<OrderDetail key={`order-detail-${location.pathname}`} />} />
-      <Route path="/order/:orderNumber" element={<OrderTracking key={`order-tracking-${location.pathname}`} />} />
-      <Route path="/payment" element={<Payment key={`payment-${location.pathname}`} />} />
-      <Route path="/payment-success" element={<PaymentSuccess key={`payment-success-${location.pathname}`} />} />
-      <Route path="/payment-failed" element={<PaymentFailed key={`payment-failed-${location.pathname}`} />} />
-      {/* Catch-all route for undefined paths */}
-      <Route path="*" element={
-        <div style={{ padding: '40px', textAlign: 'center', fontFamily: "'Space Grotesk', Arial, sans-serif" }}>
-          <h1>Page Not Found</h1>
-          <p>The page you're looking for doesn't exist.</p>
-          <Link to="/" style={{ color: '#0D80F2', textDecoration: 'none' }}>Return to Home</Link>
-        </div>
-      } />
-    </Routes>
-  );
-};
-
 function App() {
+  console.log('App component is rendering...');
+  
   return (
     <ThemeProvider>
-      <UserProvider>
-        <CartProvider>
-          <OrderProvider>
-            <Router
-              future={{
-                v7_startTransition: true,
-                v7_relativeSplatPath: true
-              }}
-            >
-              <div id="app-container">
-                <AppRoutes />
-              </div>
-            </Router>
-          </OrderProvider>
-        </CartProvider>
-      </UserProvider>
+      <AuthProvider>
+        <UserProvider>
+          <CartProvider>
+            <OrderProvider>
+              <Router
+                future={{
+                  v7_startTransition: true,
+                  v7_relativeSplatPath: true
+                }}
+              >
+                <div id="app-container">
+                  <Routes>
+                    <Route path="/" element={<Home />} />
+                    <Route path="/product" element={<Product />} />
+                    <Route path="/product/:id" element={<ProductDetail />} />
+                    <Route path="/new-arrivals" element={<NewArrivals />} />
+                    <Route path="/best-sellers" element={<BestSellers />} />
+                    <Route path="/login" element={<Login />} />
+                    <Route path="/register" element={<Register />} />
+                    <Route path="/dashboard" element={<UserDashboard />} />
+                    <Route path="/profile" element={<UserProfile />} />
+                    <Route path="/account" element={<Account />} />
+                    <Route path="/cart" element={<Cart />} />
+                    <Route path="/about-us" element={<AboutUs />} />
+                    <Route path="/customer-support" element={<CustomerSupport />} />
+                    <Route path="/terms-of-service" element={<TermsOfService />} />
+                    <Route path="/warranty" element={<Warranty />} />
+                    <Route path="/order-confirmation" element={<OrderConfirmation />} />
+                    <Route path="/order-tracking" element={<OrderTracking />} />
+                    <Route path="/order-detail/:orderId" element={<OrderDetail />} />
+                    <Route path="/order/:orderNumber" element={<OrderTracking />} />
+                    <Route path="/payment" element={<Payment />} />
+                    <Route path="/payment-success" element={<PaymentSuccess />} />
+                    <Route path="/payment-failed" element={<PaymentFailed />} />
+                    
+                    {/* Admin Routes */}
+                    <Route path="/admin" element={<AdminDashboard />} />
+                    <Route path="/admin/orders" element={<AdminOrderManagement />} />
+                    <Route path="/admin/products" element={<AdminProductManagement />} />
+                    <Route path="/admin/customers" element={<AdminCustomerManagement />} />
+                    <Route path="/admin/settings" element={<AdminSettings />} />
+                    
+                    {/* Catch-all route for undefined paths */}
+                    <Route path="*" element={
+                      <div style={{ padding: '40px', textAlign: 'center', fontFamily: "'Space Grotesk', Arial, sans-serif" }}>
+                        <h1>Page Not Found</h1>
+                        <p>The page you're looking for doesn't exist.</p>
+                        <Link to="/" style={{ color: '#0D80F2', textDecoration: 'none' }}>Return to Home</Link>
+                      </div>
+                    } />
+                  </Routes>
+                </div>
+              </Router>
+            </OrderProvider>
+          </CartProvider>
+        </UserProvider>
+      </AuthProvider>
     </ThemeProvider>
   );
 }

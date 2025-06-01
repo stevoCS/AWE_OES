@@ -9,31 +9,47 @@ const ThemeToggle = ({ style = {} }) => {
       onClick={toggleTheme}
       style={{
         width: '40px',
-        height: '40px',
-        borderRadius: '50%',
-        border: `1px solid ${theme.border}`,
-        backgroundColor: theme.background,
-        color: theme.textPrimary,
+        height: '20px',
+        borderRadius: '10px',
+        border: 'none',
+        backgroundColor: currentTheme === 'light' ? '#d1d5db' : '#4b5563',
         cursor: 'pointer',
         display: 'flex',
         alignItems: 'center',
-        justifyContent: 'center',
-        fontSize: '18px',
+        padding: '2px',
         transition: 'all 0.2s ease',
-        boxShadow: theme.shadowLight,
+        position: 'relative',
+        outline: 'none',
         ...style
       }}
       onMouseEnter={(e) => {
-        e.target.style.backgroundColor = theme.backgroundTertiary;
-        e.target.style.transform = 'scale(1.05)';
+        e.target.style.backgroundColor = currentTheme === 'light' ? '#9ca3af' : '#6b7280';
       }}
       onMouseLeave={(e) => {
-        e.target.style.backgroundColor = theme.background;
-        e.target.style.transform = 'scale(1)';
+        e.target.style.backgroundColor = currentTheme === 'light' ? '#d1d5db' : '#4b5563';
       }}
       title={`Switch to ${currentTheme === 'light' ? 'dark' : 'light'} mode`}
     >
-      {currentTheme === 'light' ? '🌙' : '☀️'}
+      {/* Toggle Circle */}
+      <div
+        style={{
+          width: '16px',
+          height: '16px',
+          borderRadius: '50%',
+          backgroundColor: 'white',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          fontSize: '8px',
+          transition: 'transform 0.2s ease',
+          boxShadow: '0 1px 3px rgba(0, 0, 0, 0.3)',
+          transform: currentTheme === 'light' ? 'translateX(0px)' : 'translateX(18px)',
+          position: 'absolute',
+          left: '2px'
+        }}
+      >
+        {currentTheme === 'light' ? '☀️' : '🌙'}
+      </div>
     </button>
   );
 };

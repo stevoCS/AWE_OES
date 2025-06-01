@@ -3,7 +3,7 @@ from typing import Optional
 from datetime import datetime
 
 from controllers.order_controller import OrderController
-from models.order import OrderCreate, OrderUpdate, OrderSearch, OrderStatus
+from models.order import OrderCreate, DirectOrderCreate, OrderUpdate, OrderSearch, OrderStatus
 from utils.auth import get_current_user_id, get_current_admin_user_id
 from utils.response import success_response, paginate_response, APIResponse
 
@@ -17,6 +17,15 @@ async def create_order(
     """Create order from shopping cart"""
     order = await OrderController.create_order(current_user_id, order_data)
     return success_response(data=order.dict(), message="Order created successfully")
+
+@router.post("/direct", response_model=APIResponse, status_code=status.HTTP_201_CREATED)
+async def create_direct_order(
+    order_data: DirectOrderCreate,
+    current_user_id: str = Depends(get_current_user_id)
+):
+    """Create order directly with provided items (not from cart)"""
+    order = await OrderController.create_direct_order(current_user_id, order_data)
+    return success_response(data=order.dict(), message="Direct order created successfully")
 
 # Admin-only interfaces - MUST come before generic routes
 @router.get("/admin/all", response_model=APIResponse)
@@ -47,6 +56,15 @@ async def admin_search_orders(
     order_list = [order.dict() for order in orders]
     
     return paginate_response(order_list, total, page, size, "Order search completed successfully")
+
+@router.get("/admin/number/{order_number}", response_model=APIResponse)
+async def admin_get_order_by_number(
+    order_number: str,
+    current_admin_id: str = Depends(get_current_admin_user_id)
+):
+    """Admin get order by order number"""
+    order = await OrderController.get_order_by_number(order_number, customer_id=None)
+    return success_response(data=order.dict(), message="Order details retrieved successfully")
 
 @router.get("/number/{order_number}", response_model=APIResponse)
 async def get_order_by_number(
@@ -98,7 +116,7 @@ async def get_order(
 async def update_order_status(
     order_id: str,
     update_data: OrderUpdate,
-    current_user_id: str = Depends(get_current_user_id)
+    current_admin_id: str = Depends(get_current_admin_user_id)
 ):
     """Update order status (admin function)"""
     order = await OrderController.update_order_status(order_id, update_data)
@@ -111,4 +129,22 @@ async def cancel_order(
 ):
     """Cancel order"""
     order = await OrderController.cancel_order(order_id, current_user_id)
-    return success_response(data=order.dict(), message="Order has been cancelled") 
+    return success_response(data=order.dict(), message="Order has been cancelled")
+
+@router.delete("/{order_id}", response_model=APIResponse)
+async def delete_order(
+    order_id: str,
+    current_admin_id: str = Depends(get_current_admin_user_id)
+):
+    """Delete order (admin only)"""
+    await OrderController.delete_order(order_id)
+    return success_response(message="Order deleted successfully")
+
+@router.put("/{order_id}/archive", response_model=APIResponse)
+async def archive_order(
+    order_id: str,
+    current_admin_id: str = Depends(get_current_admin_user_id)
+):
+    """Archive order (admin only)"""
+    order = await OrderController.archive_order(order_id)
+    return success_response(data=order.dict(), message="Order archived successfully") 

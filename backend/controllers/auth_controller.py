@@ -153,4 +153,37 @@ class AuthController:
         return {
             "access_token": access_token,
             "token_type": "bearer"
-        } 
+        }
+    
+    @staticmethod
+    async def change_password(user_id: str, current_password: str, new_password: str) -> dict:
+        """Change user password"""
+        collection = await get_collection("customers")
+        
+        # Get user
+        user_doc = await collection.find_one({"_id": ObjectId(user_id)})
+        if not user_doc:
+            raise APIException("User not found", status.HTTP_404_NOT_FOUND)
+        
+        # Verify current password
+        if not verify_password(current_password, user_doc["hashed_password"]):
+            raise APIException("Current password is incorrect", status.HTTP_400_BAD_REQUEST)
+        
+        # Hash new password
+        new_hashed_password = get_password_hash(new_password)
+        
+        # Update password in database
+        result = await collection.update_one(
+            {"_id": ObjectId(user_id)},
+            {
+                "$set": {
+                    "hashed_password": new_hashed_password,
+                    "updated_at": datetime.now()
+                }
+            }
+        )
+        
+        if result.matched_count == 0:
+            raise APIException("Failed to update password", status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+        return {"message": "Password changed successfully"} 

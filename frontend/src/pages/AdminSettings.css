@@ -1,0 +1,346 @@
+/* Admin Settings */
+.admin-settings {
+  max-width: 1280px;
+  margin: 0 auto;
+}
+
+.settings-container {
+  display: grid;
+  grid-template-columns: 250px 1fr;
+  gap: 32px;
+  margin-top: 24px;
+}
+
+.settings-tabs {
+  background: #FFFFFF;
+  border: 1px solid #E5E8EB;
+  border-radius: 12px;
+  padding: 20px;
+  height: fit-content;
+}
+
+.settings-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* Tab button styles */
+.tab-button {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border: none;
+  background: transparent;
+  border-radius: 8px;
+  font-family: 'Space Grotesk', Arial, sans-serif;
+  font-size: 14px;
+  color: #6B7582;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  width: 100%;
+  text-align: left;
+}
+
+.tab-button:hover {
+  background: #F8F9FA;
+}
+
+.tab-button.active {
+  background: #0D80F2;
+  color: #FFFFFF;
+}
+
+.tab-icon {
+  font-size: 16px;
+}
+
+/* Legacy support for settings-tab */
+.settings-tab {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border: none;
+  background: transparent;
+  border-radius: 8px;
+  font-family: 'Space Grotesk', Arial, sans-serif;
+  font-size: 14px;
+  color: #6B7582;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.settings-tab:hover {
+  background: #F8F9FA;
+}
+
+.settings-tab.active {
+  background: #0D80F2;
+  color: #FFFFFF;
+}
+
+.settings-content {
+  background: #FFFFFF;
+  border: 1px solid #E5E8EB;
+  border-radius: 12px;
+  padding: 32px;
+}
+
+.settings-section {
+  margin-bottom: 40px;
+}
+
+.section-title {
+  font-family: 'Space Grotesk', Arial, sans-serif;
+  font-weight: 600;
+  font-size: 20px;
+  color: #121417;
+  margin: 0 0 24px 0;
+}
+
+.section-divider {
+  border: none;
+  border-top: 1px solid #E5E8EB;
+  margin: 32px 0;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  margin-bottom: 20px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.form-group label {
+  font-family: 'Space Grotesk', Arial, sans-serif;
+  font-weight: 500;
+  font-size: 14px;
+  color: #121417;
+}
+
+.form-input,
+.form-select,
+.form-textarea {
+  padding: 12px 16px;
+  border: 1px solid #E5E8EB;
+  border-radius: 8px;
+  font-family: 'Space Grotesk', Arial, sans-serif;
+  font-size: 14px;
+  color: #121417;
+  outline: none;
+  background: #FFFFFF;
+  transition: border-color 0.2s ease;
+}
+
+.form-input:focus,
+.form-select:focus,
+.form-textarea:focus {
+  border-color: #0D80F2;
+  box-shadow: 0 0 0 3px rgba(13, 128, 242, 0.1);
+}
+
+.form-textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+.form-help {
+  font-size: 12px;
+  color: #6B7582;
+  margin-top: 4px;
+}
+
+.form-actions {
+  margin-top: 32px;
+  display: flex;
+  gap: 12px;
+}
+
+.checkbox-group {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 24px 0;
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-family: 'Space Grotesk', Arial, sans-serif;
+  font-size: 14px;
+  color: #121417;
+  cursor: pointer;
+}
+
+.checkbox-label input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  accent-color: #0D80F2;
+}
+
+/* Primary button styles */
+.btn-primary {
+  background: #0D80F2;
+  border: none;
+  border-radius: 8px;
+  padding: 12px 24px;
+  font-family: 'Space Grotesk', Arial, sans-serif;
+  font-weight: 600;
+  font-size: 14px;
+  color: #FFFFFF;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: #0B6BCB;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(13, 128, 242, 0.3);
+}
+
+.btn-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+/* Legacy save-btn for backward compatibility */
+.save-btn {
+  background: #0D80F2;
+  border: none;
+  border-radius: 8px;
+  padding: 12px 24px;
+  font-family: 'Space Grotesk', Arial, sans-serif;
+  font-weight: 600;
+  font-size: 14px;
+  color: #FFFFFF;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.save-btn:hover:not(:disabled) {
+  background: #0B6BCB;
+}
+
+.save-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Message styles */
+.message {
+  padding: 12px 16px;
+  border-radius: 8px;
+  margin-bottom: 24px;
+  font-family: 'Space Grotesk', Arial, sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.message.success {
+  background: #D4F4DD;
+  color: #0F7B0F;
+  border: 1px solid #22C55E;
+}
+
+.message.error {
+  background: #FEE2E2;
+  color: #DC2626;
+  border: 1px solid #EF4444;
+}
+
+/* Legacy save-message for backward compatibility */
+.save-message {
+  padding: 12px 16px;
+  border-radius: 8px;
+  margin-bottom: 24px;
+  font-family: 'Space Grotesk', Arial, sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.save-message.success {
+  background: #D4F4DD;
+  color: #0F7B0F;
+  border: 1px solid #22C55E;
+}
+
+.save-message.error {
+  background: #FEE2E2;
+  color: #DC2626;
+  border: 1px solid #EF4444;
+}
+
+.security-info {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.info-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px;
+  background: #F8F9FA;
+  border-radius: 8px;
+}
+
+.info-label {
+  font-weight: 500;
+  color: #121417;
+}
+
+.info-value {
+  color: #6B7582;
+}
+
+.enable-btn,
+.logout-btn {
+  padding: 6px 12px;
+  border: 1px solid #E5E8EB;
+  border-radius: 6px;
+  background: #FFFFFF;
+  color: #121417;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.enable-btn:hover,
+.logout-btn:hover {
+  background: #0D80F2;
+  border-color: #0D80F2;
+  color: #FFFFFF;
+}
+
+@media (max-width: 768px) {
+  .settings-container {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+  
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+  
+  .tab-button {
+    font-size: 12px;
+    padding: 10px 14px;
+  }
+  
+  .settings-content {
+    padding: 20px;
+  }
+} 

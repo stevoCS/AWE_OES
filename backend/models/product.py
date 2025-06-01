@@ -34,9 +34,11 @@ class ProductBase(BaseModel):
     brand: Optional[str] = None
     model: Optional[str] = None
     specifications: Optional[dict] = {}
+    features: Optional[List[str]] = []
     images: Optional[List[str]] = []
     stock_quantity: int = 0
     is_available: bool = True
+    homepage_section: Optional[str] = None  # "new", "best", or None for not displayed on homepage
 
     @validator('name')
     def validate_name(cls, v):
@@ -56,6 +58,12 @@ class ProductBase(BaseModel):
             raise ValueError('Stock quantity cannot be negative')
         return v
 
+    @validator('homepage_section')
+    def validate_homepage_section(cls, v):
+        if v is not None and v not in ['new', 'best']:
+            raise ValueError('Homepage section must be "new", "best", or None')
+        return v
+
 class ProductCreate(ProductBase):
     """Product creation model"""
     pass
@@ -69,9 +77,35 @@ class ProductUpdate(BaseModel):
     brand: Optional[str] = None
     model: Optional[str] = None
     specifications: Optional[dict] = None
+    features: Optional[List[str]] = None
     images: Optional[List[str]] = None
     stock_quantity: Optional[int] = None
     is_available: Optional[bool] = None
+    homepage_section: Optional[str] = None
+
+    @validator('homepage_section')
+    def validate_homepage_section(cls, v):
+        if v is not None and v not in ['new', 'best']:
+            raise ValueError('Homepage section must be "new", "best", or None')
+        return v
+
+    @validator('name')
+    def validate_name(cls, v):
+        if v is not None and len(v) < 2:
+            raise ValueError('Product name must be at least 2 characters long')
+        return v
+
+    @validator('price')
+    def validate_price(cls, v):
+        if v is not None and v <= 0:
+            raise ValueError('Product price must be greater than 0')
+        return v
+
+    @validator('stock_quantity')
+    def validate_stock(cls, v):
+        if v is not None and v < 0:
+            raise ValueError('Stock quantity cannot be negative')
+        return v
 
 class Product(ProductBase):
     """Product complete model"""

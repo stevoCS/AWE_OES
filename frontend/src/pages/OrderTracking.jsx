@@ -4,24 +4,149 @@ import { SearchIcon, ShoppingCartIcon } from '../components/ui/icons';
 import { useUser } from '../context/UserContext';
 import { useCart } from '../context/CartContext';
 import { useOrders } from '../context/OrderContext';
+import { ordersAPI } from '../api/config';
 import { getProductImageUrl } from '../utils/imageMap';
 import Layout from '../components/Layout';
 import logoIcon from '../assets/Vector - 0.svg';
 import { useTheme } from '../context/ThemeContext';
 
+// Add CSS for spin animation
+const spinKeyframes = `
+  @keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+`;
+
+// Inject styles
+if (typeof document !== 'undefined' && !document.getElementById('orderTracking-styles')) {
+  const style = document.createElement('style');
+  style.id = 'orderTracking-styles';
+  style.textContent = spinKeyframes;
+  document.head.appendChild(style);
+}
+
 const OrderTracking = () => {
   const { user, isLoggedIn } = useUser();
   const { getCartItemsCount } = useCart();
-  const { getOrderById, orders } = useOrders();
+  const { getOrderById, orders, loadOrdersFromBackend } = useOrders();
   const { orderNumber } = useParams();
   const [searchParams] = useSearchParams();
   const { theme } = useTheme();
   const [searchOrderId, setSearchOrderId] = useState('');
   const [currentOrder, setCurrentOrder] = useState(null);
   const [searchError, setSearchError] = useState('');
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   // Get order ID from URL params or search params
   const orderIdToSearch = orderNumber || searchParams.get('orderId');
+
+  // Real-time order fetching function
+  const fetchLatestOrderStatus = async (orderNum) => {
+    if (!orderNum || !isLoggedIn) return null;
+    
+    try {
+      console.log('OrderTracking - Fetching latest status for order:', orderNum);
+      const response = await ordersAPI.getOrderByNumber(orderNum);
+      
+      if (response.success && response.data) {
+        console.log('OrderTracking - Raw backend data:', response.data);
+        
+        // Map backend status to frontend status
+        const statusMapping = {
+          'pending': 'Processing',
+          'paid': 'Processing', 
+          'processing': 'Processing',
+          'shipped': 'Shipped',
+          'delivered': 'Delivered',
+          'cancelled': 'Cancelled',
+          'refunded': 'Cancelled'
+        };
+
+        // Map backend item structure to frontend structure with better error handling
+        const mappedItems = (response.data.items || []).map((item, index) => {
+          console.log(`Mapping item ${index}:`, item);
+          
+          // Create a better image mapping based on product name
+          let imageHint = null;
+          const productName = (item.product_name || '').toLowerCase();
+          
+          if (productName.includes('laptop') || productName.includes('ultrabook')) {
+            imageHint = '/src/assets/laptop.png';
+          } else if (productName.includes('phone')) {
+            imageHint = '/src/assets/Phone.png';
+          } else if (productName.includes('speaker')) {
+            imageHint = '/src/assets/Speaker.png';
+          } else if (productName.includes('watch')) {
+            imageHint = '/src/assets/smartwatch.png';
+          } else if (productName.includes('mouse')) {
+            imageHint = '/src/assets/Wireless mouse.png';
+          } else if (productName.includes('charger')) {
+            imageHint = '/src/assets/Well charger.png';
+          } else if (productName.includes('vr') || productName.includes('headset')) {
+            imageHint = '/src/assets/VR Headset.png';
+          } else if (productName.includes('keyboard')) {
+            imageHint = '/src/assets/Keyboard.png';
+          }
+
+          const mappedItem = {
+            id: item.product_id || `item-${index}`,
+            name: item.product_name || 'Unknown Product',
+            price: Number(item.product_price) || 0,
+            quantity: Number(item.quantity) || 1,
+            // Add additional properties for image mapping
+            productId: item.product_id,
+            images: imageHint ? [imageHint] : [],
+            image: imageHint
+          };
+          
+          console.log(`Mapped item ${index}:`, mappedItem);
+          return mappedItem;
+        });
+
+        // Safely extract numeric values with fallbacks
+        const totalAmount = Number(response.data.total_amount) || 0;
+        const subtotalAmount = Number(response.data.subtotal) || 0;
+        const taxAmount = Number(response.data.tax_amount) || 0;
+        const shippingAmount = Number(response.data.shipping_fee) || 0;
+        
+        // Calculate subtotal from items if not provided
+        const calculatedSubtotal = subtotalAmount || mappedItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+
+        const backendOrder = {
+          id: response.data.order_number,
+          orderNumber: response.data.order_number,
+          date: new Date(response.data.created_at).toLocaleDateString(),
+          total: totalAmount,
+          status: statusMapping[response.data.status] || 'Processing',
+          estimatedDelivery: response.data.expected_delivery_date ? 
+            new Date(response.data.expected_delivery_date).toLocaleDateString() : 
+            new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toLocaleDateString(),
+          items: mappedItems,
+          createdAt: response.data.created_at,
+          shippingAddress: {
+            fullName: response.data.shipping_address?.recipient_name || 'Customer',
+            phone: response.data.shipping_address?.phone || '',
+            street: response.data.shipping_address?.address_line1 || '',
+            city: response.data.shipping_address?.city || '',
+            state: response.data.shipping_address?.state || '',
+            postalCode: response.data.shipping_address?.postal_code || '',
+            country: response.data.shipping_address?.country || 'Australia'
+          },
+          paymentMethod: response.data.payment_method || 'Credit Card',
+          subtotal: calculatedSubtotal,
+          tax: taxAmount,
+          shipping: shippingAmount
+        };
+        
+        console.log('OrderTracking - Final mapped order:', backendOrder);
+        return backendOrder;
+      }
+    } catch (error) {
+      console.warn('OrderTracking - Failed to fetch latest status:', error);
+    }
+    return null;
+  };
 
   useEffect(() => {
     console.log('OrderTracking - useEffect triggered');
@@ -29,29 +154,92 @@ const OrderTracking = () => {
     console.log('OrderTracking - Available orders:', orders);
     
     if (orderIdToSearch) {
-      const order = getOrderById(orderIdToSearch);
-      console.log('OrderTracking - Found order in useEffect:', order);
-      setCurrentOrder(order);
-      setSearchOrderId(orderIdToSearch);
-    }
-  }, [orderIdToSearch, getOrderById, orders]);
-
-  const handleSearch = () => {
-    console.log('OrderTracking - Searching for order ID:', searchOrderId.trim()); // Debug log
-    console.log('OrderTracking - Available orders:', orders); // Debug log
-    
-    if (searchOrderId.trim()) {
-      const order = getOrderById(searchOrderId.trim());
-      console.log('OrderTracking - Found order:', order); // Debug log
-      setCurrentOrder(order);
+      // First try to get from local context (like OrderDetail.jsx does)
+      const localOrder = getOrderById(orderIdToSearch);
+      console.log('OrderTracking - Found local order:', localOrder);
       
-      if (!order) {
-        console.log('OrderTracking - Order not found, available order IDs:', orders.map(o => o.orderNumber)); // Debug log
-        setSearchError('Order not found. Please check your order ID and try again.');
+      if (localOrder) {
+        // Use local order data (this is the working approach from OrderDetail.jsx)
+        setCurrentOrder(localOrder);
+        setSearchOrderId(orderIdToSearch);
+        console.log('OrderTracking - Using local order data (like OrderDetail.jsx)');
       } else {
-        setSearchError('');
+        // Only fetch from backend if local order not found
+        console.log('OrderTracking - Local order not found, trying backend...');
+        if (isLoggedIn) {
+          fetchLatestOrderStatus(orderIdToSearch).then(latestOrder => {
+            if (latestOrder) {
+              setCurrentOrder(latestOrder);
+              console.log('OrderTracking - Order fetched from backend');
+            }
+          });
+        }
       }
     }
+  }, [orderIdToSearch, getOrderById, orders, isLoggedIn]);
+
+  const handleSearch = async () => {
+    console.log('OrderTracking - Searching for order ID:', searchOrderId.trim());
+    
+    if (searchOrderId.trim()) {
+      setIsRefreshing(true);
+      setSearchError('');
+      
+      // First try local orders (like OrderDetail.jsx)
+      const localOrder = getOrderById(searchOrderId.trim());
+      console.log('OrderTracking - Found local order:', localOrder);
+      
+      if (localOrder) {
+        // Use local order data (this is what works in OrderDetail.jsx)
+        setCurrentOrder(localOrder);
+        console.log('OrderTracking - Using local order data (success!)');
+        setIsRefreshing(false);
+        return;
+      }
+      
+      // Only try backend if local order not found and user is logged in
+      if (isLoggedIn) {
+        console.log('OrderTracking - Local order not found, trying backend...');
+        const latestOrder = await fetchLatestOrderStatus(searchOrderId.trim());
+        if (latestOrder) {
+          setCurrentOrder(latestOrder);
+          console.log('OrderTracking - Using backend order data');
+        } else {
+          setSearchError('Order not found. Please check your order ID and try again.');
+        }
+      } else {
+        setSearchError('Order not found. Please check your order ID and try again.');
+      }
+      
+      setIsRefreshing(false);
+    }
+  };
+
+  // Auto-refresh function
+  const refreshOrderStatus = async () => {
+    if (!currentOrder || !isLoggedIn) return;
+    
+    setIsRefreshing(true);
+    console.log('OrderTracking - Refreshing order status...');
+    
+    // First check local data again
+    const localOrder = getOrderById(currentOrder.orderNumber);
+    if (localOrder) {
+      console.log('OrderTracking - Refreshed with local data');
+      setCurrentOrder(localOrder);
+    }
+    
+    // Then try to get latest from backend
+    const latestOrder = await fetchLatestOrderStatus(currentOrder.orderNumber);
+    if (latestOrder) {
+      console.log('OrderTracking - Updated with backend data');
+      setCurrentOrder(latestOrder);
+      
+      // Optionally: update the OrderContext with latest data
+      // This would require adding an updateOrder method to OrderContext
+    }
+    
+    setIsRefreshing(false);
   };
 
   const handleKeyPress = (e) => {
@@ -290,84 +478,131 @@ const OrderTracking = () => {
               <div style={{
                 backgroundColor: theme.cardBg,
                 borderRadius: '12px',
-                padding: '40px',
+                padding: '48px',
+                textAlign: 'left',
                 boxShadow: theme.shadow,
                 border: `1px solid ${theme.border}`
               }}>
-                {/* Order Header */}
+                {/* Order Summary */}
                 <div style={{
-                  textAlign: 'center',
-                  marginBottom: '32px',
-                  paddingBottom: '32px',
-                  borderBottom: `1px solid ${theme.border}`
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  marginBottom: '32px'
                 }}>
-                  <div style={{
-                    display: 'grid',
-                    gridTemplateColumns: '1fr 1fr',
-                    gap: '16px',
-                    marginBottom: '16px'
-                  }}>
-                    <div>
-                      <span style={{ fontSize: '14px', color: theme.textSecondary, fontWeight: '500' }}>Order ID: </span>
-                      <span style={{ fontSize: '14px', color: theme.textPrimary, fontWeight: '600' }}>{currentOrder.orderNumber}</span>
+                  <div>
+                    <div style={{
+                      fontSize: '20px',
+                      fontWeight: '600',
+                      color: theme.textPrimary,
+                      marginBottom: '8px'
+                    }}>
+                      Order #{currentOrder.orderNumber}
                     </div>
-                    <div>
-                      <span style={{ fontSize: '14px', color: theme.textSecondary, fontWeight: '500' }}>Tracking ID: </span>
-                      <span style={{ fontSize: '14px', color: theme.textPrimary, fontWeight: '600' }}>{generateTrackingId(currentOrder.orderNumber)}</span>
+                    <div style={{
+                      fontSize: '16px',
+                      color: theme.textSecondary
+                    }}>
+                      Placed on {currentOrder.date}
                     </div>
                   </div>
                   <div style={{
-                    display: 'grid',
-                    gridTemplateColumns: '1fr 1fr',
-                    gap: '16px'
+                    fontSize: '16px',
+                    color: theme.textSecondary
                   }}>
-                    <div>
-                      <span style={{ fontSize: '14px', color: theme.textSecondary, fontWeight: '500' }}>Estimated Delivery: </span>
-                      <span style={{ fontSize: '14px', color: theme.textPrimary, fontWeight: '600' }}>{currentOrder.estimatedDelivery}</span>
-                    </div>
-                    <div>
-                      <span style={{ fontSize: '14px', color: theme.textSecondary, fontWeight: '500' }}>Order Date: </span>
-                      <span style={{ fontSize: '14px', color: theme.textPrimary, fontWeight: '600' }}>{currentOrder.date}</span>
-                    </div>
+                    Total: {formatPrice(currentOrder.total)}
                   </div>
                 </div>
 
-                {/* Order Status Progress */}
-                <div style={{ marginBottom: '40px' }}>
-                  <h2 style={{
-                    fontSize: '20px',
-                    fontWeight: '600',
-                    color: theme.textPrimary,
+                {/* Order Status */}
+                <div style={{ marginBottom: '32px' }}>
+                  <div style={{ 
+                    display: 'flex', 
+                    justifyContent: 'space-between', 
+                    alignItems: 'center',
                     marginBottom: '24px'
                   }}>
-                    Order Status
-                  </h2>
+                    <h2 style={{
+                      fontSize: '20px',
+                      fontWeight: '600',
+                      color: theme.textPrimary,
+                      margin: 0
+                    }}>
+                      Order Status
+                    </h2>
+                    {isLoggedIn && (
+                      <button
+                        onClick={refreshOrderStatus}
+                        disabled={isRefreshing}
+                        style={{
+                          backgroundColor: isRefreshing ? theme.border : theme.primary,
+                          color: 'white',
+                          border: 'none',
+                          borderRadius: '6px',
+                          padding: '8px 16px',
+                          fontSize: '14px',
+                          fontWeight: '500',
+                          cursor: isRefreshing ? 'not-allowed' : 'pointer',
+                          transition: 'background-color 0.2s ease',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '6px'
+                        }}
+                        onMouseEnter={(e) => {
+                          if (!isRefreshing) e.target.style.backgroundColor = theme.primaryHover;
+                        }}
+                        onMouseLeave={(e) => {
+                          if (!isRefreshing) e.target.style.backgroundColor = theme.primary;
+                        }}
+                      >
+                        {isRefreshing ? (
+                          <>
+                            <span style={{ 
+                              display: 'inline-block',
+                              width: '12px',
+                              height: '12px',
+                              border: '2px solid transparent',
+                              borderTop: '2px solid white',
+                              borderRadius: '50%',
+                              animation: 'spin 1s linear infinite'
+                            }}></span>
+                            Refreshing...
+                          </>
+                        ) : (
+                          <>🔄 Refresh Status</>
+                        )}
+                      </button>
+                    )}
+                  </div>
                   {renderStatusProgress()}
                 </div>
 
-                {/* Order Summary */}
-                <div style={{ marginBottom: '32px' }}>
+                {/* Order Items */}
+                <div style={{
+                  marginBottom: '32px'
+                }}>
                   <h2 style={{
                     fontSize: '20px',
                     fontWeight: '600',
                     color: theme.textPrimary,
-                    marginBottom: '24px'
+                    marginBottom: '16px'
                   }}>
-                    Order Summary
+                    Order Items
                   </h2>
-
-                  {/* Order Items */}
-                  <div style={{ marginBottom: '24px' }}>
-                    {currentOrder.items && currentOrder.items.map((item, index) => (
+                  {currentOrder.items && currentOrder.items.length > 0 ? (
+                    currentOrder.items.map((item, index) => (
                       <div key={item.id || index} style={{
                         display: 'flex',
                         alignItems: 'center',
-                        padding: '16px 0',
-                        borderBottom: index < currentOrder.items.length - 1 ? `1px solid ${theme.borderLight}` : 'none'
+                        marginBottom: '16px',
+                        padding: '16px',
+                        backgroundColor: theme.backgroundSecondary,
+                        borderRadius: '8px',
+                        border: `1px solid ${theme.border}`
                       }}>
                         <div style={{
-                          width: '60px',
-                          height: '60px',
+                          width: '80px',
+                          height: '80px',
                           borderRadius: '8px',
                           overflow: 'hidden',
                           marginRight: '16px',
@@ -377,17 +612,20 @@ const OrderTracking = () => {
                           justifyContent: 'center'
                         }}>
                           {(() => {
+                            console.log('Rendering image for item:', item);
                             const imageUrl = getProductImageUrl(item);
+                            console.log('Image URL found:', imageUrl);
                             return imageUrl ? (
                               <img
                                 src={imageUrl}
-                                alt={item.name}
+                                alt={item.name || 'Product'}
                                 style={{
                                   width: '100%',
                                   height: '100%',
                                   objectFit: 'contain'
                                 }}
                                 onError={(e) => {
+                                  console.log('Image failed to load:', imageUrl);
                                   e.target.style.display = 'none';
                                   e.target.parentNode.innerHTML = `<div style="font-size: 20px; color: ${theme.textMuted};">📦</div>`;
                                 }}
@@ -400,97 +638,146 @@ const OrderTracking = () => {
                             );
                           })()}
                         </div>
-
                         <div style={{ flex: 1 }}>
-                          <h3 style={{
+                          <div style={{
                             fontSize: '16px',
                             fontWeight: '600',
                             color: theme.textPrimary,
-                            margin: '0 0 4px 0'
+                            marginBottom: '4px'
                           }}>
-                            {item.name}
-                          </h3>
+                            {item.name || 'Unknown Product'}
+                          </div>
+                          <div style={{
+                            fontSize: '14px',
+                            color: theme.textSecondary,
+                            marginBottom: '4px'
+                          }}>
+                            Quantity: {item.quantity || 1}
+                          </div>
                           <div style={{
                             fontSize: '14px',
                             color: theme.textSecondary
                           }}>
-                            Quantity: {item.quantity}
+                            Unit Price: {formatPrice(item.price || 0)}
                           </div>
                         </div>
-
                         <div style={{
                           fontSize: '16px',
                           fontWeight: '600',
-                          color: theme.textPrimary
+                          color: theme.textPrimary,
+                          textAlign: 'right'
                         }}>
-                          {formatPrice(item.price * item.quantity)}
+                          {formatPrice((item.price || 0) * (item.quantity || 1))}
                         </div>
                       </div>
-                    ))}
-                  </div>
+                    ))
+                  ) : (
+                    <div style={{
+                      textAlign: 'center',
+                      padding: '32px',
+                      color: theme.textSecondary
+                    }}>
+                      No items found in this order.
+                    </div>
+                  )}
+                </div>
 
-                  {/* Order Total */}
-                  <div style={{
-                    backgroundColor: theme.backgroundSecondary,
-                    borderRadius: '8px',
-                    padding: '16px'
+                {/* Shipping Address */}
+                <div style={{
+                  marginBottom: '32px'
+                }}>
+                  <h2 style={{
+                    fontSize: '20px',
+                    fontWeight: '600',
+                    color: theme.textPrimary,
+                    marginBottom: '16px'
                   }}>
-                    <div style={{
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      marginBottom: '8px'
-                    }}>
-                      <span style={{ fontSize: '14px', color: theme.textSecondary }}>Subtotal</span>
-                      <span style={{ fontSize: '14px', color: theme.textPrimary }}>{formatPrice(currentOrder.total - 10)}</span>
-                    </div>
-                    <div style={{
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      marginBottom: '8px'
-                    }}>
-                      <span style={{ fontSize: '14px', color: theme.textSecondary }}>Shipping</span>
-                      <span style={{ fontSize: '14px', color: theme.success }}>Free</span>
-                    </div>
-                    <div style={{
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      marginBottom: '8px'
-                    }}>
-                      <span style={{ fontSize: '14px', color: theme.textSecondary }}>Tax</span>
-                      <span style={{ fontSize: '14px', color: theme.textPrimary }}>$0</span>
-                    </div>
-                    <div style={{
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      paddingTop: '8px',
-                      borderTop: `1px solid ${theme.border}`,
-                      fontWeight: '600'
-                    }}>
-                      <span style={{ fontSize: '16px', color: theme.textPrimary }}>Total</span>
-                      <span style={{ fontSize: '16px', color: theme.textPrimary }}>{formatPrice(currentOrder.total)}</span>
-                    </div>
+                    Shipping Address
+                  </h2>
+                  <div style={{
+                    fontSize: '16px',
+                    color: theme.textSecondary
+                  }}>
+                    {currentOrder.shippingAddress.fullName}<br />
+                    {currentOrder.shippingAddress.street}<br />
+                    {currentOrder.shippingAddress.city}, {currentOrder.shippingAddress.state} {currentOrder.shippingAddress.postalCode}<br />
+                    {currentOrder.shippingAddress.country}<br />
+                    Phone: {currentOrder.shippingAddress.phone}
                   </div>
                 </div>
 
-                {/* Back Button */}
-                <div style={{ textAlign: 'center' }}>
-                  <Link
-                    to="/dashboard"
-                    style={{
-                      backgroundColor: theme.primary,
-                      color: 'white',
-                      textDecoration: 'none',
-                      padding: '12px 32px',
-                      borderRadius: '8px',
-                      fontSize: '16px',
-                      fontWeight: '600',
-                      transition: 'background-color 0.2s ease'
-                    }}
-                    onMouseEnter={(e) => e.target.style.backgroundColor = theme.primaryHover}
-                    onMouseLeave={(e) => e.target.style.backgroundColor = theme.primary}
-                  >
-                    Back to Dashboard
-                  </Link>
+                {/* Payment Method */}
+                <div style={{
+                  marginBottom: '32px'
+                }}>
+                  <h2 style={{
+                    fontSize: '20px',
+                    fontWeight: '600',
+                    color: theme.textPrimary,
+                    marginBottom: '16px'
+                  }}>
+                    Payment Method
+                  </h2>
+                  <div style={{
+                    fontSize: '16px',
+                    color: theme.textSecondary
+                  }}>
+                    {currentOrder.paymentMethod}
+                  </div>
+                </div>
+
+                {/* Order Summary */}
+                <div>
+                  <h2 style={{
+                    fontSize: '20px',
+                    fontWeight: '600',
+                    color: theme.textPrimary,
+                    marginBottom: '16px'
+                  }}>
+                    Order Summary
+                  </h2>
+                  <div style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    fontSize: '16px',
+                    color: theme.textSecondary,
+                    marginBottom: '8px'
+                  }}>
+                    <div>Subtotal:</div>
+                    <div>{formatPrice(currentOrder.subtotal || 0)}</div>
+                  </div>
+                  <div style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    fontSize: '16px',
+                    color: theme.textSecondary,
+                    marginBottom: '8px'
+                  }}>
+                    <div>Tax:</div>
+                    <div>{formatPrice(currentOrder.tax || 0)}</div>
+                  </div>
+                  <div style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    fontSize: '16px',
+                    color: theme.textSecondary,
+                    marginBottom: '16px'
+                  }}>
+                    <div>Shipping:</div>
+                    <div>{currentOrder.shipping === 0 ? 'Free' : formatPrice(currentOrder.shipping || 0)}</div>
+                  </div>
+                  <div style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    fontSize: '20px',
+                    fontWeight: '600',
+                    color: theme.textPrimary,
+                    paddingTop: '16px',
+                    borderTop: `2px solid ${theme.primary}`
+                  }}>
+                    <div>Total:</div>
+                    <div>{formatPrice(currentOrder.total || 0)}</div>
+                  </div>
                 </div>
               </div>
             )}
@@ -501,4 +788,4 @@ const OrderTracking = () => {
   );
 };
 
-export default OrderTracking; 
+export default OrderTracking;

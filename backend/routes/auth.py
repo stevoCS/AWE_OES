@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, status
 from pydantic import BaseModel
 
 from controllers.auth_controller import AuthController
-from models.customer import CustomerCreate, CustomerLogin, CustomerUpdate
+from models.customer import CustomerCreate, CustomerLogin, CustomerUpdate, ChangePasswordRequest
 from utils.auth import get_current_user_id
 from utils.response import success_response, APIResponse
 
@@ -56,4 +56,17 @@ async def logout(current_user_id: str = Depends(get_current_user_id)):
 @router.get("/verify", response_model=APIResponse)
 async def verify_token(current_user_id: str = Depends(get_current_user_id)):
     """Verify token validity"""
-    return success_response(data={"user_id": current_user_id}, message="Token is valid") 
+    return success_response(data={"user_id": current_user_id}, message="Token is valid")
+
+@router.post("/change-password", response_model=APIResponse)
+async def change_password(
+    password_data: ChangePasswordRequest,
+    current_user_id: str = Depends(get_current_user_id)
+):
+    """Change user password"""
+    result = await AuthController.change_password(
+        current_user_id,
+        password_data.current_password,
+        password_data.new_password
+    )
+    return success_response(data=result, message="Password changed successfully") 

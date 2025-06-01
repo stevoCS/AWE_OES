@@ -4,6 +4,7 @@ import { Button } from '../components/ui/button';
 import { Card, CardContent } from '../components/ui/card';
 import Layout from '../components/Layout';
 import { useUser } from '../context/UserContext';
+import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
 import { useTheme } from '../context/ThemeContext';
 import logoIcon from '../assets/Vector - 0.svg';
@@ -13,30 +14,46 @@ export const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
-  const { login, isLoading } = useUser();
+  const [isLoading, setIsLoading] = useState(false);
+  const { login: userLogin } = useUser();
+  const { login: authLogin } = useAuth();
   const { getCartItemsCount } = useCart();
   const navigate = useNavigate();
+  const location = useLocation();
   const { theme } = useTheme();
 
   const handleLogin = async (e) => {
     e.preventDefault();
     setError('');
+    setIsLoading(true);
 
-    // Check if user has items in cart before login
-    const hasCartItems = getCartItemsCount() > 0;
-
-    const result = await login(email, password);
-    
-    if (result.success) {
-      // If user had items in cart, redirect to cart for checkout
-      // Otherwise redirect to dashboard
-      if (hasCartItems) {
-        navigate('/cart?from=auth');
-      } else {
-        navigate('/dashboard');
+    try {
+      // 首先尝试admin登录
+      const authResult = await authLogin({ email, password });
+      
+      if (authResult.success) {
+        // 如果是admin用户，重定向到admin dashboard
+        if (authResult.user.is_admin) {
+          navigate('/admin');
+          return;
+        }
       }
-    } else {
-      setError(result.error);
+
+      // 如果不是admin或admin登录失败，尝试普通用户登录
+      const hasCartItems = getCartItemsCount() > 0;
+      const userResult = await userLogin(email, password);
+      
+      if (userResult.success) {
+        // 检查是否有重定向参数
+        const from = location.state?.from?.pathname || (hasCartItems ? '/cart?from=auth' : '/dashboard');
+        navigate(from);
+      } else {
+        setError(userResult.error || 'Login failed. Please check your credentials.');
+      }
+    } catch (error) {
+      setError('An unexpected error occurred. Please try again.');
+    } finally {
+      setIsLoading(false);
     }
   };
 

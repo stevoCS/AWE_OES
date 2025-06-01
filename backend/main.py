@@ -26,17 +26,10 @@ app = FastAPI(
 # Get CORS origins from environment
 frontend_url = os.getenv("FRONTEND_URL", "http://localhost:5174")
 allowed_origins = [
-    "http://localhost:3000",  # React development server
+    "http://localhost:8000",  # React development server
     "http://localhost:5173",  # Vite development server
-    "http://localhost:5174",  # Vite development server (current)
-    "https://awe-oes.vercel.app",  # Vercel production
-    "https://awe-76f7p55bb-stevocs-projects.vercel.app",  # Current Vercel URL
-    "https://*.vercel.app",  # All Vercel subdomains
     frontend_url,
-    "http://127.0.0.1:5173",
-    "http://127.0.0.1:5174", 
-    "http://127.0.0.1:3000",
-    "https://awe-oes.onrender.com",
+    "http://127.0.0.1:5173",    
 ]
 
 # CORS middleware configuration

@@ -6,20 +6,11 @@ import { useUser } from '../context/UserContext';
 import { useCart } from '../context/CartContext';
 import { useTheme } from '../context/ThemeContext';
 import { productsAPI } from '../api/config';
+import { getProductImageUrl } from '../utils/imageMap';
 import logoIcon from '../assets/Vector - 0.svg';
 import searchIcon from '../assets/Vector - search.svg';
 import cartIcon from '../assets/Vector - cart.svg';
 import Layout from '../components/Layout';
-
-// Import product images
-import laptopImg from '../assets/laptop.png';
-import phoneImg from '../assets/Phone.png';
-import speakerImg from '../assets/Speaker.png';
-import watchImg from '../assets/smartwatch.png';
-import mouseImg from '../assets/Wireless mouse.png';
-import chargerImg from '../assets/Well charger.png';
-import vrImg from '../assets/VR Headset.png';
-import keyboardImg from '../assets/Keyboard.png';
 
 // Add animation styles
 const animationStyles = `
@@ -79,24 +70,11 @@ if (typeof document !== 'undefined') {
   document.head.appendChild(styleElement);
 }
 
-// Create image mapping
-const imageMap = {
-  '/src/assets/laptop.png': laptopImg,
-  '/src/assets/Phone.png': phoneImg,
-  '/src/assets/Speaker.png': speakerImg,
-  '/src/assets/smartwatch.png': watchImg,
-  '/src/assets/Wireless mouse.png': mouseImg,
-  '/src/assets/Well charger.png': chargerImg,
-  '/src/assets/VR Headset.png': vrImg,
-  '/src/assets/Keyboard.png': keyboardImg,
-};
-
 // Enhanced product data with specifications and reviews
 const products = [
   { 
     id: 1, 
     name: 'UltraBook Pro 15', 
-    image: laptopImg, 
     price: 2999, 
     desc: 'Powerful and portable laptop with latest Intel processor', 
     category: 'Laptops',
@@ -113,7 +91,6 @@ const products = [
   { 
     id: 2, 
     name: 'Galaxy X50', 
-    image: phoneImg, 
     price: 899, 
     desc: 'Next-gen mobile experience with 5G connectivity', 
     category: 'Phones',
@@ -130,7 +107,6 @@ const products = [
   { 
     id: 3, 
     name: 'SmartHome Speaker', 
-    image: speakerImg, 
     price: 299, 
     desc: 'Immersive home environment with voice control', 
     category: 'Audio',
@@ -147,7 +123,6 @@ const products = [
   { 
     id: 4, 
     name: 'FitTrack Smartwatch', 
-    image: watchImg, 
     price: 399, 
     desc: 'Track your fitness journey with advanced sensors', 
     category: 'Wearables',
@@ -164,7 +139,6 @@ const products = [
   { 
     id: 5, 
     name: 'Wireless Mouse', 
-    image: mouseImg, 
     price: 79, 
     desc: 'Smooth and precise wireless mouse', 
     category: 'Accessories',
@@ -181,7 +155,6 @@ const products = [
   { 
     id: 6, 
     name: 'Wall Charger', 
-    image: chargerImg, 
     price: 49, 
     desc: 'Fast charging wall adapter', 
     category: 'Accessories',
@@ -198,7 +171,6 @@ const products = [
   { 
     id: 7, 
     name: 'VR Headset', 
-    image: vrImg, 
     price: 599, 
     desc: 'Immersive VR experience with 4K display', 
     category: 'Gaming',
@@ -215,7 +187,6 @@ const products = [
   { 
     id: 8, 
     name: 'Apple Keyboard', 
-    image: keyboardImg, 
     price: 179, 
     desc: 'Sleek and responsive wireless keyboard', 
     category: 'Accessories',
@@ -349,16 +320,6 @@ const ProductDetail = () => {
     if (newQuantity >= 1) {
       setQuantity(newQuantity);
     }
-  };
-
-  // 获取产品图片URL的辅助函数
-  const getProductImageUrl = (product) => {
-    if (product.images && product.images.length > 0) {
-      const imagePath = product.images[0];
-      const imageUrl = imageMap[imagePath];
-      return imageUrl;
-    }
-    return null;
   };
 
   const renderStars = (rating) => {
@@ -611,89 +572,73 @@ const ProductDetail = () => {
               border: `1px solid ${theme.border}`,
               boxShadow: theme.shadowLight
             }}>
-              {product.images && product.images.length > 0 ? (
-                (() => {
-                  const imagePath = product.images[0];
-                  const imageUrl = imageMap[imagePath];
-                  return imageUrl ? (
-                    <div style={{
-                      position: 'relative',
-                      width: '100%',
-                      maxWidth: '350px',
-                      height: 'auto',
-                      overflow: 'hidden',
-                      borderRadius: '8px',
-                      cursor: 'pointer'
-                    }}>
-                      <img 
-                        src={imageUrl} 
-                        alt={product.name}
-                        style={{
-                          width: '100%',
-                          height: 'auto',
-                          objectFit: 'contain',
-                          transition: 'transform 0.3s ease',
-                          transformOrigin: 'center'
-                        }}
-                        onMouseEnter={(e) => {
-                          e.target.style.transform = 'scale(1.05)';
-                        }}
-                        onMouseLeave={(e) => {
-                          e.target.style.transform = 'scale(1)';
-                        }}
-                      />
-                      {/* 百叶窗覆盖层 */}
-                      <div style={{
-                        position: 'absolute',
-                        top: 0,
-                        left: 0,
+              {(() => {
+                const imageUrl = getProductImageUrl(product);
+                return imageUrl ? (
+                  <div style={{
+                    position: 'relative',
+                    width: '100%',
+                    maxWidth: '350px',
+                    height: 'auto',
+                    overflow: 'hidden',
+                    borderRadius: '8px',
+                    cursor: 'pointer'
+                  }}>
+                    <img 
+                      src={imageUrl} 
+                      alt={product.name}
+                      style={{
                         width: '100%',
-                        height: '100%',
-                        background: 'linear-gradient(90deg, transparent 0%, transparent 30%, rgba(255,255,255,0.3) 50%, transparent 70%, transparent 100%)',
-                        transform: 'translateX(-100%)',
-                        transition: 'transform 0.6s ease-in-out',
-                        pointerEvents: 'none'
+                        height: 'auto',
+                        objectFit: 'contain',
+                        transition: 'transform 0.3s ease',
+                        transformOrigin: 'center'
                       }}
                       onMouseEnter={(e) => {
-                        e.target.style.transform = 'translateX(100%)';
+                        e.target.style.transform = 'scale(1.05)';
                       }}
                       onMouseLeave={(e) => {
-                        e.target.style.transform = 'translateX(-100%)';
+                        e.target.style.transform = 'scale(1)';
                       }}
-                      />
-                    </div>
-                  ) : (
+                    />
+                    {/* Shimmer overlay effect */}
                     <div style={{
+                      position: 'absolute',
+                      top: 0,
+                      left: 0,
                       width: '100%',
-                      maxWidth: '350px',
-                      height: '200px',
-                      backgroundColor: '#f0f2f5',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      color: '#607589'
-                    }}>
-                      Image not found ({imagePath})
-                    </div>
-                  );
-                })()
-              ) : (
-                <div style={{
-                  width: '100%',
-                  maxWidth: '350px',
-                  height: '200px',
-                  backgroundColor: '#f0f2f5',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  color: '#607589'
-                }}>
-                  No Image Available
-                </div>
-              )}
+                      height: '100%',
+                      background: 'linear-gradient(90deg, transparent 0%, transparent 30%, rgba(255,255,255,0.3) 50%, transparent 70%, transparent 100%)',
+                      transform: 'translateX(-100%)',
+                      transition: 'transform 0.6s ease-in-out',
+                      pointerEvents: 'none'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.target.style.transform = 'translateX(100%)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.target.style.transform = 'translateX(-100%)';
+                    }}
+                    />
+                  </div>
+                ) : (
+                  <div style={{
+                    width: '100%',
+                    maxWidth: '350px',
+                    height: '200px',
+                    backgroundColor: '#f0f2f5',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: '#607589'
+                  }}>
+                    No Image Available
+                  </div>
+                );
+              })()}
             </div>
             
-            {/* More Images - 显示重复的产品图片 */}
+            {/* More Images - Display repeated product images */}
             <div style={{
               backgroundColor: theme.cardBg,
               borderRadius: '12px',
@@ -707,66 +652,69 @@ const ProductDetail = () => {
               border: `1px solid ${theme.border}`,
               boxShadow: theme.shadowLight
             }}>
-              {getProductImageUrl(product) ? (
-                <div style={{
-                  position: 'relative',
-                  width: '100%',
-                  height: '150px',
-                  overflow: 'hidden',
-                  borderRadius: '8px'
-                }}>
-                  <img
-                    src={getProductImageUrl(product)}
-                    alt={`${product.name} - View 2`}
-                    style={{
+              {(() => {
+                const imageUrl = getProductImageUrl(product);
+                return imageUrl ? (
+                  <div style={{
+                    position: 'relative',
+                    width: '100%',
+                    height: '150px',
+                    overflow: 'hidden',
+                    borderRadius: '8px'
+                  }}>
+                    <img
+                      src={imageUrl}
+                      alt={`${product.name} - View 2`}
+                      style={{
+                        width: '100%',
+                        height: '100%',
+                        objectFit: 'contain',
+                        transition: 'transform 0.3s ease, filter 0.3s ease',
+                        filter: 'brightness(0.9)'
+                      }}
+                      onMouseEnter={(e) => {
+                        e.target.style.transform = 'scale(1.1)';
+                        e.target.style.filter = 'brightness(1)';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.target.style.transform = 'scale(1)';
+                        e.target.style.filter = 'brightness(0.9)';
+                      }}
+                    />
+                    {/* Venetian blind effect */}
+                    <div style={{
+                      position: 'absolute',
+                      top: 0,
+                      left: 0,
                       width: '100%',
                       height: '100%',
-                      objectFit: 'contain',
-                      transition: 'transform 0.3s ease, filter 0.3s ease',
-                      filter: 'brightness(0.9)'
+                      background: 'repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(255,255,255,0.1) 10px, rgba(255,255,255,0.1) 20px)',
+                      opacity: 0,
+                      transition: 'opacity 0.3s ease',
+                      pointerEvents: 'none'
                     }}
                     onMouseEnter={(e) => {
-                      e.target.style.transform = 'scale(1.1)';
-                      e.target.style.filter = 'brightness(1)';
+                      e.target.style.opacity = '1';
                     }}
                     onMouseLeave={(e) => {
-                      e.target.style.transform = 'scale(1)';
-                      e.target.style.filter = 'brightness(0.9)';
+                      e.target.style.opacity = '0';
                     }}
-                  />
-                  {/* Venetian blind effect */}
+                    />
+                  </div>
+                ) : (
                   <div style={{
-                    position: 'absolute',
-                    top: 0,
-                    left: 0,
                     width: '100%',
-                    height: '100%',
-                    background: 'repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(255,255,255,0.1) 10px, rgba(255,255,255,0.1) 20px)',
-                    opacity: 0,
-                    transition: 'opacity 0.3s ease',
-                    pointerEvents: 'none'
-                  }}
-                  onMouseEnter={(e) => {
-                    e.target.style.opacity = '1';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.target.style.opacity = '0';
-                  }}
-                  />
-                </div>
-              ) : (
-                <div style={{
-                  width: '100%',
-                  height: '150px',
-                  backgroundColor: '#f0f2f5',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  color: '#607589'
-                }}>
-                  More Images
-                </div>
-              )}
+                    height: '150px',
+                    backgroundColor: '#f0f2f5',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: '#607589'
+                  }}>
+                    More Images
+                  </div>
+                );
+              })()}
             </div>
             
             {/* Gallery */}
@@ -783,66 +731,69 @@ const ProductDetail = () => {
               border: `1px solid ${theme.border}`,
               boxShadow: theme.shadowLight
             }}>
-              {getProductImageUrl(product) ? (
-                <div style={{
-                  position: 'relative',
-                  width: '100%',
-                  height: '150px',
-                  overflow: 'hidden',
-                  borderRadius: '8px'
-                }}>
-                  <img
-                    src={getProductImageUrl(product)}
-                    alt={`${product.name} - Gallery`}
-                    style={{
-                      width: '100%',
-                      height: '100%',
-                      objectFit: 'contain',
-                      transition: 'transform 0.3s ease, filter 0.3s ease',
-                      filter: 'sepia(0.2)'
+              {(() => {
+                const imageUrl = getProductImageUrl(product);
+                return imageUrl ? (
+                  <div style={{
+                    position: 'relative',
+                    width: '100%',
+                    height: '150px',
+                    overflow: 'hidden',
+                    borderRadius: '8px'
+                  }}>
+                    <img
+                      src={imageUrl}
+                      alt={`${product.name} - Gallery`}
+                      style={{
+                        width: '100%',
+                        height: '100%',
+                        objectFit: 'contain',
+                        transition: 'transform 0.3s ease, filter 0.3s ease',
+                        filter: 'sepia(0.2)'
+                      }}
+                      onMouseEnter={(e) => {
+                        e.target.style.transform = 'scale(1.1) rotate(2deg)';
+                        e.target.style.filter = 'sepia(0)';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.target.style.transform = 'scale(1) rotate(0deg)';
+                        e.target.style.filter = 'sepia(0.2)';
+                      }}
+                    />
+                    {/* flash effect */}
+                    <div style={{
+                      position: 'absolute',
+                      top: '-50%',
+                      left: '-50%',
+                      width: '200%',
+                      height: '200%',
+                      background: 'linear-gradient(45deg, transparent 30%, rgba(255,255,255,0.5) 50%, transparent 70%)',
+                      transform: 'translateX(-100%) translateY(-100%)',
+                      transition: 'transform 0.6s ease',
+                      pointerEvents: 'none'
                     }}
                     onMouseEnter={(e) => {
-                      e.target.style.transform = 'scale(1.1) rotate(2deg)';
-                      e.target.style.filter = 'sepia(0)';
+                      e.target.style.transform = 'translateX(50%) translateY(50%)';
                     }}
                     onMouseLeave={(e) => {
-                      e.target.style.transform = 'scale(1) rotate(0deg)';
-                      e.target.style.filter = 'sepia(0.2)';
+                      e.target.style.transform = 'translateX(-100%) translateY(-100%)';
                     }}
-                  />
-                  {/* flash effect */}
+                    />
+                  </div>
+                ) : (
                   <div style={{
-                    position: 'absolute',
-                    top: '-50%',
-                    left: '-50%',
-                    width: '200%',
-                    height: '200%',
-                    background: 'linear-gradient(45deg, transparent 30%, rgba(255,255,255,0.5) 50%, transparent 70%)',
-                    transform: 'translateX(-100%) translateY(-100%)',
-                    transition: 'transform 0.6s ease',
-                    pointerEvents: 'none'
-                  }}
-                  onMouseEnter={(e) => {
-                    e.target.style.transform = 'translateX(50%) translateY(50%)';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.target.style.transform = 'translateX(-100%) translateY(-100%)';
-                  }}
-                  />
-                </div>
-              ) : (
-                <div style={{
-                  width: '100%',
-                  height: '150px',
-                  backgroundColor: '#f0f2f5',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  color: '#607589'
-                }}>
-                  Gallery
-                </div>
-              )}
+                    width: '100%',
+                    height: '150px',
+                    backgroundColor: '#f0f2f5',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: '#607589'
+                  }}>
+                    Gallery
+                  </div>
+                );
+              })()}
             </div>
           </div>
 
@@ -965,31 +916,24 @@ const ProductDetail = () => {
                       backgroundColor: '#f0f2f5',
                       borderRadius: '8px'
                     }}>
-                      {relatedProduct.images && relatedProduct.images.length > 0 ? (
-                        (() => {
-                          const imagePath = relatedProduct.images[0];
-                          const imageUrl = imageMap[imagePath];
-                          return imageUrl ? (
-                            <img
-                              src={imageUrl}
-                              alt={relatedProduct.name}
-                              style={{
-                                width: '100%',
-                                height: '100%',
-                                objectFit: 'contain'
-                              }}
-                            />
-                          ) : (
-                            <span style={{ color: '#607589', fontSize: '14px' }}>
-                              Image not found
-                            </span>
-                          );
-                        })()
-                      ) : (
-                        <span style={{ color: '#607589', fontSize: '14px' }}>
-                          No Image
-                        </span>
-                      )}
+                      {(() => {
+                        const imageUrl = getProductImageUrl(relatedProduct);
+                        return imageUrl ? (
+                          <img
+                            src={imageUrl}
+                            alt={relatedProduct.name}
+                            style={{
+                              width: '100%',
+                              height: '100%',
+                              objectFit: 'contain'
+                            }}
+                          />
+                        ) : (
+                          <span style={{ color: '#607589', fontSize: '14px' }}>
+                            No Image
+                          </span>
+                        );
+                      })()}
                     </div>
                     <h3 style={{
                       fontSize: '16px',

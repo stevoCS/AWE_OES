@@ -7,7 +7,7 @@ import asyncio
 from datetime import datetime
 from database.connection import get_collection, connect_to_mongo, close_mongo_connection
 
-# 产品数据
+# product data
 PRODUCTS = [
     {
         "name": "TechPro Ultrabook Pro",
@@ -192,18 +192,18 @@ PRODUCTS = [
 async def init_products():
     """initialize product data"""
     try:
-        # 首先连接数据库
+        # first connect to database
         await connect_to_mongo()
         
         collection = await get_collection("products")
         
-        # 检查是否已有产品数据
+        # check if there is any product data
         existing_count = await collection.count_documents({})
         if existing_count > 0:
             print(f"database already has {existing_count} products, skip initialization")
             return
         
-        # 插入产品数据
+        # insert product data
         result = await collection.insert_many(PRODUCTS)
         
         print(f"✅ successfully initialized {len(result.inserted_ids)} products:")
@@ -216,7 +216,7 @@ async def init_products():
         print(f"❌ initialization failed: {e}")
         raise
     finally:
-        # 关闭数据库连接
+        # close database connection
         await close_mongo_connection()
 
 if __name__ == "__main__":

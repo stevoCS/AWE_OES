@@ -1,5 +1,5 @@
-import React from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import React, { useState } from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useUser } from '../context/UserContext';
 import { useCart } from '../context/CartContext';
 import { useTheme } from '../context/ThemeContext';
@@ -13,9 +13,22 @@ const Header = () => {
   const { getCartItemsCount } = useCart();
   const { theme } = useTheme();
   const location = useLocation();
+  const navigate = useNavigate();
+  
+  // Simple search functionality
+  const [searchTerm, setSearchTerm] = useState('');
 
   // Check if current page is login or register page
   const isAuthPage = location.pathname === '/login' || location.pathname === '/register';
+
+  const handleSearchSubmit = (e) => {
+    e.preventDefault();
+    if (searchTerm.trim()) {
+      // Navigate to products page with search term
+      navigate(`/product?search=${encodeURIComponent(searchTerm)}`);
+      setSearchTerm('');
+    }
+  };
 
   return (
     <header 
@@ -75,22 +88,46 @@ const Header = () => {
           style={{
             backgroundColor: theme.inputBg,
             border: `1px solid ${theme.border}`,
-            borderRadius: '8px'
+            borderRadius: '6px',
+            display: 'flex',
+            alignItems: 'center',
+            padding: '4px 8px',
+            width: '120px',
+            height: '32px'
           }}
-          onMouseEnter={(e) => e.target.style.backgroundColor = theme.backgroundTertiary}
-          onMouseLeave={(e) => e.target.style.backgroundColor = theme.inputBg}
         >
-          <img src={searchIcon} alt="search" className="search-icon-internal" />
-          <input 
-            type="text" 
-            placeholder="Search" 
-            style={{
-              backgroundColor: 'transparent',
-              color: theme.textPrimary,
-              border: 'none',
-              outline: 'none'
-            }}
+          <img 
+            src={searchIcon} 
+            alt="search" 
+            className="search-icon-internal" 
+            style={{ 
+              width: '14px',
+              height: '14px',
+              opacity: 0.5,
+              flexShrink: 0,
+              position: 'static',
+              left: 'auto',
+              top: 'auto',
+              transform: 'none'
+            }} 
           />
+          <form onSubmit={handleSearchSubmit} style={{ flex: 1, marginLeft: '6px' }}>
+            <input 
+              type="text" 
+              placeholder="Search" 
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              style={{
+                backgroundColor: 'transparent',
+                color: theme.textPrimary,
+                border: 'none',
+                outline: 'none',
+                width: '100%',
+                padding: 0,
+                fontSize: '13px'
+              }}
+            />
+          </form>
         </div>
         
         {/* Theme Toggle */}

@@ -1,3 +1,16 @@
+/**
+ * Regular User API Configuration File
+ * 
+ * Scope of Responsibilities:
+ * - User Registration, Login, and Profile Management
+ * - Product Browsing (No Authentication Required)
+ * - Shopping Cart Management (Authentication Required)
+ * - Order Creation and Viewing (Authentication Required)
+ * 
+ * Note: This file does not contain admin functionality, for admin features please use adminApi.js
+ */
+
+
 // Get API base URL from environment variables or default to localhost
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
 
@@ -68,31 +81,75 @@ export const apiRequest = async (endpoint, options = {}) => {
 // User authentication API
 export const authAPI = {
   register: async (userData) => {
-    const response = await apiRequest('/api/auth/register/', {
+    // Generate more unique username: email prefix + last 4 digits of timestamp
+    const timestamp = Date.now().toString();
+    const emailPrefix = userData.email.split('@')[0];
+    const uniqueUsername = `${emailPrefix}_${timestamp.slice(-4)}`;
+    
+    const registrationData = {
+      full_name: `${userData.firstName} ${userData.lastName}`,
+      email: userData.email,
+      password: userData.password,
+      username: uniqueUsername
+    };
+
+    console.log('Registration data being sent:', registrationData);
+    
+    const response = await apiRequest('/api/auth/register', {
       method: 'POST',
-      body: JSON.stringify({
-        username: userData.email.split('@')[0], // Use the email prefix as the username
-        email: userData.email,
-        full_name: `${userData.firstName} ${userData.lastName}`,
-        password: userData.password,
-      }),
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(registrationData),
     });
-    return response;
+
+    if (response.success) {
+      return {
+        success: true,
+        data: {
+          user: response.data.user,
+          access_token: response.data.access_token,
+          refresh_token: response.data.refresh_token
+        }
+      };
+    } else {
+      return { success: false, message: response.message };
+    }
   },
 
   login: async (email, password) => {
-    const response = await apiRequest('/api/auth/login/', {
-      method: 'POST',
-      body: JSON.stringify({
-        username: email.split('@')[0], // Use the email prefix as the username
-        password: password,
-      }),
-    });
-    return response;
+    try {
+      const response = await apiRequest('/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          username: email, // Backend supports email as username for login
+          password: password
+        }),
+      });
+
+      if (response.success) {
+        return {
+          success: true,
+          data: {
+            user: response.data.user,
+            access_token: response.data.access_token,
+            refresh_token: response.data.refresh_token
+          }
+        };
+      } else {
+        return { success: false, message: response.message };
+      }
+    } catch (error) {
+      console.error('Login error:', error);
+      return { success: false, message: 'Login failed' };
+    }
   },
 
   updateProfile: async (userData) => {
-    const response = await apiRequest('/api/auth/profile/', {
+    const response = await apiRequest('/api/auth/profile', {
       method: 'PUT',
       body: JSON.stringify(userData),
     });
@@ -100,7 +157,18 @@ export const authAPI = {
   },
 
   getProfile: async () => {
-    const response = await apiRequest('/api/auth/profile/');
+    const response = await apiRequest('/api/auth/profile');
+    return response;
+  },
+
+  changePassword: async (currentPassword, newPassword) => {
+    const response = await apiRequest('/api/auth/change-password', {
+      method: 'POST',
+      body: JSON.stringify({
+        current_password: currentPassword,
+        new_password: newPassword,
+      }),
+    });
     return response;
   },
 };
@@ -109,27 +177,27 @@ export const authAPI = {
 export const productsAPI = {
   getProducts: async (params = {}) => {
     const queryString = new URLSearchParams(params).toString();
-    const endpoint = `/api/products/${queryString ? `?${queryString}` : ''}`;
+    const endpoint = queryString ? `/api/products/?${queryString}` : '/api/products/';
     return await apiRequest(endpoint);
   },
 
   getProduct: async (productId) => {
-    return await apiRequest(`/api/products/${productId}`);
+    return await apiRequest(`/api/products/${productId}/`);
   },
 
   getCategories: async () => {
-    return await apiRequest('/api/products/meta/categories/');
+    return await apiRequest('/api/products/meta/categories');
   },
 };
 
-  // Shopping cart API
+// Shopping cart API
 export const cartAPI = {
   getCartSummary: async () => {
-    return await apiRequest('/api/cart/summary/');
+    return await apiRequest('/api/cart/summary');
   },
 
   addToCart: async (productId, quantity) => {
-    return await apiRequest('/api/cart/items/', {
+    return await apiRequest('/api/cart/items', {
       method: 'POST',
       body: JSON.stringify({
         product_id: productId,
@@ -139,7 +207,7 @@ export const cartAPI = {
   },
 
   updateCartItem: async (productId, quantity) => {
-    return await apiRequest(`/api/cart/items/${productId}/`, {
+    return await apiRequest(`/api/cart/items/${productId}`, {
       method: 'PUT',
       body: JSON.stringify({
         quantity: quantity,
@@ -148,13 +216,13 @@ export const cartAPI = {
   },
 
   removeFromCart: async (productId) => {
-    return await apiRequest(`/api/cart/items/${productId}/`, {
+    return await apiRequest(`/api/cart/items/${productId}`, {
       method: 'DELETE',
     });
   },
 
   clearCart: async () => {
-    return await apiRequest('/api/cart/', {
+    return await apiRequest('/api/cart', {
       method: 'DELETE',
     });
   },
@@ -163,7 +231,7 @@ export const cartAPI = {
 // Orders API
 export const ordersAPI = {
   createOrder: async (orderData) => {
-    return await apiRequest('/api/orders/', {
+    return await apiRequest('/api/orders', {
       method: 'POST',
       body: JSON.stringify(orderData),
     });
@@ -171,7 +239,7 @@ export const ordersAPI = {
 
   getOrders: async (params = {}) => {
     const queryString = new URLSearchParams(params).toString();
-    const endpoint = `/api/orders/${queryString ? `?${queryString}` : ''}`;
+    const endpoint = queryString ? `/api/orders?${queryString}` : '/api/orders';
     return await apiRequest(endpoint);
   },
 
