@@ -1,0 +1,27 @@
+services:
+  - type: web
+    name: awe-electronics-api
+    env: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: ./start.sh
+    envVars:
+      - key: MONGODB_URL
+        sync: false
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DATABASE_NAME
+        value: awe_electronics_store
+      - key: ALGORITHM
+        value: HS256
+      - key: ACCESS_TOKEN_EXPIRE_MINUTES
+        value: 30
+      - key: DEBUG
+        value: False
+      - key: HOST
+        value: 0.0.0.0
+      - key: PORT
+        value: 10000
+      - key: FRONTEND_URL
+        value: http://localhost:5173
+    healthCheckPath: /health 
