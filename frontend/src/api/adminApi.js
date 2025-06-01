@@ -13,8 +13,7 @@
  * Note: This file is for admin backend functionality only, for regular user functionality please use config.js
  */
 
-// Admin API service
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
+import { API_BASE_URL } from '../config/environment.js';
 
 // get authentication token
 const getAuthToken = () => {

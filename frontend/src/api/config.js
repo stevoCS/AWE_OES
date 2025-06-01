@@ -10,9 +10,7 @@
  * Note: This file does not contain admin functionality, for admin features please use adminApi.js
  */
 
-
-// Get API base URL from environment variables or default to localhost
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
+import { API_BASE_URL } from '../config/environment.js';
 
 console.log('API Base URL:', API_BASE_URL);
 

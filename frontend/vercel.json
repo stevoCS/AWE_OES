@@ -1,4 +1,6 @@
 {
+  "name": "awe-electronics-frontend",
+  "version": 2,
   "builds": [
     {
       "src": "package.json",
@@ -8,26 +10,24 @@
       }
     }
   ],
-  "build": {
-    "env": {
-      "VITE_API_BASE_URL": "https://awe-oes.onrender.com"
-    }
-  },
-  "headers": [
+  "routes": [
     {
-      "source": "/assets/(.*)",
-      "headers": [
-        {
-          "key": "cache-control",
-          "value": "max-age=31536000"
-        }
-      ]
+      "src": "/assets/(.*)",
+      "headers": {
+        "cache-control": "max-age=31536000"
+      }
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/index.html"
     }
   ],
-  "rewrites": [
-    {
-      "source": "/(.*)",
-      "destination": "/index.html"
+  "env": {
+    "VITE_API_BASE_URL": "https://awe-oes.onrender.com"
+  },
+  "functions": {
+    "app/page.js": {
+      "includeFiles": "dist/**"
     }
-  ]
+  }
 } 
