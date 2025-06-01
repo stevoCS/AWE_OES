@@ -43,16 +43,14 @@ def validate_object_id(obj_id: str) -> str:
         raise APIException("Invalid ID format", status.HTTP_400_BAD_REQUEST)
 
 def paginate_response(items: list, total: int, page: int, size: int, message: str = "Query successful"):
-    """Pagination response"""
+    """Pagination response - format compatible with frontend expectations"""
     return success_response(
         data={
             "items": items,
-            "pagination": {
-                "total": total,
-                "page": page,
-                "size": size,
-                "pages": (total + size - 1) // size if size > 0 else 0
-            }
+            "total": total,
+            "page": page,
+            "limit": size,
+            "pages": (total + size - 1) // size if size > 0 else 0
         },
         message=message
     ) 
