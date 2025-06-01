@@ -85,20 +85,6 @@ Email: admin@aweelectronics.com
 - ✅ Input validation & error handling
 - ✅ MongoDB full-text search
 
-## 📦 Product Catalog
-
-System pre-loaded with 8 complete products:
-
-| Product Name | Price (AUD) | Category | Key Features |
-|--------------|-------------|----------|--------------|
-| UltraBook Pro 15 | $1,299.99 | Computers | Intel i7, 16GB RAM |
-| Galaxy X50 | $899.99 | Mobile | 6.5" OLED, Triple Camera |
-| SmartHome Speaker | $299.99 | Audio | AI Assistant, WiFi |
-| FitTrack Smartwatch | $399.99 | Wearables | GPS, Heart Rate Monitor |
-| Wireless Mouse | $79.99 | Accessories | Ergonomic, Wireless |
-| Wall Charger | $49.99 | Accessories | Fast Charging, 65W |
-| VR Headset | $599.99 | Gaming | 4K, Motion Tracking |
-| Apple Keyboard | $179.99 | Accessories | Mechanical, Backlit |
 
 ## 🏗️ Technical Architecture
 
@@ -236,7 +222,7 @@ curl -X POST "http://localhost:8000/api/auth/register" \
 # Admin login
 curl -X POST "http://localhost:8000/api/auth/login" \
   -H "Content-Type: application/json" \
-  -d '{"username":"admin","password":"admin123"}'
+  -d '{"username":"admin@awe.com","password":"admin123"}'
 ```
 
 ## 🔒 Security Features
@@ -252,7 +238,7 @@ curl -X POST "http://localhost:8000/api/auth/login" \
 
 - **Frontend Documentation**: [frontend/README.md](frontend/README.md)
 - **Backend Documentation**: [backend/README.md](backend/README.md)
-- **API Documentation**: http://localhost:8000/docs
+- **API Documentation**: https://awe-oes.onrender.com/docs
 - **Project Structure**: [PROJECT_STRUCTURE.md](PROJECT_STRUCTURE.md)
 - **Quick Start Guide**: [QUICK_START.md](QUICK_START.md)
 

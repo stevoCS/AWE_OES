@@ -24,6 +24,8 @@ export const apiRequest = async (endpoint, options = {}) => {
       'Content-Type': 'application/json',
       ...(token && { 'Authorization': `Bearer ${token}` }),
     },
+    // Add timeout configuration
+    signal: options.signal, // Allow external abort controller
   };
 
   const requestOptions = {
@@ -39,7 +41,23 @@ export const apiRequest = async (endpoint, options = {}) => {
     console.log('Making API request to:', url);
     console.log('Request options:', requestOptions);
     
+    // Create timeout controller if no external signal provided
+    let controller = null;
+    let timeoutId = null;
+    
+    if (!options.signal) {
+      controller = new AbortController();
+      timeoutId = setTimeout(() => {
+        console.log('Request timeout after 15 seconds');
+        controller.abort();
+      }, 15000); // 15 second timeout
+      requestOptions.signal = controller.signal;
+    }
+    
     const response = await fetch(url, requestOptions);
+    
+    // Clear timeout on successful response
+    if (timeoutId) clearTimeout(timeoutId);
     
     console.log('Response status:', response.status);
     console.log('Response ok:', response.ok);
@@ -65,10 +83,26 @@ export const apiRequest = async (endpoint, options = {}) => {
     
   } catch (error) {
     console.error('API request failed:', error);
+    console.error('Error details:', {
+      name: error.name,
+      message: error.message,
+      url: url,
+      endpoint: endpoint
+    });
+    
+    // Check if it's a timeout/abort error
+    if (error.name === 'AbortError') {
+      throw new Error('Request timed out. Please check your internet connection or try again later.');
+    }
     
     // Check if it's a network error
     if (error.name === 'TypeError' && error.message.includes('fetch')) {
       throw new Error('Network connection failed, please check if the backend service is running');
+    }
+    
+    // Check for specific network issues
+    if (error.message.includes('Failed to fetch')) {
+      throw new Error('Unable to connect to server. Please check your internet connection.');
     }
     
     // Other errors are thrown directly

@@ -27,12 +27,20 @@ const Home = () => {
     loadProducts();
   }, []);
 
-  const loadProducts = async () => {
+  const loadProducts = async (retryCount = 0) => {
     try {
       setIsLoading(true);
-      console.log('Starting to load product data...');
+      console.log('Starting to load product data... (attempt:', retryCount + 1, ')');
+      console.log('API Base URL:', import.meta.env.VITE_API_BASE_URL || 'https://awe-oes.onrender.com');
+      console.log('Network online:', navigator.onLine);
+      
+      // Check network status
+      if (!navigator.onLine) {
+        throw new Error('No internet connection detected. Please check your network.');
+      }
       
       const response = await productsAPI.getProducts();
+      
       console.log('Product API response:', response);
       
       if (response.success && response.data.items) {
@@ -56,7 +64,34 @@ const Home = () => {
       }
     } catch (error) {
       console.error('Error occurred while loading products:', error);
-      // If API fails, use empty arrays, don't affect page rendering
+      console.error('Error name:', error.name);
+      console.error('Error message:', error.message);
+      console.error('Error stack:', error.stack);
+      
+      // More specific error handling
+      if (error.name === 'AbortError') {
+        console.error('Request timed out after 15 seconds');
+      } else if (error.message.includes('fetch')) {
+        console.error('Network error - backend may be unavailable');
+      } else if (error.message.includes('CORS')) {
+        console.error('CORS error - cross-origin request blocked');
+      }
+      
+      // Retry mechanism for network errors (max 3 attempts)
+      if (retryCount < 2 && (
+        error.name === 'AbortError' || 
+        error.message.includes('fetch') || 
+        error.message.includes('network') ||
+        error.message.includes('timeout')
+      )) {
+        console.log(`Retrying in 2 seconds... (attempt ${retryCount + 2}/3)`);
+        setTimeout(() => {
+          loadProducts(retryCount + 1);
+        }, 2000);
+        return;
+      }
+      
+      // If API fails after retries, use empty arrays, don't affect page rendering
       setNewArrivals([]);
       setBestSellers([]);
     } finally {
