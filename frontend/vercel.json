@@ -24,10 +24,5 @@
   ],
   "env": {
     "VITE_API_BASE_URL": "https://awe-oes.onrender.com"
-  },
-  "functions": {
-    "app/page.js": {
-      "includeFiles": "dist/**"
-    }
   }
 } 
