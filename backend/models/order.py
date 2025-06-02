@@ -31,6 +31,7 @@ class OrderStatus(str, Enum):
     COMPLETED = "completed"      # Completed
     CANCELLED = "cancelled"      # Cancelled
     REFUNDED = "refunded"        # Refunded
+    ARCHIVED = "archived"        # Archived
 
 class PaymentMethod(str, Enum):
     """Payment method enumeration"""

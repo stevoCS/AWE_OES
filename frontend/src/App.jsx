@@ -25,6 +25,7 @@ import { UserProvider } from './context/UserContext';
 import { OrderProvider } from './context/OrderContext';
 import { ThemeProvider } from './context/ThemeContext';
 import { AuthProvider } from './context/AuthContext';
+import KeepAlive from './components/KeepAlive';
 import './App.css';
 
 // Simple placeholder components for missing pages
@@ -92,6 +93,9 @@ function App() {
                 }}
               >
                 <div id="app-container">
+                  {/* KeepAlive组件防止Render服务休眠 */}
+                  <KeepAlive />
+                  
                   <Routes>
                     <Route path="/" element={<Home />} />
                     <Route path="/product" element={<Product />} />
