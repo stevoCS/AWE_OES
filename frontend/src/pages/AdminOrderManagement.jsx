@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import AdminLayout from '../components/AdminLayout';
 import { ordersApi, customersApi } from '../api/adminApi';
+import { formatOrderDate, formatSimpleDate } from '../utils/dateUtils';
 import '../components/AdminCommon.css';
 
 const AdminOrderManagement = () => {

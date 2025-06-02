@@ -8,6 +8,7 @@ import { useCart } from '../context/CartContext';
 import { useTheme } from '../context/ThemeContext';
 import logoIcon from '../assets/Vector - 0.svg';
 import Layout from '../components/Layout';
+import { formatOrderDate, formatSimpleDate } from '../utils/dateUtils';
 
 export const UserDashboard = () => {
   const { user, logout, isLoggedIn } = useUser();
@@ -50,51 +51,6 @@ export const UserDashboard = () => {
       console.error('UserDashboard - Error during sign out:', error);
       // Even if error occurs, try to redirect
       window.location.href = '/';
-    }
-  };
-
-  // Format date for better display
-  const formatOrderDate = (dateString) => {
-    try {
-      const date = new Date(dateString);
-      
-      // Check if date is valid
-      if (isNaN(date.getTime())) {
-        return dateString; // Return original if parsing fails
-      }
-      
-      const now = new Date();
-      const diffTime = Math.abs(now - date);
-      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-      
-      // Format options
-      const dateOptions = { 
-        year: 'numeric', 
-        month: 'short', 
-        day: 'numeric' 
-      };
-      
-      const timeOptions = { 
-        hour: '2-digit', 
-        minute: '2-digit',
-        hour12: true 
-      };
-      
-      // If within last 7 days, show relative day
-      if (diffDays === 0) {
-        return `Today, ${date.toLocaleTimeString('en-US', timeOptions)}`;
-      } else if (diffDays === 1) {
-        return `Yesterday, ${date.toLocaleTimeString('en-US', timeOptions)}`;
-      } else if (diffDays <= 7) {
-        const dayName = date.toLocaleDateString('en-US', { weekday: 'long' });
-        return `${dayName}, ${date.toLocaleTimeString('en-US', timeOptions)}`;
-      } else {
-        // For older dates, show date + time
-        return `${date.toLocaleDateString('en-US', dateOptions)}, ${date.toLocaleTimeString('en-US', timeOptions)}`;
-      }
-    } catch (error) {
-      console.error('Error formatting date:', error);
-      return dateString; // Return original if formatting fails
     }
   };
 

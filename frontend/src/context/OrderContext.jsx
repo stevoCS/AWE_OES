@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { ordersAPI } from '../api/config';
 import { useUser } from './UserContext';
+import { formatOrderDate, formatSimpleDate } from '../utils/dateUtils';
 
 const OrderContext = createContext();
 
@@ -71,25 +72,16 @@ export const OrderProvider = ({ children }) => {
       
       if (response.success && response.data && response.data.items) {
         const backendOrders = response.data.items.map(order => {
-          // Map backend item structure to frontend structure
-          const mappedItems = (order.items || []).map((item, index) => {
-            console.log(`OrderContext - Mapping backend item ${index}:`, item);
-            
-            // Create proper frontend item structure
-            const mappedItem = {
-              id: item.product_id || `item-${index}`,
-              name: item.product_name || 'Unknown Product',
-              price: Number(item.product_price) || 0,
-              quantity: Number(item.quantity) || 1,
-              // Add additional properties for compatibility
-              productId: item.product_id,
-              product_name: item.product_name, // Keep original for image mapping
-              product_price: item.product_price // Keep original for reference
-            };
-            
-            console.log(`OrderContext - Mapped frontend item ${index}:`, mappedItem);
-            return mappedItem;
-          });
+          // Calculate total from order items for better accuracy
+          const mappedItems = order.items.map(item => ({
+            id: item.product_id,
+            name: item.product_name,
+            price: Number(item.product_price) || 0,
+            quantity: Number(item.quantity) || 1,
+            image: `/api/placeholder/150/150`,
+            size: item.size || 'Standard',
+            color: item.color || 'Default'
+          }));
 
           // Map status to frontend format
           const statusMapping = {
@@ -105,12 +97,13 @@ export const OrderProvider = ({ children }) => {
           return {
             id: order.order_number,
             orderNumber: order.order_number,
-            date: new Date(order.created_at).toLocaleDateString(),
+            date: formatSimpleDate(order.created_at),
+            orderDate: order.created_at,
             total: Number(order.total_amount) || 0,
             status: statusMapping[order.status] || 'Processing',
             estimatedDelivery: order.expected_delivery_date ? 
-              new Date(order.expected_delivery_date).toLocaleDateString() : 
-              new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toLocaleDateString(),
+              formatSimpleDate(order.expected_delivery_date) : 
+              formatSimpleDate(new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)),
             items: mappedItems,
             createdAt: order.created_at,
             userId: user?.id || user?.email, // Associate with current user
@@ -247,36 +240,6 @@ export const OrderProvider = ({ children }) => {
       try {
         console.log('OrderContext - Attempting to save order to backend for user:', user?.id || user?.email);
         
-        // First, try to add items to cart if not already there
-        if (orderData.items && orderData.items.length > 0) {
-          console.log('OrderContext - Adding order items to cart before creating order');
-          try {
-            // Import CartContext functions
-            const { addToCart } = await import('./CartContext');
-            
-            // Add each item to cart
-            for (const item of orderData.items) {
-              const productData = {
-                id: item.id,
-                name: item.name,
-                price: item.price,
-                images: item.image ? [item.image] : []
-              };
-              
-              // This will add to cart if user is logged in
-              // We don't await this to avoid blocking the order creation
-              addToCart?.(productData, item.quantity).catch(err => {
-                console.warn('OrderContext - Failed to add item to cart:', err);
-              });
-            }
-            
-            // Give a brief moment for cart operations to complete
-            await new Promise(resolve => setTimeout(resolve, 500));
-          } catch (cartError) {
-            console.warn('OrderContext - Could not add items to cart:', cartError);
-          }
-        }
-        
         // Convert order data to backend format for direct order creation
         const backendOrderData = {
           items: orderData.items.map(item => ({
@@ -308,17 +271,33 @@ export const OrderProvider = ({ children }) => {
         
         console.log('OrderContext - Backend direct order data:', backendOrderData);
         
+        // Get auth token
+        const token = localStorage.getItem('access_token') || localStorage.getItem('token');
+        if (!token) {
+          throw new Error('No authentication token found');
+        }
+        
         // Use direct order creation API
-        const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'}/api/orders/direct`, {
+        const apiUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
+        const response = await fetch(`${apiUrl}/api/orders/direct`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${localStorage.getItem('access_token')}`
+            'Authorization': `Bearer ${token}`
           },
           body: JSON.stringify(backendOrderData)
         });
         
+        console.log('OrderContext - API Response status:', response.status);
+        
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error('OrderContext - API Error response:', errorText);
+          throw new Error(`API request failed: ${response.status} - ${errorText}`);
+        }
+        
         const result = await response.json();
+        console.log('OrderContext - API Response data:', result);
         
         if (result.success && result.data) {
           console.log('OrderContext - Order saved to backend successfully:', result.data);
@@ -332,15 +311,23 @@ export const OrderProvider = ({ children }) => {
           
           console.log('OrderContext - Order successfully synced with backend');
         } else {
-          console.warn('OrderContext - Backend order creation failed, continuing with local storage');
+          console.warn('OrderContext - Backend order creation failed:', result);
+          throw new Error(result.message || 'Backend order creation failed');
         }
       } catch (error) {
         console.error('OrderContext - Failed to save order to backend:', error);
-        console.error('OrderContext - Error details:', error.message);
+        console.error('OrderContext - Error details:', {
+          message: error.message,
+          stack: error.stack,
+          name: error.name
+        });
         
         // Set status to indicate backend sync failed but order is valid locally
         newOrder.status = 'pending_sync';
         console.log('OrderContext - Order marked as pending sync, will try again later');
+        
+        // Show user-friendly error message (you can integrate with a notification system)
+        console.warn('OrderContext - User notification: Order created locally but failed to sync with server. Will retry automatically.');
       }
     }
 
