@@ -14,7 +14,7 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // 从localStorage恢复用户状态
+  // restore user state from localStorage
   useEffect(() => {
     const savedUser = localStorage.getItem('user');
     const token = localStorage.getItem('token');
@@ -34,7 +34,7 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (credentials) => {
     try {
-      // 使用真实的后端API进行登录
+      // use the actual backend API for login
       const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
       const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
         method: 'POST',
@@ -42,7 +42,7 @@ export const AuthProvider = ({ children }) => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          username: credentials.email, // 后端支持邮箱作为用户名登录
+          username: credentials.email, // backend supports email as username login
           password: credentials.password
         }),
       });
@@ -84,11 +84,11 @@ export const AuthProvider = ({ children }) => {
       const data = await response.json();
       
       if (data.success) {
-        // 保存用户信息和真实的JWT token
+        // save user information and actual JWT token
         setUser(data.data.user);
         localStorage.setItem('user', JSON.stringify(data.data.user));
         localStorage.setItem('token', data.data.access_token);
-        localStorage.setItem('access_token', data.data.access_token); // 也保存为access_token，供adminApi使用
+        localStorage.setItem('access_token', data.data.access_token); // also save as access_token, for adminApi use
         
         return { success: true, user: data.data.user };
       } else {
