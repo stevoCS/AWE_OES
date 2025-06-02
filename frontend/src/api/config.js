@@ -172,11 +172,30 @@ export const authAPI = {
           }
         };
       } else {
-        return { success: false, message: response.message };
+        return { success: false, message: response.message || 'Login failed' };
       }
     } catch (error) {
       console.error('Login error:', error);
-      return { success: false, message: 'Login failed' };
+      
+      // return detailed error message instead of generic message
+      let errorMessage = 'Login failed';
+      
+      if (error.message.includes('401')) {
+        errorMessage = 'Incorrect email or password';
+      } else if (error.message.includes('404')) {
+        errorMessage = 'Account not found';
+      } else if (error.message.includes('403')) {
+        errorMessage = 'Account access denied';
+      } else if (error.message.includes('422')) {
+        errorMessage = 'Invalid email format or password requirements not met';
+      } else if (error.message.includes('timeout') || error.message.includes('network')) {
+        errorMessage = 'Network connection failed, please try again';
+      } else if (error.message && error.message !== 'Login failed') {
+        // if there is a specific error message, use it
+        errorMessage = error.message;
+      }
+      
+      return { success: false, message: errorMessage };
     }
   },
 

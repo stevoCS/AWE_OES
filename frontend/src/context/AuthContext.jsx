@@ -47,8 +47,38 @@ export const AuthProvider = ({ children }) => {
         }),
       });
 
+      // detailed error handling
       if (!response.ok) {
-        throw new Error('Login failed');
+        let errorMessage = 'Login failed';
+        
+        try {
+          const errorData = await response.json();
+          console.log('AuthContext - Login error response:', errorData);
+          
+          if (response.status === 401) {
+            errorMessage = 'Incorrect email or password';
+          } else if (response.status === 404) {
+            errorMessage = 'Account not found';
+          } else if (response.status === 403) {
+            errorMessage = 'Account access denied';
+          } else if (response.status === 422) {
+            errorMessage = 'Invalid email format or password requirements not met';
+          } else if (errorData.detail) {
+            errorMessage = errorData.detail;
+          } else if (errorData.message) {
+            errorMessage = errorData.message;
+          }
+        } catch (parseError) {
+          console.error('AuthContext - Could not parse error response:', parseError);
+          if (response.status === 401) {
+            errorMessage = 'Incorrect email or password';
+          } else if (response.status === 404) {
+            errorMessage = 'Account not found';
+          }
+        }
+        
+        console.error('AuthContext - Login failed:', errorMessage);
+        return { success: false, error: errorMessage };
       }
 
       const data = await response.json();
@@ -62,11 +92,24 @@ export const AuthProvider = ({ children }) => {
         
         return { success: true, user: data.data.user };
       } else {
-        throw new Error(data.message || 'Login failed');
+        const errorMessage = data.message || 'Login failed';
+        console.error('AuthContext - Login failed:', errorMessage);
+        return { success: false, error: errorMessage };
       }
     } catch (error) {
-      console.error('Login error:', error);
-      return { success: false, error: error.message };
+      console.error('AuthContext - Login error:', error);
+      
+      let errorMessage = 'Login failed, please try again';
+      
+      if (error.message.includes('fetch') || error.name === 'TypeError') {
+        errorMessage = 'Network connection failed, please check if the server is running';
+      } else if (error.message.includes('timeout')) {
+        errorMessage = 'Connection timeout, please try again';
+      } else if (error.message && error.message !== 'Login failed') {
+        errorMessage = error.message;
+      }
+      
+      return { success: false, error: errorMessage };
     }
   };
 
@@ -80,7 +123,7 @@ export const AuthProvider = ({ children }) => {
 
   const updateProfile = async (profileData) => {
     try {
-      // 这里应该调用实际的API
+      // here should call the actual API
       const token = localStorage.getItem('token');
       const response = await fetch('/api/auth/profile', {
         method: 'PUT',
@@ -97,7 +140,7 @@ export const AuthProvider = ({ children }) => {
 
       const data = await response.json();
       
-      // 更新本地用户信息
+      // update local user information
       const updatedUser = { ...user, ...data.user };
       setUser(updatedUser);
       localStorage.setItem('user', JSON.stringify(updatedUser));
@@ -106,7 +149,7 @@ export const AuthProvider = ({ children }) => {
     } catch (error) {
       console.error('Profile update error:', error);
       
-      // 临时模拟更新逻辑
+      // temporary simulation of update logic
       const updatedUser = { ...user, ...profileData };
       setUser(updatedUser);
       localStorage.setItem('user', JSON.stringify(updatedUser));
@@ -117,7 +160,7 @@ export const AuthProvider = ({ children }) => {
 
   const changePassword = async (passwordData) => {
     try {
-      // 这里应该调用实际的API
+      // here should call the actual API
       const token = localStorage.getItem('token');
       const response = await fetch('/api/auth/change-password', {
         method: 'PUT',
@@ -136,7 +179,7 @@ export const AuthProvider = ({ children }) => {
     } catch (error) {
       console.error('Password change error:', error);
       
-      // 临时模拟密码修改逻辑
+      // temporary simulation of password change logic
       if (passwordData.currentPassword === 'admin123') {
         return { success: true };
       }

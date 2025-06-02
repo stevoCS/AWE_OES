@@ -61,29 +61,44 @@ const AdminOrderManagement = () => {
     try {
       console.log('Updating order status:', orderId, 'to', newStatus);
       
+      // if the status update is already in progress, ignore the request
+      if (isProcessing) {
+        console.log('Status update already in progress, ignoring request');
+        return;
+      }
+      
+      setIsProcessing(true);
+      
       // Call the correct updateStatus method
       const response = await ordersApi.updateStatus(orderId, newStatus);
       
       if (response.success) {
         console.log('Order status updated successfully');
         
-        // Update local state
+        // only update local state, not reload all data
         setOrders(prevOrders => prevOrders.map(order => 
           order.id === orderId ? { ...order, status: newStatus } : order
         ));
         
         // Show success message
-        setNotification({ type: 'success', text: `Order ${orderId} status updated to ${newStatus}` });
+        setNotification({ 
+          type: 'success', 
+          message: `Order ${orderId} status updated to ${newStatus}` 
+        });
         setTimeout(() => setNotification(null), 3000);
         
-        // Reload order data to ensure synchronization
-        await loadOrders();
       } else {
         throw new Error(response.message || 'Failed to update order status');
       }
     } catch (error) {
       console.error('Failed to update order status:', error);
-      setNotification({ type: 'error', text: `Failed to update order status: ${error.message}` });
+      setNotification({ 
+        type: 'error', 
+        message: `Failed to update order status: ${error.message}` 
+      });
+      setTimeout(() => setNotification(null), 5000);
+    } finally {
+      setIsProcessing(false);
     }
   };
 
