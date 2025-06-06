@@ -20,12 +20,11 @@ export const CartProvider = ({ children }) => {
       console.log('Cart API response:', response);
       
       if (response.success && response.data && response.data.items) {
-        // 需要获取每个产品的完整信息，包括图片
-        
+        // need to get the full information of each product, including images
         const serverCartItems = await Promise.all(
           response.data.items.map(async (item) => {
             try {
-              // 获取产品的完整信息
+              // get the full information of the product
               const productResponse = await productsAPI.getProduct(item.product_id);
               if (productResponse.success && productResponse.data) {
                 const productData = productResponse.data;
@@ -34,30 +33,30 @@ export const CartProvider = ({ children }) => {
                   name: item.product_name,
                   price: item.product_price,
                   quantity: item.quantity,
-                  // 保留完整的产品信息，特别是图片数据
+                  // keep the full product information, especially the image data
                   images: productData.images || [],
                   image: productData.image || productData.images?.[0] || '/api/placeholder/150/150',
                   category: productData.category || 'Electronics',
                   description: productData.description || '',
-                  // 保留其他产品属性
+                  // keep other product attributes
                   ...productData
                 };
               } else {
-                // 如果无法获取产品详情，使用基本信息
+                // if cannot get the product details, use the basic information
                 console.warn('Could not fetch product details for:', item.product_id);
                 return {
                   id: item.product_id,
                   name: item.product_name,
                   price: item.product_price,
                   quantity: item.quantity,
-                  images: [], // 空数组，getProductImageUrl会处理
+                  images: [], // empty array, getProductImageUrl will handle it
                   image: '/api/placeholder/150/150',
                   category: 'Electronics'
                 };
               }
             } catch (error) {
               console.error('Error fetching product details for', item.product_id, ':', error);
-              // 降级处理：使用基本信息
+              // downgrade handling: use the basic information
               return {
                 id: item.product_id,
                 name: item.product_name,

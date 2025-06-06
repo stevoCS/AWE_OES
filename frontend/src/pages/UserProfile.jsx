@@ -39,7 +39,7 @@ const UserProfile = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState({ type: '', text: '' });
 
-  // 密码更改状态
+  // password change status
   const [passwordForm, setPasswordForm] = useState({
     currentPassword: '',
     newPassword: '',
@@ -142,16 +142,16 @@ const UserProfile = () => {
     }
   };
 
-  // 密码更改处理函数
+  // password change handler
   const handlePasswordFormChange = (field, value) => {
     setPasswordForm(prev => ({ ...prev, [field]: value }));
     
-    // 清除对应字段的错误
+    // clear error for the corresponding field
     if (passwordErrors[field]) {
       setPasswordErrors(prev => ({ ...prev, [field]: '' }));
     }
     
-    // 清除消息
+    // clear message
     if (passwordMessage.text) {
       setPasswordMessage({ type: '', text: '' });
     }
@@ -161,24 +161,24 @@ const UserProfile = () => {
     const errors = {};
     
     if (!passwordForm.currentPassword) {
-      errors.currentPassword = '请输入当前密码';
+      errors.currentPassword = 'Please enter your current password';
     }
     
     if (!passwordForm.newPassword) {
-      errors.newPassword = '请输入新密码';
+      errors.newPassword = 'Please enter a new password';
     } else if (passwordForm.newPassword.length < 6) {
-      errors.newPassword = '新密码至少需要6个字符';
+      errors.newPassword = 'New password must be at least 6 characters';
     }
     
     if (!passwordForm.confirmPassword) {
-      errors.confirmPassword = '请确认新密码';
+      errors.confirmPassword = 'Please confirm the new password';
     } else if (passwordForm.newPassword !== passwordForm.confirmPassword) {
-      errors.confirmPassword = '新密码和确认密码不匹配';
+      errors.confirmPassword = 'New password and confirm password do not match';
     }
     
     if (passwordForm.currentPassword && passwordForm.newPassword && 
         passwordForm.currentPassword === passwordForm.newPassword) {
-      errors.newPassword = '新密码不能与当前密码相同';
+      errors.newPassword = 'New password cannot be the same as the current password';
     }
     
     setPasswordErrors(errors);
@@ -198,7 +198,7 @@ const UserProfile = () => {
     try {
       await authAPI.changePassword(passwordForm.currentPassword, passwordForm.newPassword);
       
-      // 成功后重置表单
+      // reset form after success
       setPasswordForm({
         currentPassword: '',
         newPassword: '',
@@ -207,10 +207,10 @@ const UserProfile = () => {
       
       setPasswordMessage({
         type: 'success',
-        text: '密码更改成功！'
+        text: 'Password changed successfully!'
       });
       
-      // 3秒后清除成功消息
+      // clear success message after 3 seconds
       setTimeout(() => {
         setPasswordMessage({ type: '', text: '' });
       }, 3000);
@@ -219,7 +219,7 @@ const UserProfile = () => {
       console.error('Password change failed:', error);
       setPasswordMessage({
         type: 'error',
-        text: error.message || '密码更改失败，请重试'
+        text: error.message || 'Password change failed, please try again'
       });
     } finally {
       setIsChangingPassword(false);

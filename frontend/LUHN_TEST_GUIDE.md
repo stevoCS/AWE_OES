@@ -1,85 +1,76 @@
-# AWE Electronics - Luhn算法支付测试指南
+# AWE Electronics - Luhn Algorithm Payment Testing Guide
 
-## 概述
-我们的支付系统现在使用标准的Luhn算法（模10算法）来验证银行卡号的有效性。这确保了更真实的支付验证体验。
+## Overview
+Our payment system now uses the standard Luhn algorithm (modulus 10 algorithm) to validate credit card numbers. This ensures a more realistic payment verification experience.
 
-## Luhn算法验证规则
+## Luhn Algorithm Validation Rules
 
-### 1. 卡号格式要求
-- 卡号长度：13-19位数字
-- 只包含数字字符
-- 必须通过Luhn算法校验和
+### 1. Card Number Format Requirements
+- Card number length: 13-19 digits
+- Contains only numeric characters
+- Must pass Luhn algorithm checksum
 
-### 2. 支持的卡片类型
-- **Visa**: 以4开头，13/16/19位
-- **Mastercard**: 以51-55或22-27开头，16位
-- **American Express**: 以34或37开头，15位
-- **Discover**: 以6011或65开头，16位
-- **JCB**: 以35开头，16位
+### 2. Supported Card Types
+- **Visa**: Starts with 4, 13/16/19 digits
+- **Mastercard**: Starts with 51-55 or 22-27, 16 digits
+- **American Express**: Starts with 34 or 37, 15 digits
+- **Discover**: Starts with 6011 or 65, 16 digits
+- **JCB**: Starts with 35, 16 digits
 
-## 测试用例
-
-### 有效卡号（会成功）
+## Test Cases
+### Valid Card Numbers (Will Succeed)
 ```
-4532015112830366 - Visa (16位)
-4000056655665556 - Visa (16位)
-5555555555554444 - Mastercard (16位)
-5105105105105100 - Mastercard (16位)
-378282246310005 - American Express (15位)
-371449635398431 - American Express (15位)
-6011111111111117 - Discover (16位)
-6011000990139424 - Discover (16位)
-3530111333300000 - JCB (16位)
-3566002020360505 - JCB (16位)
+4532015112830366 - Visa 
+4000056655665556 - Visa 
+5555555555554444 - Mastercard 
+5105105105105100 - Mastercard 
+
 ```
 
-### 无效卡号（会失败）
+### Invalid Card Numbers (Will Fail)
 ```
-4532015112830367 - 未通过Luhn验证
-1234567890123456 - 未通过Luhn验证
-4532-0151-1283-0366 - 包含非数字字符
-45320151128303 - 长度不足
-45320151128303661234 - 长度过长
+4532015112830367 - 
+
 ```
 
-### 特殊失败条件
+### Special Failure Conditions
 
-#### 1. 卡号末位数字规则
-- 末位是0或5：模拟余额不足
-- 末位是1或6：模拟银行拒绝
+#### 1. Card Number Last Digit Rules
+- Last digit is 0 or 5: Simulates insufficient balance
+- Last digit is 1 or 6: Simulates bank rejection
 
-#### 2. CVV特殊值
-- `000`: 触发支付失败
-- `999`: 触发支付失败
+#### 2. CVV Special Values
+- `000`: Triggers payment failure
+- `999`: Triggers payment failure
 
-#### 3. 持卡人姓名关键词
-- 包含"fail"或"decline"：触发支付失败
+#### 3. Cardholder Name Keywords
+- Contains "fail" or "decline": Triggers payment failure
 
-#### 4. CVV长度验证
-- 美国运通卡（15位）：需要4位CVV
-- 其他卡片：需要3位CVV
+#### 4. CVV Length Validation
+- American Express (15 digits): Requires 4-digit CVV
+- Other cards: Requires 3-digit CVV
 
-## 测试建议
+## Testing Recommendations
 
-### 成功支付测试
-1. 使用有效的Luhn算法卡号（如上述列表）
-2. 确保卡号末位不是0、1、5、6
-3. 使用正常的CVV（123、456等）
-4. 持卡人姓名使用正常名称
+### Successful Payment Testing
+1. Use valid Luhn algorithm card numbers (as listed above)
+2. Ensure card number does not end with 0, 1, 5, or 6
+3. Use normal CVV values (123, 456, etc.)
+4. Use normal cardholder names
 
-### 失败支付测试
-1. 使用无效的Luhn算法卡号
-2. 使用末位为0、1、5、6的有效卡号
-3. 使用特殊CVV值（000、999）
-4. 持卡人姓名包含"fail"或"decline"
+### Failed Payment Testing
+1. Use invalid Luhn algorithm card numbers
+2. Use valid card numbers ending with 0, 1, 5, or 6
+3. Use special CVV values (000, 999)
+4. Include "fail" or "decline" in cardholder name
 
-## 算法说明
+## Algorithm Explanation
 
-Luhn算法步骤：
-1. 从右到左遍历卡号
-2. 对偶数位置的数字乘以2
-3. 如果结果大于9，则减去9
-4. 将所有数字相加
-5. 如果总和能被10整除，则卡号有效
+Luhn Algorithm Steps:
+1. Traverse the card number from right to left
+2. Multiply digits in even positions by 2
+3. If the result is greater than 9, subtract 9
+4. Sum all the digits
+5. If the total is divisible by 10, the card number is valid
 
-这确保了我们的支付系统使用真实的银行卡验证标准。 
+This ensures our payment system uses real bank card validation standards.

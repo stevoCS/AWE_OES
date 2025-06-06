@@ -28,23 +28,23 @@ export const Login = () => {
     setIsLoading(true);
 
     try {
-      // 首先尝试admin登录
+      // first try admin login
       const authResult = await authLogin({ email, password });
       
       if (authResult.success) {
-        // 如果是admin用户，重定向到admin dashboard
+        // if admin user, redirect to admin dashboard
         if (authResult.user.is_admin) {
           navigate('/admin');
           return;
         }
       }
 
-      // 如果不是admin或admin登录失败，尝试普通用户登录
+      // if not admin or admin login failed, try normal user login
       const hasCartItems = getCartItemsCount() > 0;
       const userResult = await userLogin(email, password);
       
       if (userResult.success) {
-        // 检查是否有重定向参数
+        // check if there is a redirect parameter
         const from = location.state?.from?.pathname || (hasCartItems ? '/cart?from=auth' : '/dashboard');
         navigate(from);
       } else {
@@ -58,7 +58,7 @@ export const Login = () => {
   };
 
   const handleSignUp = () => {
-    // Jump to the registration page.
+    // jump to the registration page.
     navigate('/register');
   };
 

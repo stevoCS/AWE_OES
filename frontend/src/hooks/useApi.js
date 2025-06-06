@@ -31,7 +31,7 @@ export const useApi = (apiCall, dependencies = [], options = {}) => {
   return { data, loading, error, execute, refetch: execute };
 };
 
-// 订单相关hooks
+// order related hooks
 export const useOrders = (params = {}) => {
   return useApi(() => apiService.getOrders(params), [JSON.stringify(params)]);
 };
@@ -46,7 +46,7 @@ export const useOrderStats = (period = '30d') => {
   return useApi(() => apiService.getOrderStats(period), [period]);
 };
 
-// 产品相关hooks
+// product related hooks
 export const useProducts = (params = {}) => {
   return useApi(() => apiService.getProducts(params), [JSON.stringify(params)]);
 };
@@ -65,7 +65,7 @@ export const useBrands = () => {
   return useApi(() => apiService.getBrands(), []);
 };
 
-// 客户相关hooks
+// customer related hooks
 export const useCustomers = (params = {}) => {
   return useApi(() => apiService.getCustomers(params), [JSON.stringify(params)]);
 };
@@ -86,7 +86,7 @@ export const useCustomerStats = () => {
   return useApi(() => apiService.getCustomerStats(), []);
 };
 
-// 仪表板相关hooks
+// dashboard related hooks
 export const useDashboardStats = () => {
   return useApi(() => apiService.getDashboardStats(), []);
 };
@@ -107,7 +107,7 @@ export const useRevenueTrends = (period = '7d') => {
   return useApi(() => apiService.getRevenueTrends(period), [period]);
 };
 
-// 设置相关hooks
+// settings related hooks
 export const useSystemSettings = () => {
   return useApi(() => apiService.getSystemSettings(), []);
 };
@@ -120,7 +120,7 @@ export const useNotifications = (params = {}) => {
   return useApi(() => apiService.getNotifications(params), [JSON.stringify(params)]);
 };
 
-// 报表相关hooks
+// report related hooks
 export const useSalesReport = (params = {}) => {
   return useApi(() => apiService.getSalesReport(params), [JSON.stringify(params)], {
     immediate: false
@@ -145,7 +145,7 @@ export const useInventoryReport = () => {
   });
 };
 
-// 变更操作hooks
+// change operation hooks
 export const useMutation = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -167,7 +167,7 @@ export const useMutation = () => {
   return { mutate, loading, error };
 };
 
-// 分页hook
+// pagination hook
 export const usePagination = (initialPage = 1, initialPageSize = 10) => {
   const [page, setPage] = useState(initialPage);
   const [pageSize, setPageSize] = useState(initialPageSize);
@@ -186,7 +186,7 @@ export const usePagination = (initialPage = 1, initialPageSize = 10) => {
 
   const changePageSize = useCallback((newPageSize) => {
     setPageSize(newPageSize);
-    setPage(1); // 重置到第一页
+    setPage(1); // reset to the first page
   }, []);
 
   return {
@@ -203,7 +203,7 @@ export const usePagination = (initialPage = 1, initialPageSize = 10) => {
   };
 };
 
-// 搜索和筛选hook
+// search and filter hook
 export const useFilters = (initialFilters = {}) => {
   const [filters, setFilters] = useState(initialFilters);
 
